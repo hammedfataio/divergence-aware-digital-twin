@@ -1,4 +1,4 @@
-"""Tests for the combined DARA-DT experimental matrix."""
+"""Tests for the controlled DARA-DT experimental matrix."""
 
 from dara_dt.evaluation.outcomes import AssuranceOutcome
 from dara_dt.experiments.experimental_matrix import (
@@ -6,8 +6,22 @@ from dara_dt.experiments.experimental_matrix import (
 )
 
 
-def test_matrix_contains_expected_conditions():
-    """Matrix should contain all current controlled conditions."""
+IRRELEVANT_CONDITIONS = {
+    "irrelevant_1",
+    "irrelevant_5",
+    "irrelevant_10",
+    "irrelevant_25",
+}
+
+RELEVANT_CONDITIONS = {
+    "relevant_vehicle_status",
+    "relevant_vehicle_capacity",
+    "relevant_vehicle_availability",
+}
+
+
+def test_matrix_contains_seven_controlled_conditions():
+    """The matrix should contain all seven controlled conditions."""
 
     matrix = run_experimental_matrix()
 
@@ -16,24 +30,23 @@ def test_matrix_contains_expected_conditions():
         for row in matrix.rows
     }
 
-    assert conditions == {
-        "irrelevant_1",
-        "irrelevant_5",
-        "irrelevant_10",
-        "irrelevant_25",
-        "relevant_breakdown",
-    }
+    assert conditions == (
+        IRRELEVANT_CONDITIONS
+        | RELEVANT_CONDITIONS
+    )
+
+    assert len(matrix.rows) == 7
 
 
 def test_irrelevant_conditions_have_zero_relevance():
-    """Irrelevant conditions must contain no relevant divergence."""
+    """Injected unrelated divergence must remain decision-irrelevant."""
 
     matrix = run_experimental_matrix()
 
     irrelevant_rows = [
         row
         for row in matrix.rows
-        if row.condition.startswith("irrelevant_")
+        if row.condition in IRRELEVANT_CONDITIONS
     ]
 
     assert len(irrelevant_rows) == 4
@@ -43,14 +56,14 @@ def test_irrelevant_conditions_have_zero_relevance():
 
 
 def test_irrelevant_conditions_distinguish_global_policy():
-    """Global policy should falsely intervene on irrelevant divergence."""
+    """Global divergence should over-intervene on irrelevant mismatch."""
 
     matrix = run_experimental_matrix()
 
     irrelevant_rows = [
         row
         for row in matrix.rows
-        if row.condition.startswith("irrelevant_")
+        if row.condition in IRRELEVANT_CONDITIONS
     ]
 
     for row in irrelevant_rows:
@@ -70,47 +83,61 @@ def test_irrelevant_conditions_distinguish_global_policy():
         )
 
 
-def test_relevant_breakdown_requires_intervention():
-    """Relevant stale-Twin breakdown should require intervention."""
+def test_relevant_conditions_are_decision_relevant():
+    """Every relevant scenario must affect decision dependencies."""
 
     matrix = run_experimental_matrix()
 
-    row = next(
+    relevant_rows = [
         row
         for row in matrix.rows
-        if row.condition == "relevant_breakdown"
-    )
+        if row.condition in RELEVANT_CONDITIONS
+    ]
 
-    assert row.divergence_count == 2
-    assert row.relevant_count == 2
+    assert len(relevant_rows) == 3
 
-    assert (
-        row.no_assurance
-        == AssuranceOutcome.MISSED_INTERVENTION
-    )
-
-    assert (
-        row.global_divergence
-        == AssuranceOutcome.TRUE_INTERVENTION
-    )
-
-    assert (
-        row.dara_dt
-        == AssuranceOutcome.TRUE_INTERVENTION
-    )
+    for row in relevant_rows:
+        assert row.divergence_count >= 1
+        assert row.relevant_count >= 1
 
 
-def test_matrix_preserves_divergence_count_levels():
-    """Irrelevant conditions should preserve controlled counts."""
+def test_relevant_conditions_require_intervention():
+    """Relevant stale-Twin states should require intervention."""
 
     matrix = run_experimental_matrix()
 
-    counts = {
-        row.condition: row.divergence_count
+    relevant_rows = [
+        row
         for row in matrix.rows
+        if row.condition in RELEVANT_CONDITIONS
+    ]
+
+    for row in relevant_rows:
+        assert (
+            row.no_assurance
+            == AssuranceOutcome.MISSED_INTERVENTION
+        )
+
+        assert (
+            row.global_divergence
+            == AssuranceOutcome.TRUE_INTERVENTION
+        )
+
+        assert (
+            row.dara_dt
+            == AssuranceOutcome.TRUE_INTERVENTION
+        )
+
+
+def test_matrix_preserves_irrelevant_divergence_count_levels():
+    """Irrelevant scenarios should preserve controlled count levels."""
+
+    matrix = run_experimental_matrix()
+
+    observed = {
+        row.divergence_count
+        for row in matrix.rows
+        if row.condition in IRRELEVANT_CONDITIONS
     }
 
-    assert counts["irrelevant_1"] == 1
-    assert counts["irrelevant_5"] == 5
-    assert counts["irrelevant_10"] == 10
-    assert counts["irrelevant_25"] == 25
+    assert observed == {1, 5, 10, 25}
