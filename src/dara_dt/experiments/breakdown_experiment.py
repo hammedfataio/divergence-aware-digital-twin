@@ -114,9 +114,9 @@ def run_breakdown_experiment() -> BreakdownExperimentResult:
     )
 
     outcome = OutcomeEvaluator().evaluate(
-        assurance,
-        ground_truth,
-    )
+    ground_truth,
+    assurance,
+)
 
     return BreakdownExperimentResult(
         decision=decision,
