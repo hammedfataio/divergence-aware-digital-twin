@@ -7,7 +7,7 @@ from dara_dt.assurance.baselines import (
     NoAssurancePolicy,
 )
 from dara_dt.assurance.policy import DivergenceAwarePolicy
-from dara_dt.decision.controller import DecisionController
+from dara_dt.decision.controller import LogisticsDecisionController
 from dara_dt.divergence.detector import DivergenceDetector
 from dara_dt.divergence.relevance import RelevanceAnalyzer
 from dara_dt.evaluation.outcomes import (
@@ -40,12 +40,13 @@ def _evaluate(
 ) -> RelevantScenarioResult:
     """Evaluate one prepared physical/Twin state."""
 
-    controller = DecisionController()
+    controller = LogisticsDecisionController()
 
-    decision = controller.select_vehicle(
+    decision = controller.assign_vehicle(
         twin=twin,
         order_id="order_00",
         timestamp=environment.time,
+        decision_id=f"{scenario}_decision",
     )
 
     detector = DivergenceDetector()
