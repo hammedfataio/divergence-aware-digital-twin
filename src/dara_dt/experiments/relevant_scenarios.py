@@ -52,8 +52,10 @@ def _evaluate(
 
     detector = DivergenceDetector()
 
+    physical_state = environment.physical_state()
+
     divergences = detector.detect(
-        physical_state=environment.physical_state(),
+        physical_state=physical_state,
         twin_state=twin.state,
     )
 
@@ -66,9 +68,9 @@ def _evaluate(
         divergences=divergences,
     )
 
-    ground_truth = PhysicalDecisionValidator().evaluate(
+    ground_truth = PhysicalDecisionValidator().ground_truth(
         decision=decision,
-        physical_state=environment.physical_state(),
+        physical_state=physical_state,
     )
 
     no_assurance = NoAssurancePolicy().evaluate(
