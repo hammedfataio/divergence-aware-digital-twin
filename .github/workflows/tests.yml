@@ -32,3 +32,6 @@ jobs:
 
       - name: Run controlled experimental matrix
         run: uv run python -m dara_dt.experiments.run_matrix
+
+      - name: Run aggregate matrix metrics
+        run: uv run python -m dara_dt.experiments.run_metrics
