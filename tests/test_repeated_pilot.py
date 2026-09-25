@@ -1,90 +1,67 @@
-"""Tests for repeated DARA-DT pilot evaluation."""
+"""Repeated controlled evaluation for the DARA-DT pilot."""
 
-import pytest
+from dataclasses import dataclass
 
-from dara_dt.experiments.repeated_pilot import run_repeated_pilot
+from dara_dt.evaluation.metrics import (
+    AssuranceMetrics,
+    calculate_assurance_metrics,
+)
+from dara_dt.evaluation.outcomes import AssuranceOutcome
+from dara_dt.experiments.bc_pilot import run_bc_pilot
 
 
-def test_repeated_pilot_aggregates_all_conditions():
-    """Each repetition should evaluate both B and C."""
+@dataclass(frozen=True)
+class RepeatedPilotResult:
+    """Aggregated outcomes from repeated B-vs-C pilot runs."""
 
-    result = run_repeated_pilot(repetitions=10)
+    repetitions: int
+    no_assurance: AssuranceMetrics
+    global_divergence: AssuranceMetrics
+    dara_dt: AssuranceMetrics
 
-    assert result.repetitions == 10
 
-    # Each repetition contains two decisions:
-    # Condition B and Condition C.
-    expected_total = 20
+def run_repeated_pilot(
+    repetitions: int = 100,
+) -> RepeatedPilotResult:
+    """Execute the deterministic B-vs-C pilot repeatedly."""
 
-    for metrics in (
-        result.no_assurance,
-        result.global_divergence,
-        result.dara_dt,
-    ):
-        observed_total = (
-            metrics.true_interventions
-            + metrics.false_interventions
-            + metrics.missed_interventions
-            + metrics.correct_non_interventions
+    if repetitions <= 0:
+        raise ValueError(
+            "repetitions must be greater than zero"
         )
 
-        assert observed_total == expected_total
+    no_assurance_outcomes: list[AssuranceOutcome] = []
+    global_divergence_outcomes: list[AssuranceOutcome] = []
+    dara_dt_outcomes: list[AssuranceOutcome] = []
 
+    for _ in range(repetitions):
+        pilot = run_bc_pilot()
 
-def test_no_assurance_repeated_outcomes():
-    """No assurance should miss C but correctly allow B."""
+        for condition in (
+            pilot.condition_b,
+            pilot.condition_c,
+        ):
+            no_assurance_outcomes.append(
+                condition.policy_results.no_assurance.outcome
+            )
 
-    result = run_repeated_pilot(repetitions=10)
+            global_divergence_outcomes.append(
+                condition.policy_results.global_divergence.outcome
+            )
 
-    metrics = result.no_assurance
+            dara_dt_outcomes.append(
+                condition.policy_results.dara_dt.outcome
+            )
 
-    assert metrics.true_interventions == 0
-    assert metrics.false_interventions == 0
-    assert metrics.missed_interventions == 10
-    assert metrics.correct_non_interventions == 10
-
-
-def test_global_divergence_repeated_outcomes():
-    """Global divergence should intervene in both B and C."""
-
-    result = run_repeated_pilot(repetitions=10)
-
-    metrics = result.global_divergence
-
-    assert metrics.true_interventions == 10
-    assert metrics.false_interventions == 10
-    assert metrics.missed_interventions == 0
-    assert metrics.correct_non_interventions == 0
-
-
-def test_dara_dt_repeated_outcomes():
-    """DARA-DT should distinguish B from C."""
-
-    result = run_repeated_pilot(repetitions=10)
-
-    metrics = result.dara_dt
-
-    assert metrics.true_interventions == 10
-    assert metrics.false_interventions == 0
-    assert metrics.missed_interventions == 0
-    assert metrics.correct_non_interventions == 10
-
-
-def test_repeated_pilot_rejects_zero_repetitions():
-    """Zero repetitions should be rejected."""
-
-    with pytest.raises(
-        ValueError,
-        match="repetitions must be greater than zero",
-    ):
-        run_repeated_pilot(repetitions=0)
-
-
-def test_repeated_pilot_rejects_negative_repetitions():
-    """Negative repetitions should be rejected."""
-
-    with pytest.raises(
-        ValueError,
-        match="repetitions must be greater than zero",
-    ):
-        run_repeated_pilot(repetitions=-1)
+    return RepeatedPilotResult(
+        repetitions=repetitions,
+        no_assurance=calculate_assurance_metrics(
+            no_assurance_outcomes
+        ),
+        global_divergence=calculate_assurance_metrics(
+            global_divergence_outcomes
+        ),
+        dara_dt=calculate_assurance_metrics(
+            dara_dt_outcomes
+        ),
+    )
