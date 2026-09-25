@@ -22,7 +22,7 @@ def create_environment(
             capacity=capacity,
         )
     )
-
+    
     environment.add_order(
         Order(
             order_id="order_42",
