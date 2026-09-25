@@ -4,7 +4,6 @@ from dataclasses import dataclass
 
 from dara_dt.decision.controller import LogisticsDecisionController
 from dara_dt.divergence.detector import DivergenceDetector
-from dara_dt.evaluation.outcomes import OutcomeResult
 from dara_dt.evaluation.validity import PhysicalDecisionValidator
 from dara_dt.experiments.policy_comparison import (
     PolicyComparisonResult,
@@ -34,6 +33,8 @@ class BCPilotResult:
 
 
 def _build_environment() -> LogisticsEnvironment:
+    """Create the common physical logistics environment."""
+
     environment = LogisticsEnvironment()
 
     environment.add_vehicle(
@@ -73,19 +74,33 @@ def _build_environment() -> LogisticsEnvironment:
 
 
 def _run_condition_b() -> PilotConditionResult:
-    """High divergence, low decision relevance."""
+    """Run Condition B: divergence exists but is decision-irrelevant."""
 
     environment = _build_environment()
 
-    # Ensure vehicle_07 is the only vehicle capable of serving
-    # the order. Divergence can then be introduced on unrelated
-    # vehicles without affecting the selected decision.
+    # Make vehicle_07 the only vehicle capable of serving the order.
+    #
+    # This is important because the controller deterministically selects
+    # an eligible vehicle. By reducing the capacities of vehicle_03 and
+    # vehicle_04 before synchronisation, vehicle_07 becomes the selected
+    # vehicle for the decision.
     environment.get_vehicle("vehicle_03").capacity = 1.0
     environment.get_vehicle("vehicle_04").capacity = 1.0
 
     twin = DigitalTwin()
+    twin.synchronise(environment.physical_state())
 
-    # Create multiple mismatches on vehicles unrelated to the decision.
+    controller = LogisticsDecisionController()
+
+    decision = controller.assign_vehicle(
+        twin=twin,
+        order_id="order_42",
+        timestamp=environment.time,
+        decision_id="decision_b",
+    )
+
+    # Introduce divergence only on vehicles that are NOT used by
+    # the current decision.
     twin.update_vehicle(
         "vehicle_03",
         location="node_99",
@@ -103,6 +118,7 @@ def _run_condition_b() -> PilotConditionResult:
         twin.state,
     )
 
+    # Ground truth is derived independently from the physical state.
     validator = PhysicalDecisionValidator()
 
     ground_truth = validator.ground_truth(
@@ -110,7 +126,7 @@ def _run_condition_b() -> PilotConditionResult:
         environment.physical_state(),
     )
 
-    results = compare_policies(
+    policy_results = compare_policies(
         decision,
         divergences,
         ground_truth,
@@ -119,28 +135,38 @@ def _run_condition_b() -> PilotConditionResult:
     return PilotConditionResult(
         condition="B_HIGH_DIVERGENCE_LOW_RELEVANCE",
         divergence_count=len(divergences),
-        policy_results=results,
+        policy_results=policy_results,
     )
 
 
 def _run_condition_c() -> PilotConditionResult:
-    """Low divergence, high decision relevance."""
+    """Run Condition C: divergence directly affects the decision."""
 
     environment = _build_environment()
 
-    # Force the controller to select vehicle_07.
+    # Again make vehicle_07 the only vehicle capable of serving
+    # the order.
     environment.get_vehicle("vehicle_03").capacity = 1.0
     environment.get_vehicle("vehicle_04").capacity = 1.0
 
     twin = DigitalTwin()
     twin.synchronise(environment.physical_state())
 
-    # Physical breakdown occurs after synchronisation.
-    # The Digital Twin therefore becomes stale.
+    # The physical vehicle breaks down AFTER Twin synchronisation.
+    #
+    # Physical reality:
+    #     vehicle_07 = broken_down / unavailable
+    #
+    # Digital Twin:
+    #     vehicle_07 = operational / available
+    #
+    # The Twin is therefore stale.
     environment.get_vehicle("vehicle_07").mark_broken_down()
 
     controller = LogisticsDecisionController()
 
+    # The controller reads the stale Digital Twin rather than the
+    # physical system, so it still believes vehicle_07 is usable.
     decision = controller.assign_vehicle(
         twin=twin,
         order_id="order_42",
@@ -155,6 +181,8 @@ def _run_condition_c() -> PilotConditionResult:
         twin.state,
     )
 
+    # Ground truth comes from physical reality, independently of
+    # the assurance mechanism.
     validator = PhysicalDecisionValidator()
 
     ground_truth = validator.ground_truth(
@@ -162,7 +190,7 @@ def _run_condition_c() -> PilotConditionResult:
         environment.physical_state(),
     )
 
-    results = compare_policies(
+    policy_results = compare_policies(
         decision,
         divergences,
         ground_truth,
@@ -171,12 +199,12 @@ def _run_condition_c() -> PilotConditionResult:
     return PilotConditionResult(
         condition="C_LOW_DIVERGENCE_HIGH_RELEVANCE",
         divergence_count=len(divergences),
-        policy_results=results,
+        policy_results=policy_results,
     )
 
 
 def run_bc_pilot() -> BCPilotResult:
-    """Run the controlled B-vs-C pilot experiment."""
+    """Run both controlled B-vs-C pilot conditions."""
 
     return BCPilotResult(
         condition_b=_run_condition_b(),
