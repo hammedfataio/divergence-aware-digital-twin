@@ -8,8 +8,9 @@ from dara_dt.assurance.baselines import (
 )
 from dara_dt.assurance.policy import DivergenceAwarePolicy
 from dara_dt.decision.controller import LogisticsDecisionController
+from dara_dt.decision.dependency import DependencyMapper
 from dara_dt.divergence.detector import DivergenceDetector
-from dara_dt.divergence.relevance import RelevanceAnalyzer
+from dara_dt.divergence.relevance import DecisionRelevanceAnalyzer
 from dara_dt.evaluation.outcomes import (
     AssuranceOutcome,
     OutcomeEvaluator,
@@ -56,7 +57,11 @@ def _evaluate(
         twin_state=twin.state,
     )
 
-    relevance = RelevanceAnalyzer().analyse(
+    relevance_analyzer = DecisionRelevanceAnalyzer(
+        DependencyMapper()
+    )
+
+    relevance = relevance_analyzer.analyse(
         decision=decision,
         divergences=divergences,
     )
