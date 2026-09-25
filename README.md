@@ -422,14 +422,67 @@ The implementation structure will be expanded only after the benchmark and metho
 
 **Stage 1 — Research Foundation**
 
-Current work focuses on:
+## Project Status
 
-* targeted literature review;
-* novelty and research-gap validation;
-* research-question refinement;
-* benchmark design;
-* definition of physical–digital divergence;
-* definition of experimental baselines.
+**Current Stage: Stage 2 — Research Prototype Implementation**
+
+DARA-DT has progressed from research design into an executable and automatically tested research prototype.
+
+### Completed Research Foundation
+
+- Research problem and gap definition
+- Research questions and hypothesis
+- Literature and novelty evidence mapping
+- Closest-prior-work analysis
+- System architecture
+- Research methodology
+- Benchmark and falsification protocol
+- D0–D5 divergence scenario specification
+
+### Implemented Prototype Components
+
+- Physical logistics state models
+- Simulation environment
+- Independent Digital Twin state representation
+- Physical–digital state synchronisation
+- Physical–digital divergence detection
+- AI decision representation
+- Decision dependency mapping
+- Decision-relevant divergence analysis
+- Runtime assurance authority model
+- Initial divergence-aware assurance policy
+- Automated unit and integration testing
+- GitHub Actions continuous integration
+
+### Current Executable Pipeline
+
+```text
+Physical Logistics System
+          │
+          │ physical state sₜ
+          ▼
+   Digital Twin Comparison
+          │
+          ▼
+   Divergence Detection
+          │
+          ▼
+    Detected Divergence
+          │
+          │
+AI Decision ──→ Dependency Mapping
+          │              │
+          └──────────────┘
+                 │
+                 ▼
+      Decision-Relevance Analysis
+                 │
+                 ▼
+        Runtime Assurance
+                 │
+          ┌──────┴──────┐
+          ▼             ▼
+        ALLOW          DEFER
 
 Implementation has not yet been treated as evidence of research contribution.
 
