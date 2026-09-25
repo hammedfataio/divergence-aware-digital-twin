@@ -77,17 +77,13 @@ def _run_condition_b() -> PilotConditionResult:
 
     environment = _build_environment()
 
+    # Ensure vehicle_07 is the only vehicle capable of serving
+    # the order. Divergence can then be introduced on unrelated
+    # vehicles without affecting the selected decision.
+    environment.get_vehicle("vehicle_03").capacity = 1.0
+    environment.get_vehicle("vehicle_04").capacity = 1.0
+
     twin = DigitalTwin()
-    twin.synchronise(environment.physical_state())
-
-    controller = LogisticsDecisionController()
-
-    decision = controller.assign_vehicle(
-        twin=twin,
-        order_id="order_42",
-        timestamp=environment.time,
-        decision_id="decision_b",
-    )
 
     # Create multiple mismatches on vehicles unrelated to the decision.
     twin.update_vehicle(
