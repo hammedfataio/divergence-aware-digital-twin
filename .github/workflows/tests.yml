@@ -29,3 +29,6 @@ jobs:
 
       - name: Run B-vs-C pilot experiment
         run: uv run python -m dara_dt.experiments.run_pilot
+
+      - name: Run controlled experimental matrix
+        run: uv run python -m dara_dt.experiments.run_matrix
