@@ -3,47 +3,69 @@
 This module provides a baseline assurance strategy that decides whether to
 intervene using only the magnitude of detected physical-digital divergence.
 
-It deliberately ignores decision relevance. This allows experiments to test
-whether decision-relevant assurance provides useful information beyond a
-simple divergence-severity threshold.
+Decision relevance is intentionally ignored so that this policy can serve as
+a baseline for evaluating whether decision-relevant assurance provides useful
+information beyond divergence magnitude alone.
 """
 
 from dataclasses import dataclass
 
-from dara_dt.assurance.model import AssuranceAction
+from dara_dt.assurance.model import (
+    AssuranceDecision,
+    AuthorityState,
+)
+from dara_dt.decision.model import Decision
 from dara_dt.divergence.detector import Divergence
 
 
 @dataclass(frozen=True)
 class MagnitudeAssurancePolicy:
-    """Intervene when divergence magnitude exceeds a fixed threshold."""
+    """Intervene when numeric divergence exceeds a fixed threshold."""
 
     threshold: float
 
     def decide(
         self,
+        decision: Decision,
         divergences: list[Divergence],
-    ) -> AssuranceAction:
-        """Return an assurance action from divergence magnitude alone.
+    ) -> AssuranceDecision:
+        """Return an assurance decision using divergence magnitude alone."""
 
-        The policy defers when at least one detected divergence has a numeric
-        magnitude strictly greater than the configured threshold.
+        measurable_magnitudes = tuple(
+            magnitude
+            for divergence in divergences
+            if (magnitude := self._magnitude(divergence)) is not None
+        )
 
-        Decision dependencies and decision relevance are intentionally not
-        considered by this baseline.
-        """
+        exceeds_threshold = any(
+            magnitude > self.threshold
+            for magnitude in measurable_magnitudes
+        )
 
-        for divergence in divergences:
-            magnitude = self._magnitude(divergence)
+        if exceeds_threshold:
+            return AssuranceDecision(
+                decision_id=decision.decision_id,
+                authority=AuthorityState.DEFER,
+                reason=(
+                    "Numeric physical-digital divergence exceeds "
+                    f"the fixed threshold of {self.threshold}."
+                ),
+                relevant_divergence_count=0,
+            )
 
-            if magnitude is not None and magnitude > self.threshold:
-                return AssuranceAction.DEFER
-
-        return AssuranceAction.ALLOW
+        return AssuranceDecision(
+            decision_id=decision.decision_id,
+            authority=AuthorityState.ALLOW,
+            reason=(
+                "No numeric physical-digital divergence exceeds "
+                f"the fixed threshold of {self.threshold}."
+            ),
+            relevant_divergence_count=0,
+        )
 
     @staticmethod
     def _magnitude(divergence: Divergence) -> float | None:
-        """Return numeric absolute divergence magnitude when measurable."""
+        """Return absolute numeric divergence magnitude when measurable."""
 
         physical = divergence.physical_value
         twin = divergence.twin_value
