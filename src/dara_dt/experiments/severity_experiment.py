@@ -76,6 +76,7 @@ def _build_environment() -> LogisticsEnvironment:
             order_id="order_00",
             location="customer",
             demand=5,
+            deadline=10.0,
             status="waiting",
         )
     )
@@ -94,9 +95,9 @@ def run_severity_condition(
     twin = DigitalTwin()
     twin.synchronize(environment.snapshot())
 
-    # Change the physical system only after Twin synchronization.
-    # The Twin therefore retains capacity 10 while physical capacity
-    # follows the selected EXP-004 condition.
+    # Introduce physical divergence only after Twin synchronization.
+    # The Twin therefore retains the original capacity of 10 while
+    # physical capacity follows the selected EXP-004 condition.
     environment.vehicles["vehicle_00"].capacity = (
         condition.physical_capacity
     )
@@ -119,9 +120,11 @@ def run_severity_condition(
         twin_state=twin.state,
     )
 
-    relevance = DecisionRelevanceAnalyzer(
+    relevance_analyzer = DecisionRelevanceAnalyzer(
         DependencyMapper()
-    ).analyse(
+    )
+
+    relevance = relevance_analyzer.analyse(
         decision=decision,
         divergences=divergences,
     )
