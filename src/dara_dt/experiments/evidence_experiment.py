@@ -9,12 +9,12 @@ The experiment deliberately separates:
     Digital Twin state
     Runtime evidence
 
-Physical state is used for independent evaluation. The evidence-aware
-assurance policy receives only the runtime evidence defined by each
-experimental condition.
+Physical state is used only for independent evaluation. Runtime assurance
+operates on the evidence supplied by each experimental condition.
 
-The deterministic decision-impact baseline represents the EXP-005
-perfect-observation assumption and is retained as a comparison point.
+The deterministic decision-impact baseline preserves the perfect-evidence
+assumption used in EXP-005 so that EXP-006 can measure what changes when
+runtime evidence becomes imperfect.
 """
 
 from dataclasses import dataclass
@@ -37,22 +37,28 @@ from dara_dt.experiments.evidence_conditions import (
     build_evidence_conditions,
 )
 from dara_dt.impact.analyser import DecisionImpactAnalyser
+from dara_dt.impact.model import ImpactEvidence
 from dara_dt.simulation.environment import LogisticsEnvironment
 from dara_dt.simulation.order import Order
 from dara_dt.simulation.vehicle import Vehicle
 from dara_dt.twin.digital_twin import DigitalTwin
 
 
+CAPACITY_DEPENDENCY = "vehicle.capacity"
+
+
 @dataclass(frozen=True)
 class EvidenceExperimentResult:
-    """Result of one controlled EXP-006 condition."""
+    """Result produced for one EXP-006 evidence condition."""
 
     condition: EvidenceCondition
     decision_id: str
     runtime_evidence: tuple[RuntimeEvidence, ...]
+
     relevance_assurance: AssuranceDecision
     deterministic_impact_assurance: AssuranceDecision
     evidence_aware_assurance: AssuranceDecision
+
     relevance_outcome: OutcomeResult
     deterministic_impact_outcome: OutcomeResult
     evidence_aware_outcome: OutcomeResult
@@ -62,16 +68,12 @@ def _build_runtime_evidence(
     condition: EvidenceCondition,
     generator: EvidenceGenerator,
 ) -> tuple[RuntimeEvidence, ...]:
-    """Generate runtime evidence specified by an EXP-006 condition."""
-
-    common = {
-        "dependency": "vehicle.capacity",
-    }
+    """Generate the runtime evidence defined by a condition."""
 
     if condition.evidence_type == EvidenceConditionType.ACCURATE:
         return (
             generator.accurate(
-                **common,
+                dependency=CAPACITY_DEPENDENCY,
                 physical_value=condition.physical_capacity,
                 timestamp=condition.observation_timestamp,
             ),
@@ -80,7 +82,7 @@ def _build_runtime_evidence(
     if condition.evidence_type == EvidenceConditionType.NOISY:
         if condition.observed_capacity is None:
             raise ValueError(
-                "Noisy evidence condition requires an observed capacity."
+                "Noisy evidence requires an observed capacity."
             )
 
         error = (
@@ -90,7 +92,7 @@ def _build_runtime_evidence(
 
         return (
             generator.noisy(
-                **common,
+                dependency=CAPACITY_DEPENDENCY,
                 physical_value=condition.physical_capacity,
                 error=error,
                 timestamp=condition.observation_timestamp,
@@ -101,12 +103,12 @@ def _build_runtime_evidence(
     if condition.evidence_type == EvidenceConditionType.STALE:
         if condition.observed_capacity is None:
             raise ValueError(
-                "Stale evidence condition requires an observed capacity."
+                "Stale evidence requires an observed capacity."
             )
 
         return (
             generator.stale(
-                **common,
+                dependency=CAPACITY_DEPENDENCY,
                 stale_value=condition.observed_capacity,
                 observation_timestamp=condition.observation_timestamp,
                 confidence=condition.confidence,
@@ -116,7 +118,7 @@ def _build_runtime_evidence(
     if condition.evidence_type == EvidenceConditionType.MISSING:
         return (
             generator.missing(
-                **common,
+                dependency=CAPACITY_DEPENDENCY,
                 timestamp=condition.observation_timestamp,
             ),
         )
@@ -133,7 +135,7 @@ def _build_runtime_evidence(
             )
 
         return generator.conflicting(
-            **common,
+            dependency=CAPACITY_DEPENDENCY,
             first_value=condition.observed_capacity,
             second_value=condition.secondary_observed_capacity,
             timestamp=condition.observation_timestamp,
@@ -141,7 +143,7 @@ def _build_runtime_evidence(
         )
 
     raise ValueError(
-        f"Unsupported evidence condition: {condition.evidence_type}"
+        f"Unsupported evidence type: {condition.evidence_type}"
     )
 
 
@@ -150,27 +152,29 @@ def _deterministic_impact_assurance(
     decision,
     condition: EvidenceCondition,
 ) -> AssuranceDecision:
-    """Reproduce the EXP-005 perfect-observation impact baseline.
+    """Evaluate the EXP-005 perfect-evidence impact baseline.
 
-    EXP-005 assumed that the runtime observation of physical capacity
-    was correct. EXP-006 challenges that assumption.
+    This baseline intentionally receives the true physical capacity as
+    its runtime observation. It represents the perfect-evidence
+    assumption used by EXP-005.
 
-    This helper therefore supplies the physical capacity directly to
-    the existing DecisionImpactAnalyser as the observed value.
-
-    Physical ground truth is used here only because this policy is an
-    explicit perfect-evidence experimental baseline. It is not the
-    proposed EXP-006 evidence-aware policy.
+    EXP-006 then compares this idealised baseline against assurance
+    operating on imperfect runtime evidence.
     """
 
     analyser = DecisionImpactAnalyser()
 
+    perfect_evidence = ImpactEvidence(
+        source="perfect_runtime_capacity",
+        observed_value=condition.physical_capacity,
+        twin_value=condition.twin_capacity,
+    )
+
     impact = analyser.analyse_capacity(
         decision_id=decision.decision_id,
-        twin_capacity=condition.twin_capacity,
-        observed_capacity=condition.physical_capacity,
-        demand=condition.demand,
-        evidence=None,
+        dependency=CAPACITY_DEPENDENCY,
+        required_demand=condition.demand,
+        evidence=perfect_evidence,
     )
 
     return DecisionImpactPolicy().evaluate(
@@ -182,10 +186,10 @@ def _deterministic_impact_assurance(
 def run_evidence_condition(
     condition: EvidenceCondition,
 ) -> EvidenceExperimentResult:
-    """Run one controlled EXP-006 condition."""
+    """Execute one controlled EXP-006 condition."""
 
     # ---------------------------------------------------------
-    # 1. Create physical logistics environment
+    # 1. Construct the physical logistics system
     # ---------------------------------------------------------
 
     environment = LogisticsEnvironment()
@@ -195,6 +199,7 @@ def run_evidence_condition(
         capacity=condition.twin_capacity,
         location="depot",
     )
+
     environment.add_vehicle(vehicle)
 
     order = Order(
@@ -203,6 +208,7 @@ def run_evidence_condition(
         location="customer",
         deadline=100.0,
     )
+
     environment.add_order(order)
 
     # ---------------------------------------------------------
@@ -210,12 +216,16 @@ def run_evidence_condition(
     # ---------------------------------------------------------
 
     twin = DigitalTwin()
+
     twin.synchronise(
         environment.physical_state()
     )
 
     # ---------------------------------------------------------
-    # 3. Change physical reality after Twin synchronisation
+    # 3. Change physical reality after synchronisation
+    #
+    # The Digital Twin therefore retains the original capacity,
+    # while the physical system contains the actual capacity.
     # ---------------------------------------------------------
 
     environment.vehicles["vehicle_001"].capacity = (
@@ -223,7 +233,7 @@ def run_evidence_condition(
     )
 
     # ---------------------------------------------------------
-    # 4. AI controller makes its decision from the stale Twin
+    # 4. AI controller generates its decision from the Twin
     # ---------------------------------------------------------
 
     controller = LogisticsDecisionController()
@@ -247,7 +257,7 @@ def run_evidence_condition(
     )
 
     # ---------------------------------------------------------
-    # 6. Determine decision relevance
+    # 6. Determine whether divergence is decision-relevant
     # ---------------------------------------------------------
 
     relevance_analyser = DecisionRelevanceAnalyzer(
@@ -260,7 +270,10 @@ def run_evidence_condition(
     )
 
     # ---------------------------------------------------------
-    # 7. Independent physical ground truth
+    # 7. Establish independent physical ground truth
+    #
+    # Ground truth is used for evaluation only.
+    # It is not supplied to the evidence-aware policy.
     # ---------------------------------------------------------
 
     validator = PhysicalDecisionValidator()
@@ -274,7 +287,7 @@ def run_evidence_condition(
 
     # ---------------------------------------------------------
     # 8. Baseline B1:
-    #    decision-relevance assurance
+    # Decision-relevance assurance
     # ---------------------------------------------------------
 
     relevance_policy = DivergenceAwarePolicy()
@@ -291,10 +304,10 @@ def run_evidence_condition(
 
     # ---------------------------------------------------------
     # 9. Baseline B2:
-    #    deterministic decision-impact assurance
+    # Deterministic decision-impact assurance
     #
-    # This deliberately retains the perfect-observation
-    # assumption from EXP-005.
+    # This preserves the perfect-observation assumption from
+    # EXP-005 and therefore provides the idealised comparison.
     # ---------------------------------------------------------
 
     deterministic_impact_assurance = (
@@ -310,7 +323,10 @@ def run_evidence_condition(
     )
 
     # ---------------------------------------------------------
-    # 10. Generate imperfect runtime evidence
+    # 10. Generate EXP-006 runtime evidence
+    #
+    # Depending on the condition, this evidence may be accurate,
+    # noisy, stale, missing, or conflicting.
     # ---------------------------------------------------------
 
     generator = EvidenceGenerator()
@@ -321,10 +337,11 @@ def run_evidence_condition(
     )
 
     # ---------------------------------------------------------
-    # 11. Proposed EXP-006 evidence-aware policy
+    # 11. Proposed evidence-aware assurance policy
     #
     # IMPORTANT:
-    # This policy receives runtime evidence, not physical truth.
+    # This policy receives runtime evidence only.
+    # Physical ground truth remains hidden from it.
     # ---------------------------------------------------------
 
     evidence_policy = EvidenceAwareDecisionPolicy()
@@ -337,7 +354,8 @@ def run_evidence_condition(
     )
 
     # ---------------------------------------------------------
-    # 12. Independent outcome evaluation
+    # 12. Evaluate evidence-aware assurance against independent
+    # physical ground truth
     # ---------------------------------------------------------
 
     evidence_aware_outcome = evaluator.evaluate(
@@ -346,7 +364,7 @@ def run_evidence_condition(
     )
 
     # ---------------------------------------------------------
-    # 13. Return complete experimental record
+    # 13. Return the complete experimental record
     # ---------------------------------------------------------
 
     return EvidenceExperimentResult(
@@ -364,7 +382,7 @@ def run_evidence_condition(
 
 def run_evidence_experiment(
 ) -> tuple[EvidenceExperimentResult, ...]:
-    """Run the complete deterministic EXP-006 matrix."""
+    """Run the complete twelve-condition EXP-006 matrix."""
 
     return tuple(
         run_evidence_condition(condition)
@@ -373,7 +391,7 @@ def run_evidence_experiment(
 
 
 def main() -> None:
-    """Run EXP-006 and print condition-level results."""
+    """Execute EXP-006 and print condition-level results."""
 
     results = run_evidence_experiment()
 
