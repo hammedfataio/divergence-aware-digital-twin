@@ -1,929 +1,1187 @@
-# Research Methodology
+# DARA-DT Research Methodology
 
-## Divergence-Aware Runtime Assurance for AI-Driven Digital Twins in Autonomous Logistics Systems
-
-**Research stage:** Methodology Design  
-**Status:** Proposed — Pre-Implementation  
-**Last updated:** September 2026
+**Project:** Divergence-Aware Runtime Assurance for AI-Driven Digital Twins  
+**Research Area:** Trustworthy Intelligent Systems  
+**Application Domain:** Autonomous Logistics Systems  
+**Methodology Status:** Active Experimental Prototype  
+**Completed Experimental Stages:** EXP-001 to EXP-006  
+**Next Validation Stage:** Cross-Dependency Generalisation
 
 ---
 
-## 1. Methodological Aim
+## 1. Methodological Purpose
 
-This research investigates whether information about **decision-relevant physical–digital divergence** can improve the runtime assurance of AI-generated decisions in dynamic logistics Digital Twins.
+DARA-DT investigates how physical–digital divergence should influence the
+authority granted to AI-generated decisions in dynamic logistics Digital
+Twins.
 
-The central experimental question is:
+The central research question is:
 
-> **Does identifying whether physical–digital divergence affects the state variables required by a specific AI decision improve intervention quality compared with global Digital Twin fidelity and AI-uncertainty-based assurance?**
+> **How can physical–digital divergence be quantified at runtime and used to
+> regulate autonomous AI decision-making in dynamic logistics Digital Twins?**
 
-The methodology is designed to make this question experimentally testable and falsifiable.
+The methodology is designed around controlled experimentation.
+
+Rather than assuming that all physical–digital mismatch requires
+intervention, the research progressively evaluates whether intervention
+should depend on:
+
+1. divergence presence;
+2. decision relevance;
+3. decision impact and physical validity;
+4. runtime evidence reliability; and
+5. ultimately the risk associated with allowing autonomous execution.
+
+The methodology therefore follows a **progressive falsification and
+refinement strategy**.
 
 ---
 
 ## 2. Research Design
 
-The study will use a controlled simulation-based experimental design.
+The project uses an experimental software-research methodology combining:
 
-The experimental environment will contain:
+- discrete logistics simulation;
+- explicit Digital Twin state;
+- controlled divergence injection;
+- AI-supported decision generation;
+- decision dependency modelling;
+- runtime assurance policies;
+- independent physical ground truth;
+- comparative baselines;
+- automated testing; and
+- reproducible experiment runners.
 
-1. a physical logistics simulation;
-2. a corresponding Digital Twin;
-3. an AI decision engine;
-4. controlled divergence injection;
-5. divergence monitoring;
-6. decision-dependency analysis;
-7. runtime assurance mechanisms; and
-8. an autonomy manager.
+The purpose is to isolate individual assurance mechanisms before increasing
+system complexity.
 
-```mermaid
-flowchart LR
-    A["Logistics Simulation"] --> B["Digital Twin"]
-    B --> C["AI Decision Engine"]
-    C --> D["Proposed Decision"]
-    D --> E["Runtime Assurance"]
-    E --> F["Autonomy Manager"]
-    F --> G["Execution"]
+The experimental structure is:
 
-    H["Divergence Injector"] --> A
-    H --> B
-
-    A -. "Ground Truth" .-> E
-    B -. "Twin State" .-> E
+```text
+Physical Logistics Environment
+        ↓
+Digital Twin Synchronisation
+        ↓
+Controlled Physical Change
+        ↓
+Physical–Digital Divergence
+        ↓
+AI-Generated Decision
+        ↓
+Decision Dependency Analysis
+        ↓
+Divergence Relevance
+        ↓
+Decision Impact / Validity
+        ↓
+Evidence Reliability
+        ↓
+Runtime Assurance
+        ↓
+Autonomous Authority
+        ↓
+Independent Outcome Evaluation
 ```
 
-The simulator provides controlled ground truth, allowing the exact divergence and its effect on individual decisions to be measured.
+Not every experiment uses every stage.
+
+The pipeline has been expanded progressively as earlier experiments exposed
+limitations.
 
 ---
 
-## 3. Logistics Environment
+## 3. Methodological Principle
 
-The initial experimental domain will be **dynamic vehicle routing and dispatch**.
+The core methodological principle is:
 
-The environment will represent:
+> **An assurance mechanism must not define the ground truth against which its
+> own behaviour is evaluated.**
+
+The project therefore separates:
+
+```text
+Physical Ground Truth
+```
+
+from:
+
+```text
+Digital Twin State
+```
+
+and, where applicable:
+
+```text
+Runtime Evidence
+```
+
+This separation allows the experimental evaluator to determine whether an
+AI-generated decision is physically valid independently of the assurance
+policy.
+
+---
+
+## 4. Physical Logistics Environment
+
+The physical environment represents the current operational logistics state.
+
+The implemented prototype includes entities such as:
 
 - vehicles;
-- customer orders;
-- vehicle capacities;
-- vehicle availability;
-- vehicle locations;
-- travel times;
-- delivery deadlines;
-- road or network conditions;
-- dynamic demand; and
-- operational disruptions.
-
-This domain provides a suitable environment because decisions depend on changing physical states and must often be made using time-sensitive information.
-
-The research does not depend on a specific commercial logistics platform.
-
-The objective is to create a controlled and reproducible environment in which competing assurance mechanisms can be evaluated under identical conditions.
-
----
-
-## 4. Physical System Simulation
-
-A discrete-event logistics simulator will represent the physical system.
-
-The simulator will maintain the authoritative ground-truth state:
-
-\[
-s_t
-\]
-
-at time \(t\).
-
-Candidate implementation technologies include:
-
-- Python;
-- SimPy;
-- NumPy;
-- Pandas.
-
-The physical simulator will remain logically separate from the Digital Twin.
-
-This separation is essential because the experiments require controlled inconsistencies between:
-
-\[
-s_t
-\]
-
-and:
-
-\[
-\hat{s}_t
-\]
-
-where \(\hat{s}_t\) represents the state maintained by the Digital Twin.
-
----
-
-## 5. Digital Twin
-
-The Digital Twin will maintain a digital representation of the logistics system.
-
-Its state at time \(t\) is represented as:
-
-\[
-\hat{s}_t
-\]
-
-Under synchronised operation:
-
-\[
-s_t \approx \hat{s}_t
-\]
-
-During divergence:
-
-\[
-s_t \neq \hat{s}_t
-\]
-
-The Digital Twin may contain information including:
-
+- orders;
 - vehicle location;
-- vehicle availability;
 - vehicle capacity;
-- current assignments;
-- order status;
-- route conditions;
-- estimated travel time;
-- resource availability.
+- vehicle operational status; and
+- vehicle availability.
 
-The Digital Twin will provide the operational state used by the decision engine.
-
-This means that inaccurate or stale Twin information may influence AI-generated decisions.
-
----
-
-## 6. AI Decision Engine
-
-The decision engine will generate operational logistics decisions using the state exposed by the Digital Twin.
-
-An example decision is:
-
-> **Assign Vehicle 7 to Order 42.**
-
-The initial experiments will prioritise interpretable decision mechanisms.
-
-Candidate decision approaches include:
-
-- heuristic dispatch;
-- classical optimisation using OR-Tools;
-- learned or AI-based policies where experimentally justified.
-
-The methodology intentionally avoids making a highly complex AI model a prerequisite for the first experiments.
-
-The research question concerns **runtime assurance of decisions**, rather than demonstrating that one AI algorithm outperforms another.
-
----
-
-## 7. Controlled Divergence Injection
-
-A divergence injector will deliberately create discrepancies between the physical logistics system and its Digital Twin.
-
-This provides controlled experimental conditions.
-
-### D0 — Synchronised Operation
-
-The physical system and Digital Twin remain aligned.
-
-This provides the control condition.
-
-### D1 — Temporal Divergence
-
-Examples include:
-
-- delayed GPS updates;
-- stale observations;
-- communication latency;
-- delayed warehouse updates.
-
-### D2 — State Divergence
-
-Examples include:
-
-- incorrect vehicle location;
-- incorrect vehicle capacity;
-- incorrect availability;
-- incorrect inventory;
-- incorrect order status.
-
-### D3 — Operational Divergence
-
-Examples include:
-
-- unreported vehicle breakdown;
-- unexpected route closure;
-- resource failure;
-- unavailable loading infrastructure.
-
-### D4 — Distributional Divergence
-
-Examples include:
-
-- demand surge;
-- extreme congestion;
-- unusual order patterns;
-- operating conditions outside previously observed ranges.
-
-### D5 — Compound Divergence
-
-Multiple divergence mechanisms occur simultaneously.
+The physical environment acts as the authoritative state for controlled
+experimental evaluation.
 
 For example:
 
 ```text
-GPS latency
-    +
-Vehicle breakdown
-    +
-Demand surge
-    +
-Traffic disruption
+Physical vehicle:
+capacity = 4
+
+Digital Twin vehicle:
+capacity = 10
+
+Order demand:
+5
 ```
 
-Compound divergence is important because individually manageable discrepancies may interact and produce significantly different decision risks.
+The Twin may consider the vehicle suitable, while the physical environment
+shows that the assignment is infeasible.
+
+This creates a measurable physical–digital divergence.
 
 ---
 
-## 8. Ground-Truth Recording
+## 5. Digital Twin Representation
 
-Every injected divergence will be recorded.
+The Digital Twin maintains a digital representation of the logistics
+environment.
 
-The experiment log will capture:
+At the beginning of a controlled scenario, the Twin can be synchronised with
+the physical environment.
 
-- divergence start time;
-- divergence duration;
-- divergence category;
-- affected state variable;
-- affected entity;
-- divergence magnitude;
-- physical ground truth;
-- Digital Twin value;
-- decisions generated during divergence;
-- decision dependencies;
-- whether the divergence was decision-relevant;
-- intervention performed;
-- resulting operational outcome.
+A physical change is then introduced without immediately updating the Twin.
 
-This allows assurance decisions to be evaluated against known experimental ground truth.
+This produces controlled divergence:
+
+```text
+t0
+Physical System = Digital Twin
+
+        ↓
+
+physical change occurs
+
+        ↓
+
+t1
+Physical System ≠ Digital Twin
+```
+
+This design allows the experiment to know:
+
+- when divergence begins;
+- which variable diverges;
+- the magnitude or category of divergence;
+- which decision depends on that variable; and
+- whether the resulting decision remains physically valid.
 
 ---
 
-## 9. Decision Dependency
+## 6. Controlled Divergence Injection
 
-For each proposed decision:
+Divergence is deliberately introduced after synchronisation.
 
-\[
-d_t
-\]
+Current and planned divergence categories include:
 
-the system will identify the subset of state information required to support that decision.
+### Temporal Divergence
 
-This is represented as:
+Examples:
+
+- delayed telemetry;
+- stale state;
+- communication delay.
+
+### State Divergence
+
+Examples:
+
+- incorrect vehicle capacity;
+- incorrect location;
+- incorrect availability.
+
+### Operational Divergence
+
+Examples:
+
+- unreported vehicle breakdown;
+- unavailable resource represented as available.
+
+### Distributional Divergence
+
+Examples for later investigation may include:
+
+- unusual demand;
+- extreme congestion;
+- operational conditions outside previously observed patterns.
+
+### Compound Divergence
+
+Multiple divergence types may occur simultaneously.
+
+Not all categories have received equal experimental validation.
+
+Current claims should therefore remain tied to the specific implemented
+conditions.
+
+---
+
+## 7. AI Decision Layer
+
+The prototype contains a decision controller that generates logistics
+decisions from the Digital Twin representation.
+
+Current controlled experiments primarily use vehicle-assignment decisions.
+
+Conceptually:
+
+```text
+Digital Twin State
+        ↓
+Decision Controller
+        ↓
+Vehicle Assignment
+```
+
+The research is not primarily evaluating whether the decision controller is
+the most advanced logistics optimisation algorithm.
+
+Instead, the controller provides a reproducible decision whose dependencies
+can be inspected and whose physical validity can be evaluated after
+divergence occurs.
+
+This isolates the runtime-assurance problem.
+
+---
+
+## 8. Decision Dependencies
+
+Each autonomous decision depends on particular state variables.
+
+For decision \(d_t\), define:
 
 \[
 Dep(d_t)
 \]
 
-For example:
+as the set of state variables required by the decision.
 
-```text
-Decision:
-Assign Vehicle 7 to Order 42
+For example, assigning a vehicle to an order may depend on:
 
-Dependencies:
-- Vehicle 7 availability
-- Vehicle 7 location
-- Vehicle 7 remaining capacity
-- Order 42 deadline
-- Route accessibility
-- Estimated travel time
-```
+- vehicle identity;
+- capacity;
+- operational status;
+- availability; and
+- location.
 
-The initial implementation will use **explicit dependency rules**.
-
-This provides an interpretable baseline.
-
-More automated dependency extraction may be investigated later only if justified by the experimental results and research scope.
+Explicit dependency modelling enables the assurance system to distinguish
+global system mismatch from mismatch affecting the current decision.
 
 ---
 
-## 10. Decision-Relevant Divergence
+## 9. Divergence Detection
 
-Let:
+The divergence detector compares physical and Digital Twin state.
 
-\[
-D_t
-\]
-
-represent the set of divergent state variables at time \(t\).
-
-The basic decision-relevance relationship can then be expressed as:
+Conceptually:
 
 \[
-D_t^{rel}(d_t)
-=
-D_t \cap Dep(d_t)
+D_t = \{s_i : s_i^{physical} \neq s_i^{twin}\}
 \]
 
-This separates two important situations.
+where \(D_t\) is the set of detected physical–digital divergences at time
+\(t\).
 
-### Decision-Irrelevant Divergence
+Each divergence can contain information such as:
 
-The Digital Twin is incorrect, but the incorrect information is unrelated to the decision currently being evaluated.
+- affected entity;
+- state variable;
+- physical value;
+- Digital Twin value; and
+- divergence magnitude where applicable.
 
-### Decision-Relevant Divergence
+Divergence detection answers:
 
-The Digital Twin is incorrect about information required by the proposed decision.
+> **Where does the Digital Twin differ from the physical system?**
 
-For example:
-
-```text
-Physical system:
-Vehicle 7 = BROKEN DOWN
-
-Digital Twin:
-Vehicle 7 = AVAILABLE
-
-Proposed decision:
-Assign Vehicle 7 to Order 42
-```
-
-The availability divergence is directly relevant because the decision depends on Vehicle 7 being operational.
-
-Conversely, divergence concerning an unrelated Vehicle 3 may not justify blocking the Vehicle 7 decision.
+It does not, by itself, determine whether autonomous intervention is
+required.
 
 ---
 
-## 11. DARA-DT Assurance Pipeline
+## 10. Decision-Relevance Analysis
 
-The working framework is called:
+Decision relevance combines detected divergence with decision dependencies.
 
-> **DARA-DT — Divergence-Aware Runtime Assurance for Digital Twins**
-
-The name is provisional and does not imply an established contribution.
-
-```mermaid
-flowchart TD
-    A["Physical State"]
-    B["Digital Twin State"]
-
-    A --> C["Divergence Detection"]
-    B --> C
-
-    C --> D["Divergent Variables"]
-
-    E["Proposed AI Decision"] --> F["Dependency Mapping"]
-
-    D --> G["Decision-Relevance Analysis"]
-    F --> G
-
-    G --> H["Decision Risk"]
-    H --> I["Runtime Assurance"]
-
-    I --> J{"Authority Decision"}
-
-    J --> K["Execute"]
-    J --> L["Restrict"]
-    J --> M["Fallback"]
-    J --> N["Defer"]
-```
-
-The principal experimental component is the relationship:
+For decision \(d_t\):
 
 \[
-\boxed{
-\text{Divergence}
+D_t^{rel}(d_t) = Dep(d_t) \cap D_t
+\]
+
+Conceptually:
+
+```text
+Detected Divergence
+        +
+Decision Dependencies
+        ↓
+Decision-Relevance Analysis
+       ↙ ↘
+ Relevant   Irrelevant
+```
+
+This answers:
+
+> **Does the detected mismatch affect something this particular decision
+> depends on?**
+
+EXP-001 to EXP-003 established the controlled relevance mechanism.
+
+EXP-004 subsequently demonstrated that relevance alone is insufficient for
+determining physical validity.
+
+---
+
+## 11. Decision Impact and Physical Validity
+
+Decision-impact reasoning evaluates whether relevant divergence changes the
+physical feasibility of the current decision.
+
+For a capacity-dependent assignment:
+
+\[
+M = C_{physical} - q
+\]
+
+where:
+
+- \(C_{physical}\) is physical vehicle capacity;
+- \(q\) is order demand; and
+- \(M\) is the physical validity margin.
+
+The independent physical rule is:
+
+\[
+C_{physical} \geq q
+\]
+
+for a valid assignment, and:
+
+\[
+C_{physical} < q
+\]
+
+for an invalid assignment.
+
+This introduces an important distinction:
+
+```text
+Decision Relevance
+        ↓
+Does the mismatch affect a decision dependency?
+
+Decision Impact
+        ↓
+Does the mismatch change whether the decision remains valid?
+```
+
+EXP-004 and EXP-005 investigate this distinction.
+
+---
+
+## 12. Runtime Evidence
+
+A deployed assurance mechanism may not have direct access to perfect physical
+ground truth.
+
+EXP-006 therefore introduces a separate runtime evidence layer.
+
+The methodological separation becomes:
+
+```text
+Physical Ground Truth
+        ≠
+Runtime Evidence
+        ≠
+Digital Twin State
+```
+
+Runtime evidence may be:
+
+- accurate;
+- inaccurate;
+- stale;
+- missing;
+- conflicting; or
+- misleading.
+
+Ground truth remains available to the experimental evaluator but is not
+assumed to be perfectly available to the evidence-aware assurance policy.
+
+This allows robustness under imperfect observation to be tested.
+
+---
+
+## 13. Runtime Assurance Policies
+
+The project uses multiple assurance strategies rather than evaluating the
+proposed mechanism in isolation.
+
+### No Assurance
+
+Autonomous execution is permitted without runtime intervention.
+
+Purpose:
+
+> Establish the consequence of unrestricted autonomy.
+
+### Global Divergence
+
+Any detected physical–digital mismatch causes intervention.
+
+Purpose:
+
+> Test whether divergence presence alone is an adequate assurance rule.
+
+### Fixed-Magnitude Assurance
+
+Intervention depends on a predefined divergence threshold.
+
+Purpose:
+
+> Test whether divergence severity alone can provide adequate selectivity.
+
+### Decision-Relevance Assurance
+
+Intervention depends on whether divergence affects a dependency of the
+current decision.
+
+Purpose:
+
+> Test the value and limitations of dependency-specific relevance.
+
+### Decision-Impact Assurance
+
+Intervention depends on whether divergence affects the physical validity of
+the current decision.
+
+Purpose:
+
+> Test whether consequence-aware reasoning improves intervention
+> selectivity.
+
+### Evidence-Aware Decision Impact
+
+Impact reasoning uses imperfect runtime evidence rather than assuming perfect
+physical-state knowledge.
+
+Purpose:
+
+> Test robustness when assurance evidence is degraded.
+
+---
+
+## 14. Assurance Actions
+
+Depending on the experimental policy, the assurance layer can produce
+actions conceptually including:
+
+```text
+ALLOW
+RESTRICT
+DEFER
+FALLBACK
+```
+
+Current experiments primarily operationalise:
+
+- unrestricted execution;
+- restriction; and
+- defer/intervention behaviour.
+
+`FALLBACK` remains part of the broader architecture and should only be
+claimed as experimentally evaluated when a fallback controller is explicitly
+tested.
+
+---
+
+## 15. Independent Ground Truth
+
+Ground truth is derived from the physical environment.
+
+For each controlled scenario, the evaluator determines whether autonomous
+execution should physically remain valid.
+
+The assurance action is then compared against that independent requirement.
+
+This produces four principal outcome classes.
+
+### True Intervention — TI
+
+```text
+Invalid physical decision
 +
-\text{Decision Dependencies}
-\rightarrow
-\text{Decision-Relevant Divergence}
-}
-\]
-
-The research will determine whether this information improves runtime assurance.
-
----
-
-## 12. Runtime Authority
-
-The assurance mechanism will determine what level of autonomous execution is permitted.
-
-Candidate authority states are:
-
-### Execute
-
-The decision proceeds autonomously.
-
-### Restrict
-
-The decision may proceed under additional constraints.
-
-### Fallback
-
-A predefined alternative policy or safer decision mechanism is used.
-
-### Defer
-
-Autonomous execution is withheld pending updated information or external intervention.
-
-The exact policy thresholds will be specified before final experiments.
-
----
-
-## 13. Assurance Baselines
-
-DARA-DT must be compared against meaningful alternatives.
-
-| ID | Assurance Mechanism |
-|---|---|
-| **B0** | No runtime assurance |
-| **B1** | Fixed divergence threshold |
-| **B2** | Global Digital Twin fidelity |
-| **B3** | AI uncertainty / confidence |
-| **B4** | Operational-envelope monitoring |
-| **B5** | Runtime assumption monitoring |
-| **B6** | Fidelity + AI uncertainty |
-| **B7** | Proposed decision-relevant divergence |
-
-The proposed method will not be considered useful simply because it performs better than having no assurance.
-
-It must be compared against credible competing approaches.
-
----
-
-## 14. Core Experiment
-
-The central experiment separates **global divergence magnitude** from **decision relevance**.
-
-| Condition | Global Divergence | Decision Relevance |
-|---|---:|---:|
-| **A** | Low | Low |
-| **B** | High | Low |
-| **C** | Low | High |
-| **D** | High | High |
-
-The most important comparison is:
-
-> **Condition B versus Condition C**
-
----
-
-### Condition B — High Divergence, Low Decision Relevance
-
-The Digital Twin may contain substantial inaccuracies.
-
-However, those inaccuracies concern variables unrelated to the decision currently being considered.
-
-A global-fidelity mechanism may unnecessarily intervene.
-
----
-
-### Condition C — Low Divergence, High Decision Relevance
-
-The Digital Twin may be highly accurate overall.
-
-However, a small discrepancy affects a critical variable required by the proposed decision.
-
-A global-fidelity mechanism may fail to intervene.
-
----
-
-### Experimental Question
-
-> **Can decision-relevance information distinguish these conditions more effectively than aggregate Digital Twin fidelity?**
-
-This comparison is central to the proposed research.
-
----
-
-## 15. Experimental Comparison
-
-The experimental logic can be represented as:
-
-```mermaid
-flowchart LR
-    A["Global Twin Fidelity"]
-    B["AI Uncertainty"]
-    C["Runtime Assumption Monitoring"]
-    D["Decision-Relevant Divergence"]
-
-    A --> E["Controlled Logistics Experiments"]
-    B --> E
-    C --> E
-    D --> E
-
-    E --> F["Intervention Quality"]
-    E --> G["Autonomy Availability"]
-    E --> H["Logistics Performance"]
-    E --> I["Runtime Overhead"]
+Assurance intervenes
 ```
 
-This design tests whether decision relevance contributes information beyond established assurance signals.
+### False Intervention — FI
+
+```text
+Valid physical decision
++
+Assurance intervenes
+```
+
+### Missed Intervention — MI
+
+```text
+Invalid physical decision
++
+Assurance allows execution
+```
+
+### Correct Non-Intervention — CNI
+
+```text
+Valid physical decision
++
+Assurance allows execution
+```
 
 ---
 
-## 16. Primary Evaluation Metrics
+## 16. Evaluation Metrics
 
-### 16.1 Assurance Metrics
+The methodology evaluates more than simple accuracy.
 
-The primary assurance metrics will include:
+### Assurance Metrics
 
-- inappropriate-action prevention rate;
-- missed intervention rate;
-- false intervention rate;
-- appropriate intervention rate;
-- intervention latency.
+- true interventions;
+- false interventions;
+- missed interventions;
+- correct non-interventions;
+- intervention accuracy;
+- precision;
+- recall;
+- false-intervention rate; and
+- missed-intervention rate.
 
----
-
-### 16.2 Autonomy Metrics
-
-Autonomy will be evaluated using:
+### Autonomy Metrics
 
 - autonomy availability;
-- fallback frequency;
+- intervention frequency;
 - restriction frequency;
-- defer frequency;
-- unnecessary autonomy reduction.
+- defer frequency; and
+- fallback frequency where implemented.
 
----
+### Logistics Metrics
 
-### 16.3 Logistics Metrics
+Broader evaluation should include:
 
-Operational performance will include:
-
+- route distance;
+- operational cost;
+- lateness;
 - service rate;
-- delivery lateness;
-- travel distance;
-- logistics cost;
-- vehicle utilisation;
-- recovery time.
+- utilisation; and
+- recovery performance.
 
----
+### Digital Twin Metrics
 
-### 16.4 Digital Twin Metrics
+Relevant future measures include:
 
-Digital Twin performance may include:
-
-- state estimation error;
+- state-estimation error;
 - synchronisation error;
 - divergence magnitude;
-- divergence detection latency.
+- divergence duration; and
+- detection latency.
 
----
+### Computational Metrics
 
-### 16.5 AI Metrics
-
-Where applicable:
-
-- decision quality;
-- decision failure rate;
-- predictive uncertainty;
-- calibration quality.
-
----
-
-### 16.6 System Metrics
-
-Computational performance will include:
+Later evaluation should include:
 
 - assurance computation time;
-- decision latency;
-- runtime overhead;
-- resource consumption where relevant.
+- end-to-end decision latency; and
+- scalability.
 
 ---
 
-## 17. Critical Trade-Off
+## 17. Assurance–Autonomy–Performance Trade-Off
 
-A runtime-assurance system could trivially prevent inappropriate autonomous actions by refusing most autonomous decisions.
+A runtime-assurance mechanism should not be judged only by whether it
+intervenes on invalid decisions.
 
-Such a system would provide little operational value.
+A policy could obtain high intervention recall simply by preventing every
+autonomous action.
 
-The evaluation must therefore consider the trade-off:
-
-\[
-\boxed{
-\text{Assurance Effectiveness}
-\leftrightarrow
-\text{Autonomy Availability}
-\leftrightarrow
-\text{Logistics Performance}
-}
-\]
-
-A useful assurance mechanism should reduce inappropriate autonomous actions without producing unacceptable degradation in autonomy or logistics performance.
-
----
-
-## 18. Experimental Repetition
-
-Experiments will be repeated using multiple random seeds.
-
-Each assurance strategy will be evaluated under equivalent:
-
-- logistics scenarios;
-- demand patterns;
-- divergence events;
-- disruption conditions;
-- random seeds where appropriate.
-
-This enables paired comparison between assurance strategies.
-
-The final number of experimental repetitions will be selected using appropriate statistical or power-analysis reasoning rather than chosen to produce a desired result.
-
----
-
-## 19. Statistical Analysis
-
-Statistical analysis will depend on the final metric distributions and experimental design.
-
-Candidate techniques include:
-
-- confidence intervals;
-- effect sizes;
-- paired comparisons;
-- non-parametric alternatives where assumptions are violated;
-- multiple-comparison correction where required.
-
-Statistical significance alone will not be treated as sufficient evidence.
-
-Results will also be interpreted according to:
-
-- effect magnitude;
-- operational importance;
-- autonomy impact;
-- logistics consequences.
-
----
-
-## 20. Ablation Studies
-
-The proposed approach will be decomposed experimentally to determine which components contribute useful information.
-
-Candidate ablations include:
-
-- without decision dependencies;
-- without AI uncertainty;
-- without operational consequence;
-- without temporal divergence;
-- without state divergence;
-- without distribution-shift evidence;
-- without compound-divergence handling.
-
-For example:
+The methodology therefore considers the trade-off:
 
 ```text
-Full DARA-DT
-        versus
-DARA-DT without Decision Relevance
+Assurance Effectiveness
+        ↕
+Autonomy Availability
+        ↕
+Logistics Performance
 ```
 
-is particularly important.
+The current experiments have begun measuring the first two dimensions.
 
-If removing decision relevance produces no meaningful reduction in performance, the central hypothesis would be weakened.
-
----
-
-## 21. Reproducibility
-
-Experiments will record:
-
-- experiment identifier;
-- random seed;
-- scenario configuration;
-- divergence configuration;
-- model version;
-- assurance strategy;
-- dependency configuration;
-- software version;
-- resulting metrics.
-
-Planned tooling includes:
-
-- **uv** for Python dependency and environment management;
-- configuration management such as Hydra where justified;
-- MLflow or equivalent for experiment tracking;
-- pytest for automated testing;
-- GitHub Actions for continuous integration;
-- Docker for reproducible execution where appropriate.
-
-The repository will contain the configuration and code required to reproduce reported experiments.
+Full system-level logistics-performance evaluation remains a later research
+stage.
 
 ---
 
-## 22. Research Validity
+## 18. Experimental Programme
+
+### EXP-001 — Decision-Relevance B-vs-C Pilot
+
+Purpose:
+
+> Test whether equal divergence counts can have different significance to
+> the current decision.
+
+Contribution:
+
+- initial feasibility demonstration;
+- separation of divergence count from decision significance.
+
+---
+
+### EXP-002 — Controlled Policy Comparison
+
+Purpose:
+
+> Compare No Assurance, Global Divergence and Decision-Relevant DARA-DT
+> across a seven-condition matrix.
+
+Contribution:
+
+- controlled comparison;
+- demonstrated limitations of global divergence intervention;
+- provided initial evidence for decision-specific relevance.
+
+---
+
+### EXP-003 — Decision-Relevance Analysis
+
+Purpose:
+
+> Validate explicit mapping between detected divergence and the dependencies
+> of the current decision.
+
+Contribution:
+
+- operational decision-dependency matching;
+- relevant/irrelevant divergence separation.
+
+---
+
+### EXP-004 — Divergence Severity
+
+Purpose:
+
+> Test whether every decision-relevant divergence requires intervention.
+
+Contribution:
+
+- demonstrated that relevant divergence can coexist with a physically valid
+  decision;
+- identified the decision-validity boundary as an important additional
+  factor.
+
+---
+
+### EXP-005 — Decision Impact
+
+Purpose:
+
+> Evaluate whether decision-specific validity reasoning improves intervention
+> selectivity.
+
+Contribution:
+
+- controlled 15-condition capacity matrix;
+- equal-divergence/different-impact comparison;
+- explicit validity-margin reasoning;
+- exposed exact-boundary policy behaviour.
+
+---
+
+### EXP-006 — Imperfect Evidence
+
+Purpose:
+
+> Test decision-impact-aware assurance when runtime evidence is imperfect.
+
+Contribution:
+
+- separation of ground truth, runtime evidence and Twin state;
+- controlled missing, stale, conflicting and incorrect evidence;
+- demonstrated both false and missed intervention under imperfect evidence.
+
+---
+
+### EXP-007 — Cross-Dependency Generalisation
+
+**Status:** Planned.
+
+Proposed purpose:
+
+> Test whether the relationship between divergence, decision relevance,
+> decision impact and runtime intervention generalises across multiple
+> logistics decision dependencies.
+
+Candidate dependencies:
+
+- capacity;
+- operational status; and
+- location or availability.
+
+No EXP-007 results should be reported until implementation and validation are
+complete.
+
+---
+
+## 19. Progressive Experimental Logic
+
+The methodology follows a cumulative sequence:
+
+```text
+EXP-001
+Can divergence quantity misrepresent decision significance?
+        ↓
+EXP-002
+Do different assurance strategies behave differently?
+        ↓
+EXP-003
+Can divergence be mapped to decision dependencies?
+        ↓
+EXP-004
+Is decision relevance sufficient?
+        ↓
+EXP-005
+Does decision impact improve consequence reasoning?
+        ↓
+EXP-006
+What happens when evidence is imperfect?
+        ↓
+EXP-007
+Does the mechanism generalise across dependency types?
+```
+
+Each experiment either supports, challenges or refines the mechanism developed
+in the previous stage.
+
+---
+
+## 20. Controlled Benchmark Structure
+
+The broader benchmark methodology organises scenarios into divergence
+families such as:
+
+```text
+D0 — Synchronized
+D1 — Temporal Divergence
+D2 — State Divergence
+D3 — Operational Divergence
+D4 — Distributional Divergence
+D5 — Compound Divergence
+```
+
+These categories define the intended broader stress-test structure.
+
+However, implementation maturity differs across categories.
+
+Documentation must distinguish between:
+
+```text
+Implemented and experimentally evaluated
+```
+
+and:
+
+```text
+Proposed benchmark coverage
+```
+
+until all categories have executable evidence.
+
+---
+
+## 21. Baseline Philosophy
+
+Baselines are retained even when they perform poorly.
+
+The methodology deliberately avoids modifying baseline policies merely to
+make the proposed mechanism appear stronger.
+
+Relevant baselines include:
+
+- unrestricted autonomy;
+- any-divergence intervention;
+- fixed thresholds;
+- decision relevance;
+- deterministic impact; and
+- evidence-aware impact.
+
+Future work may compare against additional established runtime-assurance or
+operational-envelope approaches where they can be implemented fairly.
+
+---
+
+## 22. Reproducibility Strategy
+
+The project is structured as an executable research prototype.
+
+Reproducibility is supported through:
+
+- explicit experiment modules;
+- deterministic controlled conditions where appropriate;
+- automated tests;
+- dependency-managed Python environments;
+- version-controlled source code;
+- experiment-specific documentation;
+- aggregate metric runners; and
+- continuous integration.
+
+The project uses Python 3.12+ and `uv` for dependency and environment
+management.
+
+Example experiment execution includes:
+
+```bash
+uv run python -m dara_dt.experiments.run_pilot
+uv run python -m dara_dt.experiments.run_matrix
+uv run python -m dara_dt.experiments.run_metrics
+uv run python -m dara_dt.experiments.impact_metrics
+uv run python -m dara_dt.experiments.evidence_metrics
+```
+
+The full automated test suite can be executed using:
+
+```bash
+uv run pytest -v
+```
+
+At the latest verified experimental checkpoint:
+
+```text
+275 tests passed
+```
+
+Future repository changes should rerun the complete test suite before new
+results are treated as verified.
+
+---
+
+## 23. Implementation Structure
+
+The research prototype separates responsibilities across modules.
+
+### Simulation
+
+```text
+src/dara_dt/simulation/
+```
+
+Represents the physical logistics environment.
+
+### Digital Twin
+
+```text
+src/dara_dt/twin/
+```
+
+Maintains the digital representation of logistics state.
+
+### Divergence
+
+```text
+src/dara_dt/divergence/
+```
+
+Detects and analyses physical–digital mismatch.
+
+### Decision
+
+```text
+src/dara_dt/decision/
+```
+
+Represents autonomous decisions and their dependencies.
+
+### Assurance
+
+```text
+src/dara_dt/assurance/
+```
+
+Contains baseline and developing runtime-assurance policies.
+
+### Impact
+
+```text
+src/dara_dt/impact/
+```
+
+Evaluates decision-specific consequence and validity information.
+
+### Evidence
+
+```text
+src/dara_dt/evidence/
+```
+
+Represents runtime evidence and controlled evidence degradation.
+
+### Evaluation
+
+```text
+src/dara_dt/evaluation/
+```
+
+Provides physical ground-truth and assurance-outcome evaluation.
+
+### Experiments
+
+```text
+src/dara_dt/experiments/
+```
+
+Contains controlled experimental conditions, runners and metric aggregation.
+
+This separation supports traceability between the conceptual framework and
+the executable prototype.
+
+---
+
+## 24. Validity Strategy
+
+The methodology considers several forms of validity.
 
 ### Internal Validity
 
-Competing assurance strategies will be evaluated using equivalent scenarios and controlled divergence conditions.
-
-This reduces the likelihood that differences result from inconsistent experimental conditions.
-
----
+Controlled divergence injection allows the manipulated condition to be known
+precisely.
 
 ### Construct Validity
 
-Key concepts will receive explicit operational definitions before final experimentation, including:
+Key concepts are separated explicitly:
 
-- divergence;
-- decision relevance;
-- intervention;
-- decision failure;
-- autonomy availability;
-- operational consequence.
-
----
+```text
+divergence
+≠
+decision relevance
+≠
+decision impact
+≠
+evidence reliability
+≠
+assurance outcome
+```
 
 ### External Validity
 
-Simulation results cannot establish universal effectiveness in real-world logistics operations.
+External validity is currently limited.
 
-Conclusions will therefore be limited to the evaluated conditions.
-
-Claims of real-world deployment effectiveness will not be made without corresponding evidence.
-
----
+The experiments use controlled logistics scenarios and should not be treated
+as representative of all operational Digital Twins.
 
 ### Conclusion Validity
 
-Multiple experimental runs, uncertainty reporting, effect sizes, and appropriate statistical comparisons will be used to reduce unsupported conclusions.
+Current deterministic matrices support bounded mechanism-level conclusions.
 
-Negative and null results will be retained.
-
----
-
-## 23. Falsification Criteria
-
-The proposed research hypothesis will be weakened or rejected if decision-relevant divergence:
-
-- does not improve inappropriate-action detection;
-- provides no meaningful improvement over global fidelity;
-- provides no meaningful improvement over AI uncertainty;
-- provides no meaningful improvement over runtime assumption monitoring;
-- produces excessive false interventions;
-- substantially reduces autonomy availability;
-- substantially damages logistics performance; or
-- introduces unacceptable runtime overhead.
-
-The experimental methodology therefore allows the proposed contribution to fail.
+Broader statistical claims require repeated stochastic evaluation.
 
 ---
 
-## 24. Experimental Integrity
+## 25. Threats to Validity
 
-The following principles will be followed:
+### Simplified Logistics Environment
 
-1. baseline definitions will be established before final comparison;
-2. experimental configurations will be version controlled;
-3. negative results will not be removed;
-4. metrics will not be selectively reported;
-5. divergence scenarios will be documented;
-6. experimental seeds will be recorded;
-7. claims will be limited to available evidence;
-8. proposed mechanisms will not be described as validated before evaluation.
+The prototype deliberately reduces operational complexity to isolate
+assurance mechanisms.
 
----
+### Capacity Concentration
 
-## 25. Scope Boundaries
+The strongest later experiments remain heavily focused on vehicle capacity.
 
-The initial research will focus on:
+This is the primary motivation for cross-dependency evaluation.
 
-> **Dynamic logistics decision-making under physical–digital divergence.**
+### Explicit Decision Dependencies
 
-The project will not initially attempt to solve:
+Current dependencies are directly represented.
 
-- general-purpose autonomous-agent safety;
-- complete cybersecurity of Digital Twins;
-- blockchain-based logistics;
-- large-scale multi-agent coordination;
-- general-purpose LLM autonomy;
-- all forms of supply-chain optimisation.
+Dependencies in learned AI systems may be implicit or difficult to identify.
 
-These areas may be relevant to future work but are outside the core experimental question.
+### Controlled Evidence Model
 
-This scope control is intended to keep the research experimentally defensible and achievable.
+EXP-006 introduces imperfect evidence but does not yet reproduce the full
+complexity of operational telemetry.
 
----
+### Limited Stochastic Evaluation
 
-## 26. Methodology Summary
+More repeated trials and stochastic disruption scenarios are required before
+making broader statistical claims.
 
-The complete methodology is:
+### Limited Performance Evaluation
 
-```mermaid
-flowchart TD
-    A["Dynamic Logistics Simulation"]
-    --> B["Digital Twin"]
+The current work emphasises assurance behaviour more strongly than end-to-end
+logistics performance.
 
-    B --> C["AI Decision Engine"]
-    C --> D["Proposed Decision"]
+### Prototype Scale
 
-    E["Controlled Divergence Injection"]
-    --> A
-    E --> B
-
-    A --> F["Physical Ground Truth"]
-    B --> G["Twin State"]
-
-    F --> H["Divergence Detection"]
-    G --> H
-
-    H --> I["Divergent Variables"]
-
-    D --> J["Decision Dependency Mapping"]
-
-    I --> K["Decision-Relevance Analysis"]
-    J --> K
-
-    K --> L["Decision Risk"]
-    L --> M["Runtime Assurance"]
-
-    M --> N{"Authority"}
-
-    N --> O["Execute"]
-    N --> P["Restrict"]
-    N --> Q["Fallback"]
-    N --> R["Defer"]
-
-    O --> S["Measure Outcomes"]
-    P --> S
-    Q --> S
-    R --> S
-
-    S --> T["Compare Against Baselines"]
-```
-
-The central scientific comparison is:
-
-\[
-\boxed{
-\text{Global Fidelity}
-\quad vs \quad
-\text{AI Uncertainty}
-\quad vs \quad
-\text{Assumption Monitoring}
-\quad vs \quad
-\text{Decision-Relevant Divergence}
-}
-\]
+The current architecture has not yet established scalability to large,
+real-time Digital Twin deployments.
 
 ---
 
-## 27. Methodology Status
+## 26. Falsification Strategy
 
-| Component | Status |
-|---|---|
-| Research design | Defined |
-| Experimental domain | Defined |
-| Physical simulation | Planned |
-| Digital Twin | Planned |
-| AI decision engine | Planned |
-| Divergence taxonomy | Defined conceptually |
-| Ground-truth strategy | Defined |
-| Decision dependency mechanism | Proposed |
-| DARA-DT framework | Proposed |
-| Assurance baselines | Defined conceptually |
-| Core experiment | Defined |
-| Evaluation metrics | Defined |
-| Statistical analysis | Planned |
-| Ablation strategy | Defined conceptually |
-| Implementation | Not started |
-| Experimental results | None claimed |
+DARA-DT is treated as a research hypothesis rather than a predetermined
+solution.
+
+The hypothesis should be revised if evidence shows that:
+
+- decision relevance provides no useful information beyond global divergence;
+- decision impact provides no useful information beyond simple thresholds;
+- the mechanism works only for capacity;
+- evidence degradation makes assurance behaviour unreliable;
+- simpler policies perform equivalently across broader conditions;
+- autonomy loss outweighs assurance benefit;
+- computational overhead prevents runtime application; or
+- the proposed concepts cannot be operationalised consistently.
+
+Negative experimental results should therefore remain visible in the
+research record.
 
 ---
 
-## 28. Next Research Artifact
+## 27. Claim Discipline
 
-The next document will be:
+Repository claims are divided into three categories.
+
+### Implemented
+
+The mechanism exists in executable source code.
+
+### Experimentally Observed
+
+The behaviour has been demonstrated within a defined controlled experiment.
+
+### Proposed
+
+The concept is planned but has not yet received sufficient experimental
+validation.
+
+This distinction prevents architecture plans or future research directions
+from being presented as completed findings.
+
+---
+
+## 28. Current Methodological Position
+
+The evidence accumulated through EXP-006 supports the following bounded
+progression:
 
 ```text
-docs/system_architecture.md
+Divergence presence alone
+        ↓
+too coarse for selective intervention
+
+Decision relevance
+        ↓
+adds decision-specific context
+
+Decision relevance alone
+        ↓
+does not determine physical validity
+
+Decision impact
+        ↓
+improves consequence reasoning in controlled capacity conditions
+
+Decision impact under imperfect evidence
+        ↓
+can still produce incorrect assurance decisions
+
+Cross-dependency evaluation
+        ↓
+required before broader generalisation
 ```
 
-It will translate this methodology into an implementable software architecture, including:
-
-- simulator;
-- Digital Twin state store;
-- decision engine;
-- divergence injector;
-- divergence monitor;
-- dependency mapper;
-- assurance engine;
-- autonomy manager;
-- experiment logger;
-- evaluation pipeline.
-
-Implementation should begin only after the architecture and experimental protocol are sufficiently specified.
+This is the current methodological position.
 
 ---
 
-## Research Integrity Note
+## 29. Next Methodological Stage
 
-This methodology describes the **planned research design**.
+The immediate next step should test **cross-dependency generalisation**.
 
-It does not claim that DARA-DT improves safety, reliability, logistics performance, or autonomous decision quality.
+The principal question is:
 
-Those claims can only be evaluated after controlled experiments have been implemented, executed, analysed, and compared against the defined baselines.
+> **Does the relationship between divergence, decision relevance, decision
+> impact and runtime intervention generalise across different logistics
+> decision dependencies?**
+
+The experiment should initially keep evidence reliable so that dependency
+type remains the primary manipulated variable.
+
+Candidate dependencies are:
+
+```text
+Capacity
+Operational Status
+Location / Availability
+```
+
+Only after this relationship is understood should broader evidence
+uncertainty be combined with multiple dependency types.
+
+This prevents unnecessary experimental confounding.
+
+---
+
+## 30. Methodological Summary
+
+The DARA-DT methodology is built around a simple but progressively refined
+question:
+
+```text
+Is the Digital Twin different from physical reality?
+        ↓
+Does the difference affect this decision?
+        ↓
+Does it change the decision's physical validity?
+        ↓
+Can the evidence supporting that conclusion be trusted?
+        ↓
+Should autonomous authority be retained?
+```
+
+The project uses controlled simulation, explicit divergence injection,
+decision dependencies, independent physical ground truth, comparative
+assurance policies and automated validation to investigate these questions.
+
+The methodology is intentionally incremental.
+
+Each experiment is expected to challenge the assumptions introduced by the
+previous stage rather than merely produce favourable results.
+
+This provides the methodological foundation for continued evaluation of
+divergence-aware runtime assurance in autonomous logistics Digital Twins.
