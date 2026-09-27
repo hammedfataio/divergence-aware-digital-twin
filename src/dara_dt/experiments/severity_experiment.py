@@ -1,7 +1,9 @@
-"""EXP-004 divergence-severity experiment.
+"""EXP-004: Divergence severity experiment.
 
-This module evaluates how increasing physical-digital capacity divergence
-affects decision validity and runtime assurance behaviour.
+This experiment investigates how the magnitude of a decision-relevant
+physical-digital divergence affects the validity of an AI-generated
+logistics decision and the behaviour of different runtime assurance
+policies.
 
 The experiment compares:
 
@@ -10,8 +12,8 @@ The experiment compares:
 3. Magnitude-threshold assurance
 4. DARA-DT decision-relevance assurance
 
-Physical decision validity is evaluated independently from the assurance
-policies so that the experiment does not assume that any policy is correct.
+Ground truth is determined independently from the assurance policies
+using the physical logistics state.
 """
 
 from dataclasses import dataclass
@@ -43,7 +45,7 @@ from dara_dt.twin.digital_twin import DigitalTwin
 
 @dataclass(frozen=True)
 class SeverityExperimentResult:
-    """Result for one EXP-004 severity condition."""
+    """Result produced by one EXP-004 severity condition."""
 
     condition: str
     divergence_magnitude: int
@@ -57,7 +59,7 @@ class SeverityExperimentResult:
 
 
 def _build_environment() -> LogisticsEnvironment:
-    """Create the synchronized baseline logistics environment."""
+    """Create the baseline physical logistics environment."""
 
     environment = LogisticsEnvironment()
 
@@ -76,7 +78,7 @@ def _build_environment() -> LogisticsEnvironment:
             order_id="order_00",
             location="customer",
             demand=5,
-            deadline=10.0,
+            deadline=100,
             status="waiting",
         )
     )
@@ -88,36 +90,52 @@ def run_severity_condition(
     condition: SeverityCondition,
     magnitude_threshold: float = 5.0,
 ) -> SeverityExperimentResult:
-    """Execute one controlled EXP-004 severity condition."""
+    """Run one controlled divergence-severity condition."""
+
+    # ---------------------------------------------------------
+    # 1. Create synchronized physical system and Digital Twin
+    # ---------------------------------------------------------
 
     environment = _build_environment()
 
     twin = DigitalTwin()
 
-    # Use the repository's existing British-spelling API.
-    twin.synchronise(environment.snapshot())
+    twin.synchronise(
+        environment.physical_state()
+    )
 
-    # Introduce physical divergence only after Twin synchronisation.
+    # ---------------------------------------------------------
+    # 2. Introduce controlled physical-digital divergence
+    # ---------------------------------------------------------
     #
-    # The Digital Twin retains the original vehicle capacity of 10,
-    # while the physical system is changed according to the selected
-    # EXP-004 severity condition.
+    # The Digital Twin remains at capacity 10.
+    # Only the physical vehicle capacity changes.
+    #
+    # This preserves the stale-Twin condition required by
+    # the experiment.
+
     environment.vehicles["vehicle_00"].capacity = (
         condition.physical_capacity
     )
 
-    physical_state = environment.snapshot()
+    physical_state = environment.physical_state()
+
+    # ---------------------------------------------------------
+    # 3. Generate AI decision from the stale Digital Twin
+    # ---------------------------------------------------------
 
     controller = LogisticsDecisionController()
 
-    # The controller makes its decision using the stale Digital Twin,
-    # not the updated physical system.
     decision = controller.assign_vehicle(
         twin=twin,
         order_id="order_00",
-        timestamp=1.0,
-        decision_id=f"decision_{condition.name.lower()}",
+        timestamp=environment.time,
+        decision_id=f"{condition.name}_decision",
     )
+
+    # ---------------------------------------------------------
+    # 4. Detect physical-digital divergence
+    # ---------------------------------------------------------
 
     detector = DivergenceDetector()
 
@@ -125,6 +143,10 @@ def run_severity_condition(
         physical_state=physical_state,
         twin_state=twin.state,
     )
+
+    # ---------------------------------------------------------
+    # 5. Determine decision relevance
+    # ---------------------------------------------------------
 
     relevance_analyzer = DecisionRelevanceAnalyzer(
         DependencyMapper()
@@ -135,8 +157,10 @@ def run_severity_condition(
         divergences=divergences,
     )
 
-    # Ground truth is evaluated independently against the real
-    # physical state.
+    # ---------------------------------------------------------
+    # 6. Establish independent physical ground truth
+    # ---------------------------------------------------------
+
     validator = PhysicalDecisionValidator()
 
     ground_truth = validator.ground_truth(
@@ -145,7 +169,7 @@ def run_severity_condition(
     )
 
     # ---------------------------------------------------------
-    # Assurance policy 1: No assurance
+    # 7. Evaluate assurance strategies
     # ---------------------------------------------------------
 
     no_assurance_decision = NoAssurancePolicy().decide(
@@ -153,18 +177,10 @@ def run_severity_condition(
         divergences=divergences,
     )
 
-    # ---------------------------------------------------------
-    # Assurance policy 2: Any/global divergence
-    # ---------------------------------------------------------
-
     global_divergence_decision = AnyDivergencePolicy().decide(
         decision=decision,
         divergences=divergences,
     )
-
-    # ---------------------------------------------------------
-    # Assurance policy 3: Magnitude threshold
-    # ---------------------------------------------------------
 
     magnitude_decision = MagnitudeAssurancePolicy(
         threshold=magnitude_threshold
@@ -173,20 +189,40 @@ def run_severity_condition(
         divergences=divergences,
     )
 
-    # ---------------------------------------------------------
-    # Assurance policy 4: Current DARA-DT relevance policy
-    # ---------------------------------------------------------
-
     dara_decision = DivergenceAwarePolicy().evaluate(
         decision=decision,
         relevance=relevance,
     )
 
     # ---------------------------------------------------------
-    # Evaluate assurance behaviour against independent truth
+    # 8. Compare assurance behaviour with ground truth
     # ---------------------------------------------------------
 
     evaluator = OutcomeEvaluator()
+
+    no_assurance_outcome = evaluator.evaluate(
+        ground_truth,
+        no_assurance_decision,
+    )
+
+    global_divergence_outcome = evaluator.evaluate(
+        ground_truth,
+        global_divergence_decision,
+    )
+
+    magnitude_outcome = evaluator.evaluate(
+        ground_truth,
+        magnitude_decision,
+    )
+
+    dara_outcome = evaluator.evaluate(
+        ground_truth,
+        dara_decision,
+    )
+
+    # ---------------------------------------------------------
+    # 9. Return experimental result
+    # ---------------------------------------------------------
 
     return SeverityExperimentResult(
         condition=condition.name,
@@ -194,34 +230,24 @@ def run_severity_condition(
         physically_valid=condition.physically_valid,
         divergence_count=len(divergences),
         relevant_count=len(relevance.relevant),
-        no_assurance=evaluator.evaluate(
-            ground_truth,
-            no_assurance_decision,
-        ),
-        global_divergence=evaluator.evaluate(
-            ground_truth,
-            global_divergence_decision,
-        ),
-        magnitude_threshold=evaluator.evaluate(
-            ground_truth,
-            magnitude_decision,
-        ),
-        dara_dt=evaluator.evaluate(
-            ground_truth,
-            dara_decision,
-        ),
+        no_assurance=no_assurance_outcome,
+        global_divergence=global_divergence_outcome,
+        magnitude_threshold=magnitude_outcome,
+        dara_dt=dara_outcome,
     )
 
 
 def run_severity_experiment(
     magnitude_threshold: float = 5.0,
 ) -> tuple[SeverityExperimentResult, ...]:
-    """Execute all predefined EXP-004 severity conditions."""
+    """Run the complete S0-S6 EXP-004 severity experiment."""
+
+    conditions = build_severity_conditions()
 
     return tuple(
         run_severity_condition(
             condition=condition,
             magnitude_threshold=magnitude_threshold,
         )
-        for condition in build_severity_conditions()
+        for condition in conditions
     )
