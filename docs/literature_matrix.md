@@ -1,945 +1,1449 @@
-# Literature Evidence Matrix
+# DARA-DT Literature Evidence Matrix
 
-## Divergence-Aware Runtime Assurance for AI-Driven Digital Twins in Autonomous Logistics Systems
-
-**Document type:** Structured Literature Evidence Register
-**Research stage:** Research-Gap and Novelty Validation
-**Status:** Living Research Document
-**Last updated:** September 2026
-
----
-
-# 1. Purpose
-
-This document systematically evaluates the literature surrounding the proposed research:
-
-> **Divergence-Aware Runtime Assurance for AI-Driven Digital Twins in Autonomous Logistics Systems**
-
-The purpose of this review is not to collect publications that merely support the proposed research idea.
-
-Instead, the review deliberately searches for prior work capable of **challenging or invalidating the proposed novelty claim**.
-
-The central novelty question is:
-
-> **Does existing research already provide a systematic method for determining whether physical–digital divergence is relevant to a particular AI-generated logistics decision and using that evidence to regulate autonomous execution at runtime?**
-
-If sufficiently strong prior research already provides this capability, the proposed contribution will be narrowed, reformulated, or rejected before substantial implementation begins.
-
-This approach treats novelty as a conclusion derived from evidence rather than an assumption made at the beginning of the project.
+**Project:** Divergence-Aware Runtime Assurance for AI-Driven Digital Twins  
+**Framework:** DARA-DT  
+**Research Identity:** Trustworthy Intelligent Systems  
+**Application Domain:** Autonomous Logistics Systems  
+**Document Status:** Living Literature Review  
+**Literature Position:** September 2026
 
 ---
 
-# 2. Current Research Proposition
+## 1. Purpose
 
-The proposed research investigates the following relationship:
+This document maps the literature surrounding DARA-DT to:
 
-$$
-\boxed{
-\text{Physical–Digital Divergence}
-\rightarrow
-\text{Decision Relevance}
-\rightarrow
-\text{Decision Risk}
-\rightarrow
-\text{Runtime Assurance}
-\rightarrow
-\text{Autonomous Authority}
-}
-$$
+- the central research question;
+- supporting research questions;
+- implemented experiments;
+- competing approaches;
+- novelty threats;
+- unresolved research questions; and
+- future experimental requirements.
 
-The central proposition is that **raw Digital Twin fidelity alone may be insufficient for runtime decision assurance**.
+This is not intended to be a generic bibliography.
 
-A divergence may need to be interpreted relative to:
+The purpose is to determine whether the developing DARA-DT contribution
+survives comparison with existing research.
 
-1. the AI decision being proposed;
-2. the state variables upon which that decision depends;
-3. uncertainty surrounding the decision;
-4. the operational context; and
-5. the potential consequence of executing an inappropriate decision.
+The central research question is:
 
-This motivates the concept of **decision-relevant divergence**.
-
-### Working Definition
-
-> **Decision-relevant divergence is a physical–digital mismatch whose existence or magnitude materially affects the validity, risk, or expected outcome of a particular AI-generated decision.**
-
-This definition remains provisional and will be refined through literature analysis and experimentation.
+> **How can physical–digital divergence be quantified at runtime and used to
+> regulate autonomous AI decision-making in dynamic logistics Digital Twins?**
 
 ---
 
-## 2.1 Research Logic at a Glance
+## 2. Evidence Discipline
 
-The proposed research follows a progression from physical–digital inconsistency to evidence-informed autonomous control.
+Literature is classified according to what it establishes for the project.
 
-```mermaid
-flowchart LR
-    A["Physical Logistics System"] --> B["Digital Twin"]
-    B --> C["AI Decision"]
-
-    A -. "Physical State" .-> D["Divergence Detection"]
-    B -. "Digital State" .-> D
-
-    D --> E["Divergence Quantification"]
-    E --> F["Decision-Relevance Analysis"]
-    F --> G["Decision Risk"]
-    G --> H["Runtime Assurance"]
-    H --> I["Autonomous Authority"]
-
-    I --> J["Execute"]
-    I --> K["Restrict"]
-    I --> L["Fallback"]
-    I --> M["Defer"]
-```
-
-The Digital Twin provides the AI system with a digital representation of the logistics environment from which operational decisions can be generated.
-
-The assurance process examines evidence concerning the physical and digital states, identifies divergence, and evaluates whether that divergence matters to the particular decision currently being considered.
-
-The central research interest is therefore:
-
-> **Divergence → Decision Relevance → Decision Risk → Runtime Assurance → Autonomous Authority**
-
-This distinction is important because the proposed investigation is not simply concerned with global Digital Twin fidelity, AI uncertainty, or system synchronisation.
-
----
-
-# 3. Literature Review Questions
-
-The literature review addresses six questions.
-
-### LRQ1 — Divergence
-
-How does existing Digital Twin research define, detect, quantify, or manage divergence between physical and digital states?
-
-### LRQ2 — Decision Reliability
-
-What evidence exists concerning the relationship between Digital Twin fidelity and the reliability of decisions generated from the twin?
-
-### LRQ3 — Runtime Assurance
-
-Which existing approaches provide continuous or runtime assurance for AI-enabled Digital Twins?
-
-### LRQ4 — Decision Relevance
-
-Do existing approaches determine whether an observed divergence affects the validity of a **specific proposed decision**?
-
-### LRQ5 — Autonomous Authority
-
-Do existing systems use assurance evidence to dynamically permit, restrict, modify, defer, or reject autonomous actions?
-
-### LRQ6 — Logistics Validation
-
-Have these capabilities been evaluated systematically under dynamic and compound logistics disruptions?
-
----
-
-# 4. Review Method
-
-## 4.1 Search Scope
-
-The review prioritises research published between **2020 and September 2026**, while retaining earlier foundational literature where necessary.
-
-Priority evidence sources include:
-
-* peer-reviewed journal articles;
-* systematic literature reviews;
-* peer-reviewed conference proceedings;
-* recognised standards and recommended practices;
-* UK Government Digital Twin guidance;
-* major institutional research programmes;
-* authoritative technical frameworks.
-
-The review should eventually search major scholarly databases such as:
-
-* Scopus;
-* Web of Science;
-* IEEE Xplore;
-* ACM Digital Library;
-* ScienceDirect;
-* SpringerLink.
-
-Google Scholar may additionally be used for citation discovery.
-
----
-
-## 4.2 Search Concepts
-
-Search strategies combine Digital Twin terminology with concepts relating to logistics, assurance, divergence, autonomy, and decision-making.
-
-Example search strings include:
+Each source should answer some combination of:
 
 ```text
-"digital twin" AND logistics
+What problem does the work address?
 
-"digital twin" AND "runtime assurance"
+What does it monitor?
 
-"digital twin" AND divergence
+Does it compare physical and digital state?
 
-"digital twin" AND fidelity
+Does it reason about an individual decision?
 
-"digital twin" AND synchronisation
+Does it represent decision dependencies?
 
-"digital twin" AND "autonomous decision"
+Does it evaluate decision consequence or validity?
 
-"digital twin" AND "decision authority"
+Does it regulate runtime authority?
 
-"digital twin" AND uncertainty
+What evidence does it use?
 
-"digital twin" AND validation
+What domain does it evaluate?
 
-"digital twin" AND "distribution shift"
-
-"digital twin" AND "operational envelope"
-
-"digital twin" AND "decision relevance"
-
-"digital twin" AND "physical-digital divergence"
+What remains unresolved?
 ```
 
-Backward and forward citation searching should be conducted for highly relevant publications.
+The matrix must distinguish:
+
+```text
+Prior work exists
+```
+
+from:
+
+```text
+Prior work solves the DARA-DT research question
+```
+
+These are not equivalent.
 
 ---
 
-# 5. Evidence Hierarchy
+# Part I — Research Themes
 
-Sources are classified according to their role in the evidence base.
+## 3. Theme A — Digital Twin Assurance
 
-| Code   | Evidence Type                                   | Primary Purpose                                                     |
-| ------ | ----------------------------------------------- | ------------------------------------------------------------------- |
-| **SR** | Systematic Review                               | Establish the broader state of the research field                   |
-| **PS** | Primary Empirical Study                         | Evaluate a specific method, system, or experiment                   |
-| **ST** | Standard / Government / Institutional Framework | Establish definitions, assurance requirements, or accepted practice |
-| **CF** | Conceptual / Framework Study                    | Establish theoretical or architectural approaches                   |
+### Representative Work
 
-Systematic reviews and authoritative standards provide evidence concerning the research landscape.
+**DNV-RP-A204 — Assurance of Digital Twins**
 
-Primary empirical studies are required when evaluating specific technical capabilities.
+DNV provides a systematic recommended practice for developing and assuring
+Digital Twins.
 
----
+Relevant concerns include:
 
-# 6. Core Evidence Base
+- Digital Twin quality;
+- trustworthiness;
+- organisational maturity;
+- risks associated with relying on Twin information;
+- integration and deployment;
+- operation;
+- maintenance; and
+- lifecycle assurance.
 
-## ST01 — UK Government Digital Twin Definition
+### Relevance to DARA-DT
 
-**Organisation:** UK Government / Defence Science and Technology Laboratory
-**Year:** 2025
-**Evidence type:** ST
+This literature establishes that Digital Twin trustworthiness and the risks
+of acting on Twin information are already recognised assurance problems.
 
-### Contribution
+Therefore DARA-DT cannot claim:
 
-The UK Digital Twin definition establishes that a Digital Twin should:
-
-* correspond to a real-world counterpart;
-* operate to a known tolerance;
-* possess a defined validation envelope;
-* have an associated assumption set;
-* operate within a timeframe appropriate to the required decisions; and
-* maintain appropriate physical–digital information exchange.
-
-### Relevance
-
-This evidence prevents the project from claiming that:
-
-> “A Digital Twin should be checked to determine whether it still represents reality”
+```text
+Digital Twins require assurance
+```
 
 as a novel contribution.
 
-Fidelity, validation boundaries, assumptions, and physical–digital correspondence are already fundamental Digital Twin concepts.
+### DARA-DT Question
 
-### Remaining Research Question
+The narrower question is:
 
-The proposed research asks a narrower question:
+> When the Twin differs from physical reality, does the mismatch affect the
+> specific AI-generated decision currently seeking execution authority?
 
-> **If some part of the Digital Twin diverges from reality, does that particular divergence invalidate the specific AI-generated decision currently being considered?**
+### Novelty Threat
 
----
-
-## ST02 — DARTER: Digital Twin Assurance via Runtime Trust and Evidence Reporting
-
-**Organisation:** The Alan Turing Institute
-**Year:** 2026
-**Evidence type:** ST / Active Research Programme
-
-### Contribution
-
-DARTER investigates continuous runtime assurance for probabilistic AI-enabled Digital Twins.
-
-Relevant capabilities include:
-
-* incoming-data verification;
-* model-performance evaluation;
-* validated-threshold monitoring;
-* operational-domain monitoring;
-* distribution-drift detection;
-* structured runtime assurance evidence; and
-* continuously updated assurance cases.
-
-### Relevance
-
-DARTER substantially overlaps with the runtime-assurance component of this project.
-
-Therefore:
-
-> **Runtime assurance for AI-enabled Digital Twins cannot itself constitute the novelty of this research.**
-
-### Remaining Question
-
-The proposed project investigates whether divergence evidence can additionally be evaluated relative to the **state dependencies and operational consequences of a particular autonomous logistics decision**.
-
-This distinction must be validated against the wider literature rather than assumed.
+**HIGH**
 
 ---
 
-## SR01 — Digital Twins for Real-Time Decision-Making in Supply Chain Management and Logistics
+## 4. Theme B — Continuous Runtime Digital Twin Assurance
 
-**Authors:** Tolia, A. & Ponis, S. T.
-**Year:** 2026
-**Journal:** *Information*, 17(8), 732
-**Evidence type:** SR
-**Studies synthesised:** 57
+### Representative Work
 
-### Contribution
+**DARTER — Digital Twin Assurance via Runtime Trust and Evidence Reporting**
 
-The review systematically analyses Digital Twins used for real-time decision-making in supply chain management and logistics.
+The Alan Turing Institute's DARTER project investigates continuous assurance
+for safety-critical Digital Twins.
 
-Reported applications include:
+Its work includes:
 
-* production scheduling and planning;
-* routing and dispatch;
-* resource allocation;
-* disruption management;
-* inventory management.
+- runtime data-quality verification;
+- model-performance evaluation;
+- validated thresholds;
+- operational-domain monitoring;
+- distribution-drift detection;
+- automated assurance evidence;
+- continuously updated assurance cases; and
+- runtime trustworthiness.
 
-The literature frequently combines:
+Air traffic management is the primary testbed, while the methodology is
+intended to transfer to additional safety-critical sectors.
 
-* simulation;
-* optimisation;
-* machine learning;
-* real-time data acquisition.
+### Relevance to DARA-DT
 
-### Relevance
-
-This demonstrates that:
-
-> **Real-time Digital Twin decision-making in logistics is already a substantial research area.**
-
-Consequently, simply combining:
+DARTER directly challenges any claim that:
 
 ```text
-Digital Twin
-      +
-Artificial Intelligence
-      +
-Real-Time Logistics
+Digital Twin assurance is mainly static
 ```
 
-does not constitute a sufficient research contribution.
+or that:
+
+```text
+DARA-DT introduces runtime Digital Twin assurance.
+```
+
+Continuous Digital Twin assurance is already an active research direction.
+
+### Candidate Difference
+
+DARTER primarily asks whether:
+
+```text
+the Twin, data and predictions remain trustworthy
+within validated operational conditions
+```
+
+DARA-DT investigates whether:
+
+```text
+a particular physical–digital mismatch affects a dependency
+of the specific AI decision about to execute
+```
+
+and subsequently whether:
+
+```text
+that mismatch changes the decision's physical validity.
+```
+
+### Novelty Threat
+
+**VERY HIGH**
+
+### Research Requirement
+
+DARA-DT must demonstrate that decision-specific divergence reasoning provides
+information not already captured by global Twin trust or operational-domain
+monitoring.
+
+---
+
+## 5. Theme C — Logistics Digital Twins
+
+### Representative Literature
+
+Recent systematic reviews investigate Digital Twins for real-time
+decision-making in:
+
+- supply chains;
+- transport;
+- warehouse systems;
+- fleet operations; and
+- logistics optimisation.
+
+The literature demonstrates that Digital Twins are increasingly used to
+support operational decision-making.
+
+### Relevance to DARA-DT
+
+This establishes that:
+
+```text
+Digital Twin + Logistics
+```
+
+is not novel.
+
+Likewise:
+
+```text
+Digital Twin + Real-Time Decision-Making
+```
+
+is already an active research area.
 
 ### Research Opportunity
 
-The review identifies continuing challenges involving areas such as:
-
-* validation;
-* computational efficiency;
-* interoperability;
-* data;
-* methodological integration; and
-* systemic implementation.
-
-The temporal relationship between data refresh, decision generation, and physical-system evolution is particularly relevant to this research.
-
----
-
-# 7. Capability-Based Literature Matrix
-
-The following matrix provides the main mechanism for evaluating the candidate research gap.
-
-### Legend
-
-* **✓** = explicitly addressed
-* **△** = partially addressed
-* **—** = not established from current evidence
-* **?** = requires deeper full-text verification
-
-| ID                              | Divergence / Fidelity | Runtime Detection | Quantification | Decision Relevance | AI Uncertainty | Decision Risk | Runtime Intervention | Adaptive Authority | Compound Stress | Logistics Validation |
-| ------------------------------- | --------------------: | ----------------: | -------------: | -----------------: | -------------: | ------------: | -------------------: | -----------------: | --------------: | -------------------: |
-| ST01 UK DT Definition           |                     ✓ |                 △ |              △ |                  △ |              — |             △ |                    △ |                  — |               — |                    — |
-| ST02 DARTER                     |                     ✓ |                 ✓ |              ✓ |                  △ |              ✓ |             △ |                    ✓ |                  ? |               △ |                    △ |
-| SR01 Tolia & Ponis              |                     ✓ |                 ✓ |              △ |                  △ |              △ |             △ |                    △ |                  △ |               △ |                    ✓ |
-| PS01 Adaptive Synchronisation   |                     ✓ |                 ✓ |              ✓ |                  — |              ✓ |             — |                    ✓ |                  — |               △ |                    — |
-| PS02 DT Fidelity Measurement    |                     ✓ |                 ✓ |              ✓ |                  — |              △ |             — |                    △ |                  — |               — |                    △ |
-| PS03 Autonomous Logistics DT    |                     △ |                 ✓ |              △ |                  △ |              △ |             △ |                    ✓ |                  ✓ |               △ |                    ✓ |
-| PS04 Adaptive Logistics Control |                     △ |                 ✓ |              △ |                  △ |              — |             △ |                    ✓ |                  ✓ |               △ |                    ✓ |
-
-> **Research integrity note:** Entries marked `?` or `△` must be verified against the complete publication before they are used to support a final novelty claim.
-
----
-
-# 8. What Existing Research Already Covers
-
-The evidence currently prevents this project from presenting the following concepts as standalone novelty.
-
-## 8.1 Digital Twin Fidelity
-
-Methods for measuring correspondence between physical and digital systems already exist.
-
-## 8.2 Physical–Digital Synchronisation
-
-Maintaining synchronisation is an established Digital Twin problem.
-
-## 8.3 Divergence Detection
-
-Detecting differences between expected, digital, and observed physical states is already an active research area.
-
-## 8.4 Runtime Assurance
-
-Continuous assurance for AI-enabled Digital Twins is an active research direction.
-
-## 8.5 Distribution-Shift Detection
-
-Monitoring whether operational conditions move outside validated conditions is established within AI and Digital Twin research.
-
-## 8.6 AI-Enabled Logistics Digital Twins
-
-AI, optimisation, simulation, and real-time data are already integrated into logistics Digital Twin systems.
-
-## 8.7 Adaptive Logistics Decisions
-
-Dynamic routing, scheduling, dispatch, resource allocation, and disruption response are established research areas.
-
-Therefore, the proposed contribution cannot simply be:
-
-> **“An AI-powered Digital Twin that detects divergence and makes adaptive logistics decisions.”**
-
-Such a formulation would be insufficiently differentiated from existing research.
-
----
-
-# 9. Candidate Research Gap: Decision-Relevant Divergence
-
-The more specific candidate gap concerns the relationship between **physical–digital divergence and the decision currently being considered**.
-
-Consider the following example.
-
-### Physical System
+The relevant DARA-DT question concerns what happens when:
 
 ```text
-Vehicle 7
-
-Status = BROKEN DOWN
-Load = 42%
+the Digital Twin is sufficiently wrong
+about state required by an autonomous decision.
 ```
 
-### Digital Twin
+### Novelty Threat
+
+**HIGH**
+
+---
+
+## 6. Theme D — AI-Enhanced Logistics Digital Twins
+
+### Representative Literature
+
+Recent reviews describe integration of:
+
+- AI;
+- Digital Twins;
+- IoT;
+- optimisation;
+- computer vision;
+- reinforcement learning;
+- robotics; and
+- automated logistics systems.
+
+Warehouse Digital Twins increasingly support:
+
+- path planning;
+- task allocation;
+- inventory management;
+- storage assignment;
+- prediction; and
+- optimisation.
+
+### Relevance to DARA-DT
+
+This establishes that:
 
 ```text
-Vehicle 7
-
-Status = AVAILABLE
-Load = 40%
+AI + Digital Twin + Logistics
 ```
 
-Two divergences exist:
+cannot constitute the project's novelty claim.
 
-$$
-D_1 = \text{Vehicle availability mismatch}
-$$
+### Research Opportunity
 
-and:
+DARA-DT focuses instead on:
 
-$$
-D_2 = \text{Vehicle load mismatch}
-$$
+```text
+AI decision authority when the Twin's representation
+of physical reality becomes unreliable.
+```
 
-Now consider the AI-generated decision:
+### Novelty Threat
 
-> **Assign Vehicle 7 to an urgent delivery.**
+**HIGH**
 
-For this decision, the availability mismatch may completely invalidate execution.
+---
 
-The small load mismatch may have little operational significance.
+## 7. Theme E — Autonomous and Agentic AI with Digital Twins
+
+### Representative Literature
+
+Recent 2026 systematic work examines autonomous and agentic AI integrated
+with Digital Twins in transportation and smart logistics.
+
+The literature identifies increasing interest in systems capable of:
+
+- selecting actions;
+- coordinating decisions;
+- initiating operational actions;
+- interacting with Digital Twins; and
+- operating with different levels of human oversight.
+
+Operational validation remains an important challenge.
+
+### Relevance to DARA-DT
+
+This literature directly overlaps with the project's broader autonomous
+logistics context.
+
+Therefore DARA-DT cannot claim that autonomous decision-making connected to
+Digital Twins is itself new.
+
+### DARA-DT Question
+
+The narrower question becomes:
+
+> What runtime evidence should determine whether autonomous decision authority
+> should continue when the Twin diverges from physical reality?
+
+### Novelty Threat
+
+**VERY HIGH**
+
+---
+
+# Part II — Physical–Digital Consistency
+
+## 8. Theme F — Digital Twin Fidelity
+
+Digital Twin fidelity concerns how accurately the digital representation
+reflects its physical counterpart.
+
+Relevant concepts include:
+
+- state accuracy;
+- model accuracy;
+- synchronisation;
+- prediction quality;
+- behavioural consistency; and
+- model validity.
+
+### Relevance
+
+DARA-DT depends on physical–digital consistency.
+
+However:
+
+```text
+measuring Twin fidelity
+```
+
+is not itself the contribution.
+
+### Candidate Difference
+
+DARA-DT asks:
+
+```text
+Does this fidelity problem matter to this particular decision?
+```
+
+rather than only:
+
+```text
+How inaccurate is the Twin?
+```
+
+### Novelty Threat
+
+**HIGH**
+
+---
+
+## 9. Theme G — Synchronisation and Staleness
+
+Digital Twins depend on synchronisation between physical and digital state.
+
+Research already considers:
+
+- update frequency;
+- stale information;
+- communication delay;
+- near-real-time synchronisation;
+- asynchronous updates; and
+- adaptive synchronisation.
+
+### Relevance
+
+Temporal divergence is therefore not a novel problem.
+
+### DARA-DT Question
+
+The relevant question is:
+
+> Does stale information invalidate a dependency of the current decision?
+
+### Novelty Threat
+
+**HIGH**
+
+---
+
+## 10. Theme H — Physical–Digital Divergence
+
+Physical–digital mismatch appears in multiple forms across the Digital Twin
+literature.
+
+These include:
+
+```text
+state error
+model discrepancy
+synchronisation error
+drift
+fidelity loss
+behavioural mismatch
+data inconsistency
+```
+
+### Relevance
+
+DARA-DT therefore does not claim the discovery of physical–digital
+divergence.
+
+### Candidate Difference
+
+The project operationalises divergence as an input to decision-specific
+runtime assurance.
 
 Conceptually:
 
-$$
-Rel(D_1,d_t) \gg Rel(D_2,d_t)
-$$
+\[
+D_t = \{s_i : s_i^{physical} \neq s_i^{twin}\}
+\]
 
-Therefore:
+followed by:
 
-$$
-\boxed{
-\text{Raw Divergence}
-\neq
-\text{Decision-Relevant Divergence}
-}
-$$
+\[
+D_t^{rel}(d_t)=Dep(d_t)\cap D_t
+\]
 
-This distinction is central to the proposed research.
+### Novelty Threat
+
+**HIGH for divergence detection**
+
+**UNRESOLVED for decision-specific divergence**
 
 ---
 
-# 10. Proposed Analytical Model
+# Part III — Runtime Assurance
 
-Let the AI propose decision:
+## 11. Theme I — Runtime Assurance
 
-$$
-d_t
-$$
+Runtime assurance is an established field.
 
-based on the Digital Twin state:
+Relevant mechanisms include:
 
-$$
-\hat{s}_t
-$$
+- runtime monitors;
+- safety filters;
+- supervisory controllers;
+- fallback mechanisms;
+- Simplex architectures;
+- operational envelopes;
+- runtime verification; and
+- adaptive control authority.
 
-while the corresponding physical-system state is:
+### Relevance
 
-$$
-s_t
-$$
-
-Physical–digital divergence can initially be represented conceptually as:
-
-$$
-D_t = \Delta(s_t,\hat{s}_t)
-$$
-
-However, the proposed research does not assume that \(D_t\) alone adequately represents decision risk.
-
-Instead, decision-relevant divergence may be represented conceptually as:
-
-$$
-D_t^{rel}(d_t)
-=
-g(D_t, Dep(d_t), C_t)
-$$
-
-where:
-
-* \(D_t^{rel}(d_t)\) = decision-relevant divergence;
-* \(Dep(d_t)\) = state dependencies of decision \(d_t\);
-* \(C_t\) = operational context.
-
-Decision risk may subsequently be investigated as:
-
-$$
-R(d_t)
-=
-f(
-D_t^{rel},
-U_t,
-I_t
-)
-$$
-
-where:
-
-* \(U_t\) = uncertainty associated with the AI decision;
-* \(I_t\) = estimated operational consequence if the decision is inappropriate.
-
-Runtime authority can then be represented conceptually as:
-
-$$
-A_t = \pi(R(d_t),E_t)
-$$
-
-where:
-
-* \(A_t\) = permitted autonomous authority;
-* \(E_t\) = additional assurance evidence.
-
-Potential authority states include:
+DARA-DT therefore cannot claim:
 
 ```text
-EXECUTE
-   ↓
-RESTRICT
-   ↓
-FALLBACK
-   ↓
-DEFER
+runtime intervention
 ```
 
-These equations represent **research hypotheses and conceptual relationships**, not validated mathematical models.
-
----
-
-# 11. Refined Research Architecture
-
-The proposed research architecture is:
-
-```mermaid
-flowchart TD
-    A["Physical Logistics System"] --> B["Digital Twin"]
-    B --> C["AI Decision Engine"]
-    C --> D["Proposed Decision"]
-
-    A -. "Physical evidence" .-> E["Divergence Monitoring"]
-    B -. "Digital evidence" .-> E
-
-    E --> F["Temporal Divergence"]
-    E --> G["State Divergence"]
-    E --> H["Model Divergence"]
-    E --> I["Distribution Shift"]
-
-    F --> J["Divergence Evidence"]
-    G --> J
-    H --> J
-    I --> J
-
-    J --> K["Decision-Relevance Layer"]
-    D --> K
-
-    K --> L["Decision-Relevant Divergence"]
-    L --> M["Decision Risk"]
-    M --> N["Runtime Assurance"]
-    N --> O["Autonomy Manager"]
-
-    O --> P["Execute"]
-    O --> Q["Restrict"]
-    O --> R["Fallback"]
-    O --> S["Defer"]
-```
-
-The **Decision-Relevance Layer** is currently the most important candidate differentiator.
-
-Its purpose is not merely to ask:
-
-> “How different is the Digital Twin from reality?”
-
-Instead, it asks:
-
-> **“Is the Digital Twin wrong about something that matters to this particular decision?”**
-
----
-
-# 12. Core Scientific Comparison
-
-The proposed research should ultimately compare three different assurance philosophies.
-
-## Baseline A — Global Twin Fidelity
-
-> **How different is the Digital Twin from reality?**
-
-This approach focuses primarily on overall physical–digital correspondence.
-
----
-
-## Baseline B — AI Uncertainty
-
-> **How uncertain is the AI about its decision?**
-
-This approach focuses primarily on model confidence or uncertainty.
-
----
-
-## Proposed Investigation — Decision-Relevant Divergence
-
-> **Is the Digital Twin wrong about something that materially affects this particular AI decision?**
-
-This comparison provides a clearer experimental basis for determining whether decision-relevant divergence provides information beyond existing fidelity and uncertainty approaches.
-
----
-
-# 13. Compound Divergence
-
-Real logistics systems may experience multiple simultaneous sources of divergence.
-
-For example:
+or:
 
 ```text
-GPS latency
-     +
-Vehicle breakdown
-     +
-Demand surge
-     +
-Traffic disruption
+runtime regulation of autonomy
 ```
 
-The research should therefore evaluate both isolated and compound divergence.
+as novel by themselves.
 
-The benchmark can progress conceptually through:
+### Candidate Difference
 
-$$
-D_0 = \text{Synchronised Operation}
-$$
+The project investigates whether physical–digital divergence can provide
+decision-specific evidence for such intervention.
 
-$$
-D_1 = \text{Single Divergence}
-$$
+### Novelty Threat
 
-$$
-D_2 = \text{Multiple Divergence}
-$$
-
-$$
-D_n = \text{Compound / Severe Divergence}
-$$
-
-This is important because individually tolerable discrepancies may interact and create substantially greater decision risk.
+**VERY HIGH**
 
 ---
 
-# 14. Novelty Kill Test
+## 12. Theme J — Runtime Assumption Monitoring
 
-The project should not protect its proposed contribution from contradictory evidence.
+Runtime assumption monitoring is one of the closest conceptual areas.
 
-Instead, the literature search must actively attempt to identify research covering the entire proposed capability chain.
+A system may depend on assumptions such as:
 
-```mermaid
-flowchart LR
-    A["Physical–Digital<br/>Divergence"]
-    --> B["Runtime<br/>Quantification"]
-    --> C["Decision-Specific<br/>Relevance"]
-    --> D["AI Decision<br/>Risk"]
-    --> E["Runtime<br/>Assurance"]
-    --> F["Adaptive<br/>Authority"]
-    --> G["Compound<br/>Stress Testing"]
-    --> H["Dynamic Logistics<br/>Validation"]
+```text
+sensor accuracy
+environmental conditions
+component availability
+resource capability
 ```
 
-A credible existing study covering all or most of this chain would represent a serious challenge to the proposed contribution.
+Runtime monitoring can determine whether those assumptions continue to hold.
 
-The research question should then be narrowed, reformulated, or replaced.
+### Relationship to DARA-DT
 
-Finding such evidence should be treated as a successful research outcome because it prevents an unsupported novelty claim.
+Consider:
+
+```text
+Decision:
+assign vehicle V1 to order O1
+
+Decision dependency:
+capacity(V1) >= demand(O1)
+```
+
+DARA-DT observes:
+
+```text
+Twin capacity = 10
+Physical capacity = 4
+Demand = 5
+```
+
+The decision dependency has effectively become invalid.
+
+This can resemble runtime assumption monitoring.
+
+### Critical Research Question
+
+> **Is decision-relevant physical–digital divergence fundamentally different
+> from runtime assumption monitoring?**
+
+This is currently one of the strongest novelty threats.
+
+### Novelty Threat
+
+**VERY HIGH**
 
 ---
 
-# 15. Experimental Gap Test
+# Part IV — Decision-Level Reasoning
 
-The literature gap will eventually be translated into an experimental comparison.
+## 13. Theme K — Decision Dependencies
 
-The project should test whether:
+Autonomous decisions depend on particular state variables.
 
-$$
-\text{Decision-Relevant Divergence Assurance}
-$$
+DARA-DT represents this as:
 
-provides measurable information or performance beyond:
+\[
+Dep(d_t)
+\]
 
-$$
-\text{Global Fidelity Monitoring}
-$$
+The research uses these dependencies to determine whether detected divergence
+affects the current decision.
+
+### Example
+
+```text
+Decision:
+assign vehicle_01
+
+Dependencies:
+capacity
+availability
+operational status
+location
+```
+
+A mismatch affecting:
+
+```text
+vehicle_09
+```
+
+may be irrelevant to this decision.
+
+### Research Question
+
+> Does explicit dependency matching provide useful assurance information
+> beyond system-level Twin fidelity?
+
+### Novelty Status
+
+**UNRESOLVED**
+
+This is one of the project's most important literature-search areas.
+
+---
+
+## 14. Theme L — Decision-Relevant Divergence
+
+The DARA-DT mechanism defines:
+
+\[
+D_t^{rel}(d_t)=Dep(d_t)\cap D_t
+\]
+
+This distinguishes:
+
+```text
+The Twin is wrong
+```
+
+from:
+
+```text
+The Twin is wrong about something this decision depends on.
+```
+
+### Experimental Connection
+
+This mechanism is investigated through:
+
+```text
+EXP-001
+EXP-002
+EXP-003
+```
+
+### Current Evidence
+
+The controlled experiments demonstrate that global divergence can produce
+unnecessary intervention when the mismatch is unrelated to the decision.
+
+### Novelty Status
+
+**UNRESOLVED / CANDIDATE**
+
+Experimental usefulness does not establish originality.
+
+---
+
+## 15. Theme M — Decision Impact and Validity
+
+EXP-004 demonstrates that relevance is insufficient.
+
+Example:
+
+```text
+Twin capacity     = 10
+Physical capacity = 9
+Demand            = 5
+```
+
+The capacity mismatch is relevant but the assignment remains valid.
+
+Therefore DARA-DT introduces:
+
+```text
+Decision Impact / Physical Validity
+```
+
+### Formal Example
+
+\[
+M=C_{physical}-q
+\]
+
+where \(M\) represents the physical validity margin.
+
+### Experimental Connection
+
+```text
+EXP-004
+EXP-005
+```
+
+### Novelty Threat
+
+Constraint checking and decision feasibility are established concepts.
+
+The unresolved question is whether combining them with runtime
+physical–digital divergence creates a useful assurance mechanism.
+
+### Novelty Status
+
+**MODERATE–HIGH THREAT**
+
+---
+
+# Part V — AI Uncertainty
+
+## 16. Theme N — AI Confidence and Uncertainty
+
+AI trustworthiness literature extensively investigates:
+
+- predictive confidence;
+- uncertainty estimation;
+- calibration;
+- out-of-distribution detection;
+- epistemic uncertainty; and
+- aleatoric uncertainty.
+
+### Relationship to DARA-DT
+
+AI uncertainty and Twin divergence are different failure dimensions.
+
+An AI system may be highly confident given its input while the input itself
+is based on stale or incorrect Twin state.
+
+Conceptually:
+
+```text
+AI confidence = high
+```
+
+does not guarantee:
+
+```text
+Digital Twin state = physical reality
+```
+
+### Research Opportunity
+
+Future experiments may compare:
+
+```text
+AI uncertainty
+```
+
+with:
+
+```text
+physical–digital divergence
+```
 
 and:
 
-$$
-\text{AI Uncertainty Monitoring}
-$$
-
-under controlled logistics disruptions.
-
-The critical comparison therefore becomes:
-
-```mermaid
-flowchart LR
-    A["Global Twin Fidelity"] --> D["Compare Assurance Performance"]
-    B["AI Uncertainty"] --> D
-    C["Decision-Relevant Divergence"] --> D
-
-    D --> E["Inappropriate Action Prevention"]
-    D --> F["False Intervention"]
-    D --> G["Autonomy Availability"]
-    D --> H["Logistics Performance"]
+```text
+decision-specific impact.
 ```
 
-This comparison will help determine whether the proposed concept contributes useful information rather than merely adding additional system complexity.
+### Novelty Threat
+
+**HIGH**
+
+AI uncertainty itself is not a DARA-DT contribution.
 
 ---
 
-# 16. Candidate Experimental Stressors
+# Part VI — Evidence Reliability
 
-The experimental environment should eventually introduce controlled divergence.
+## 17. Theme O — Runtime Evidence Quality
 
-## Temporal Divergence
+Assurance systems depend on operational evidence.
 
-Examples:
+Relevant research areas include:
 
-* GPS latency;
-* stale observations;
-* communication delay;
-* delayed warehouse updates.
+- sensor reliability;
+- data quality;
+- provenance;
+- stale observations;
+- conflicting observations;
+- missing data; and
+- uncertainty.
 
-## State Divergence
+### DARA-DT Connection
 
-Examples:
-
-* incorrect vehicle location;
-* incorrect capacity;
-* incorrect availability;
-* incorrect inventory.
-
-## Operational Divergence
-
-Examples:
-
-* unreported vehicle breakdown;
-* route closure;
-* resource failure.
-
-## Distributional Divergence
-
-Examples:
-
-* demand surge;
-* extreme congestion;
-* previously unseen operating conditions.
-
-## Compound Divergence
-
-Multiple divergence mechanisms occurring simultaneously.
-
-Because divergence will be deliberately injected, the experiments can retain ground truth concerning:
-
-* when divergence occurred;
-* what state variables were affected;
-* which decisions depended upon those variables;
-* whether intervention was appropriate.
-
----
-
-# 17. Evidence Required Before Novelty Can Be Claimed
-
-The proposed research gap will not be treated as established until the following work has been completed:
-
-* expanded scholarly database searching;
-* backward citation searching;
-* forward citation searching;
-* full-text verification of the closest studies;
-* explicit capability coding;
-* comparison with runtime-assurance literature outside logistics;
-* comparison with autonomous-system assurance literature;
-* comparison with decision-aware Digital Twin research;
-* comparison with risk-aware autonomous control;
-* documentation of contradictory evidence;
-* supervisor/researcher challenge;
-* completion of the novelty kill test.
-
----
-
-# 18. Provisional Evidence Position
-
-## Strongly Established
-
-Current evidence indicates that the following areas are already established:
-
-* Digital Twin fidelity;
-* physical–digital synchronisation;
-* AI-enabled Digital Twins;
-* real-time logistics decision-making;
-* runtime monitoring;
-* uncertainty estimation;
-* distribution-shift monitoring;
-* adaptive logistics decision-making;
-* Digital Twin runtime assurance.
-
----
-
-## Partially Established / Requiring Deeper Review
-
-The following areas require more detailed evidence assessment:
-
-* divergence-informed decision risk;
-* decision dependency modelling;
-* adaptive autonomous authority based on runtime assurance;
-* compound-divergence assurance;
-* relationship between divergence and individual AI decision validity.
-
----
-
-## Candidate Gap
-
-The current candidate research gap is:
-
-> **Systematic characterisation of whether physical–digital divergence affects the information required by a specific AI-generated logistics decision, and the use of that decision-level evidence to regulate autonomous execution at runtime.**
-
-This remains provisional.
-
----
-
-# 19. Current Research Position
-
-The literature reviewed so far supports four important conclusions.
-
-### First
-
-Digital Twin fidelity and synchronisation are established research areas.
-
-### Second
-
-Runtime assurance for AI-enabled Digital Twins is already under active investigation.
-
-### Third
-
-Autonomous and adaptive logistics Digital Twins already exist within the research landscape.
-
-### Fourth
-
-The potentially defensible contribution appears to lie at the **decision level**:
-
-> **determining whether the particular aspect of reality that has diverged is actually required for the AI decision currently being considered.**
-
-This distinction will now guide the next stage of the literature review.
-
----
-
-# 20. Research Integrity Rule
-
-This project follows one overriding rule:
-
-> **Novelty will be treated as a conclusion of the literature review, not an assumption made before it.**
-
-Evidence contradicting the proposed research gap will be documented rather than excluded.
-
-If existing literature demonstrates that the proposed contribution already exists, the research question will be narrowed or changed before major implementation begins.
-
----
-
-# 21. Immediate Next Step
-
-The next research artifact will be:
+EXP-006 explicitly separates:
 
 ```text
-docs/novelty_evidence_matrix.md
+Physical Ground Truth
+        ≠
+Runtime Evidence
+        ≠
+Digital Twin State
 ```
 
-This document will examine the closest studies individually against the following capability chain:
+### Experimental Result
+
+The controlled experiment demonstrates that apparently usable but incorrect
+evidence can produce:
 
 ```text
+missed intervention
+```
+
+while pessimistic evidence can produce:
+
+```text
+false intervention.
+```
+
+### Novelty Status
+
+**HIGH prior-work overlap**
+
+The methodological integration remains useful but should not be presented as
+the invention of evidence-quality reasoning.
+
+---
+
+# Part VII — Adaptive Autonomy
+
+## 18. Theme P — Authority Regulation
+
+Existing autonomous-system architectures already use actions conceptually
+similar to:
+
+```text
+ALLOW
+RESTRICT
+DEFER
+FALLBACK
+```
+
+Examples include:
+
+- safety controllers;
+- fallback systems;
+- human escalation;
+- degraded autonomy; and
+- operational-envelope enforcement.
+
+### DARA-DT Difference Under Investigation
+
+The project asks whether authority should depend on:
+
+```text
+decision-relevant physical–digital divergence
++
+decision impact
++
+runtime evidence
+```
+
+rather than simply:
+
+```text
+system-level alarm
+```
+
+### Novelty Threat
+
+**HIGH**
+
+---
+
+# Part VIII — Literature-to-Experiment Mapping
+
+## 19. Experimental Evidence Matrix
+
+| Experiment | Literature Problem Tested | Main Question | Literature Threat |
+|---|---|---|---|
+| EXP-001 | Global divergence vs decision significance | Can equal divergence counts have different decision relevance? | Fidelity monitoring |
+| EXP-002 | Global intervention vs decision-specific intervention | Does relevance improve selectivity? | Runtime assurance |
+| EXP-003 | Dependency-aware divergence | Can mismatch be mapped to decision dependencies? | Assumption monitoring |
+| EXP-004 | Relevance vs physical validity | Does relevant divergence always require intervention? | Constraint validation |
+| EXP-005 | Decision impact | Can consequence reasoning improve intervention decisions? | Decision assurance |
+| EXP-006 | Imperfect evidence | How does evidence degradation affect impact-aware assurance? | Data/evidence quality |
+| EXP-007 | Cross-dependency generalisation | Does the mechanism generalise beyond capacity? | Generality / abstraction |
+
+---
+
+# Part IX — Literature-to-RQ Mapping
+
+## 20. Central Research Question
+
+> **How can physical–digital divergence be quantified at runtime and used to
+> regulate autonomous AI decision-making in dynamic logistics Digital Twins?**
+
+Relevant literature families:
+
+```text
+Digital Twin fidelity
+Digital Twin assurance
+Runtime assurance
+Autonomous logistics
+Decision assurance
+Evidence reliability
+Adaptive autonomy
+```
+
+---
+
+## 21. RQ1 — Detection and Relevance
+
+> **Which runtime signals and dependency relationships most effectively
+> identify decision-relevant divergence between a logistics system and its
+> Digital Twin?**
+
+Relevant literature:
+
+```text
+Digital Twin fidelity
+synchronisation
+state estimation
+runtime monitoring
+decision dependencies
+runtime assumption monitoring
+```
+
+Experimental mapping:
+
+```text
+EXP-001
+EXP-002
+EXP-003
+```
+
+---
+
+## 22. RQ2 — Impact
+
+> **How do different forms, magnitudes and combinations of physical–digital
+> divergence affect the reliability of AI-generated logistics decisions?**
+
+Relevant literature:
+
+```text
+model discrepancy
+decision feasibility
+constraint validation
+uncertainty
+robust optimisation
+Digital Twin integrity
+```
+
+Experimental mapping:
+
+```text
+EXP-004
+EXP-005
+EXP-006
+EXP-007
+```
+
+---
+
+## 23. RQ3 — Runtime Assurance
+
+> **Can divergence-aware runtime assurance reduce inappropriate autonomous
+> actions under disruption while maintaining acceptable logistics performance
+> and autonomy availability?**
+
+Relevant literature:
+
+```text
+runtime assurance
+adaptive autonomy
+operational envelopes
+fallback systems
+assurance cases
+continuous Digital Twin assurance
+```
+
+Experimental mapping:
+
+```text
+EXP-002
+EXP-004
+EXP-005
+EXP-006
+future system-level experiments
+```
+
+---
+
+# Part X — Key Literature Matrix
+
+## 24. Current Evidence Matrix
+
+| Literature Stream | What Prior Work Establishes | DARA-DT Relevance | Remaining Question | Threat |
+|---|---|---|---|---|
+| Digital Twin assurance | Twin trustworthiness requires systematic assurance | Establishes assurance context | Can assurance become decision-specific? | High |
+| DARTER / continuous assurance | Runtime data, model and domain monitoring can support continuous assurance | Very close architecture | Does decision dependency add distinct information? | Very High |
+| Logistics DTs | Twins support real-time logistics decisions | Establishes application domain | What happens when Twin state is wrong? | High |
+| Autonomous AI + DT | Autonomous decisions increasingly interact with Twins | Establishes autonomy context | How should authority respond to divergence? | Very High |
+| DT fidelity | Physical/digital consistency matters | Basis for divergence | Does global fidelity predict decision validity? | High |
+| Synchronisation | Stale state is a known DT problem | Temporal divergence | When does staleness matter to a decision? | High |
+| Runtime assurance | Runtime monitors can intervene | Basis for authority control | What should trigger intervention? | Very High |
+| Assumption monitoring | Operational assumptions can be monitored | Conceptually close to dependencies | Is DARA-DT more than assumption monitoring? | Very High |
+| Decision feasibility | Constraints determine decision validity | Supports impact reasoning | Can divergence drive runtime validity reasoning? | Moderate–High |
+| AI uncertainty | AI confidence can be estimated | Alternative trust signal | What if model confidence and Twin fidelity disagree? | High |
+| Evidence quality | Runtime observations can be unreliable | Directly relevant to EXP-006 | How should evidence reliability affect authority? | High |
+| Adaptive autonomy | Authority can be restricted or transferred | Supports action model | Can divergence provide better authority evidence? | High |
+| Decision-relevant divergence | Decision-specific mismatch | Core candidate contribution | Already established elsewhere? | Unresolved |
+| Cross-dependency assurance | Same mechanism across state dependencies | Needed for generalisation | Does DARA-DT survive beyond capacity? | Unresolved |
+
+---
+
+# Part XI — Most Important Novelty Threats
+
+## 25. Threat 1 — DARTER
+
+DARTER substantially occupies:
+
+```text
+continuous Digital Twin assurance
+runtime trust
+live evidence
+drift detection
+operational-domain monitoring
+```
+
+DARA-DT must therefore demonstrate a narrower distinction.
+
+---
+
+## 26. Threat 2 — Runtime Assumption Monitoring
+
+Decision dependencies may simply represent operational assumptions.
+
+If existing assumption-monitoring approaches already perform equivalent
+decision-specific reasoning, DARA-DT's candidate contribution must be
+refined.
+
+---
+
+## 27. Threat 3 — Decision Feasibility
+
+Decision-impact reasoning may reduce to conventional constraint checking.
+
+DARA-DT must demonstrate why:
+
+```text
+physical–digital divergence
++
+decision dependency
++
+runtime validity
+```
+
+provides additional assurance value.
+
+---
+
+## 28. Threat 4 — Capacity Overfitting
+
+Current later experiments are dominated by:
+
+```text
+vehicle capacity
+```
+
+The mechanism may therefore appear more general than the evidence supports.
+
+This is why EXP-007 is necessary.
+
+---
+
+# Part XII — Evidence Gaps
+
+## 29. Gap A — Decision-Specific Divergence
+
+The literature search must continue to investigate whether existing work
+explicitly performs:
+
+```text
+physical–digital mismatch
+        ↓
+specific decision dependency
+        ↓
+decision consequence
+        ↓
+runtime authority
+```
+
+This remains the strongest candidate gap.
+
+---
+
+## 30. Gap B — Cross-Dependency Generalisation
+
+Evidence is required across:
+
+```text
+capacity
+operational status
+location / availability
+```
+
+A mechanism that works only for capacity cannot support a broad framework
+claim.
+
+---
+
+## 31. Gap C — Divergence × AI Uncertainty
+
+Future research may investigate cases such as:
+
+```text
+Low AI uncertainty + High relevant divergence
+
+High AI uncertainty + Low relevant divergence
+
+High AI uncertainty + High relevant divergence
+```
+
+This could determine whether the two signals provide complementary assurance
+information.
+
+It should not distract from cross-dependency validation first.
+
+---
+
+## 32. Gap D — Compound Divergence
+
+Operational systems may experience multiple simultaneous mismatches.
+
+Later experiments should test whether the mechanism remains selective under:
+
+```text
+temporal
++
+state
++
+operational
+```
+
+divergence.
+
+---
+
+## 33. Gap E — Operational Performance
+
+Current experiments focus primarily on assurance outcomes.
+
+Broader research must eventually determine whether intervention improves
+system behaviour without unacceptable degradation in:
+
+- service rate;
+- lateness;
+- cost;
+- utilisation;
+- decision latency; and
+- autonomy availability.
+
+---
+
+# Part XIII — Literature Search Strategy
+
+## 34. Priority Search Strings
+
+Future literature searches should prioritise:
+
+```text
+"digital twin" AND "decision dependency"
+
+"digital twin" AND "decision-specific assurance"
+
+"digital twin" AND "decision validity"
+
+"digital twin" AND "runtime assurance"
+
+"digital twin" AND "runtime monitoring" AND autonomy
+
+"digital twin" AND "physical digital divergence"
+
+"digital twin" AND "model discrepancy" AND decision
+
+"runtime assumption monitoring" AND autonomous systems
+
+"decision dependency" AND runtime assurance
+
+"decision assurance" AND digital twin
+
+"adaptive autonomy" AND digital twin
+
+"digital twin" AND logistics AND assurance
+
+"digital twin" AND logistics AND trustworthiness
+```
+
+The objective is to locate work that could invalidate the proposed research
+gap.
+
+---
+
+## 35. Literature Inclusion Priorities
+
+Priority should be given to:
+
+1. peer-reviewed journal papers;
+2. peer-reviewed conference papers;
+3. recognised standards and recommended practices;
+4. major research-institute projects;
+5. systematic reviews;
+6. authoritative government or standards publications.
+
+Preprints can be useful for identifying emerging research but should be
+labelled appropriately.
+
+---
+
+# Part XIV — Literature Evidence Rules
+
+## 36. Rule 1 — Do Not Search Only for Support
+
+The literature review must actively search for work that makes DARA-DT less
+novel.
+
+This reduces confirmation bias.
+
+---
+
+## 37. Rule 2 — Separate Similarity from Equivalence
+
+A paper discussing:
+
+```text
+runtime monitoring
+```
+
+is not automatically equivalent to:
+
+```text
+decision-specific divergence-aware assurance.
+```
+
+Likewise, different terminology may describe essentially the same mechanism.
+
+Both possibilities must be investigated.
+
+---
+
+## 38. Rule 3 — Do Not Infer Absence
+
+Failure to find a paper does not prove:
+
+```text
+no prior work exists.
+```
+
+Therefore statements such as:
+
+```text
+"No previous research..."
+```
+
+should be avoided unless supported by a sufficiently systematic review.
+
+---
+
+## 39. Rule 4 — Experiments Do Not Establish Novelty
+
+A successful experimental result establishes:
+
+```text
+behaviour within the experimental conditions
+```
+
+not:
+
+```text
+research originality.
+```
+
+Novelty requires literature comparison.
+
+---
+
+# Part XV — Current Literature Position
+
+## 40. High-Confidence Conclusions
+
+Current literature strongly supports the following:
+
+```text
+Digital Twin assurance already exists.
+
+Continuous runtime Digital Twin assurance already exists.
+
+Runtime assurance already exists.
+
+Runtime assumption monitoring already exists.
+
+AI-enabled logistics Digital Twins already exist.
+
+Autonomous AI + Digital Twin logistics research already exists.
+
+Physical–digital fidelity is already an established concern.
+
+Evidence quality is already an established concern.
+
+Adaptive authority is already an established concern.
+```
+
+Therefore none of these individually constitutes the DARA-DT contribution.
+
+---
+
+## 41. Unresolved Questions
+
+The following remain under investigation:
+
+```text
+Does existing work explicitly map physical–digital divergence
+to dependencies of an individual AI decision?
+
+Does existing work quantify whether that divergence changes
+the physical validity of that decision?
+
+Does existing work use that decision-specific impact to regulate
+autonomous authority?
+
+Is this fundamentally different from runtime assumption monitoring?
+
+Does the mechanism generalise across multiple logistics dependencies?
+```
+
+These questions should drive the next literature searches and experiments.
+
+---
+
+# Part XVI — Current Candidate Research Gap
+
+## 42. Working Gap Statement
+
+The current cautious research-gap statement is:
+
+> **Digital Twin assurance and runtime-assurance research increasingly
+> provide mechanisms for monitoring model performance, data quality,
+> operational envelopes, assumptions and trustworthiness during operation.
+> An unresolved question for DARA-DT is how physical–digital divergence
+> should be interpreted relative to the dependencies and physical validity
+> of a specific AI-generated operational decision, and whether this
+> decision-specific information provides useful evidence for regulating
+> autonomous authority in dynamic logistics systems.**
+
+This statement is intentionally framed as an unresolved question.
+
+It should not yet be converted into a definitive novelty claim.
+
+---
+
+# Part XVII — Connection to Experimental Programme
+
+## 43. Literature → Experiment Chain
+
+```text
+DT fidelity literature
+        ↓
+EXP-001 / EXP-002
+Global divergence vs decision significance
+        ↓
+Runtime assumption monitoring
+        ↓
+EXP-003
+Decision dependency and relevance
+        ↓
+Decision feasibility literature
+        ↓
+EXP-004 / EXP-005
+Decision impact and validity
+        ↓
+Evidence-quality literature
+        ↓
+EXP-006
+Imperfect runtime evidence
+        ↓
+Generality challenge
+        ↓
+EXP-007
+Cross-dependency validation
+```
+
+The literature and experiments should therefore evolve together.
+
+---
+
+# Part XVIII — Current Research Position
+
+## 44. Candidate Contribution
+
+The current candidate contribution remains:
+
+> **A decision-specific runtime-assurance mechanism that maps
+> physical–digital divergence to the dependencies and physical validity of
+> an AI-generated logistics decision, and experimentally evaluates whether
+> that information improves runtime intervention decisions.**
+
+Status:
+
+```text
+CANDIDATE
+NOT CONFIRMED NOVELTY
+```
+
+---
+
+## 45. Immediate Literature Priority
+
+Before making a strong novelty claim, the highest-priority literature task is
+to attack the intersection:
+
+```text
+Digital Twin
+        +
 Physical–Digital Divergence
-             ↓
-Runtime Quantification
-             ↓
-Decision-Specific Relevance
-             ↓
-Decision Risk
-             ↓
-Runtime Assurance
-             ↓
-Adaptive Autonomous Authority
-             ↓
-Compound Stress Testing
-             ↓
-Dynamic Logistics Validation
+        +
+Decision Dependencies
+        +
+Runtime Decision Validity
+        +
+Autonomous Authority
 ```
 
-The matrix will provide a formal:
+If prior work already implements this chain, the contribution must be
+refined.
 
-> **GO → REFINE → STOP**
-
-decision gate before the methodology and implementation are frozen.
+If systematic searching continues to show only partial implementations, the
+case for the research gap becomes stronger.
 
 ---
 
-# References
+## 46. Conclusion
 
-Tolia, A., & Ponis, S. T. (2026). Digital Twins for Real-Time Decision-Making in Supply Chain Management and Logistics: A Systematic Review. *Information, 17*(8), 732.
+The literature does not support a broad claim that DARA-DT introduces:
 
-UK Government, Defence Science and Technology Laboratory. (2025). *Digital Twin Definition*.
+```text
+Digital Twin assurance
+runtime assurance
+autonomous logistics
+physical–digital divergence
+evidence monitoring
+adaptive autonomy
+```
 
-The Alan Turing Institute. (2026). *DARTER: Digital Twin Assurance via Runtime Trust and Evidence Reporting*.
+These areas are already established.
 
-**Note:** Additional peer-reviewed references will be added only after bibliographic details and relevant claims have been verified against the source.
+The potentially differentiating question is narrower:
+
+> **When a Digital Twin diverges from physical reality, can that divergence
+> be mapped to the dependencies and physical validity of the specific
+> AI-generated decision about to execute, and can this information improve
+> runtime regulation of autonomous authority?**
+
+The current experimental programme provides a structured way to investigate
+that question.
+
+The novelty case remains deliberately open until stronger literature and
+cross-dependency evidence are available.
