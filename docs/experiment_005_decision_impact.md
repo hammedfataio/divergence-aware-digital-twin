@@ -1,621 +1,912 @@
 # Experiment 005 — Decision-Impact-Aware Runtime Assurance
 
-**Project:** Divergence-Aware Runtime Assurance for Digital Twins (DARA-DT)  
+**Project:** DARA-DT — Divergence-Aware Runtime Assurance for Digital Twins  
 **Experiment:** EXP-005  
-**Status:** Complete — Controlled Proof-of-Concept  
-**Research Stage:** Decision-Impact-Aware Runtime Assurance
+**Status:** Completed — Controlled Proof-of-Concept  
+**Research Stage:** Decision Relevance → Decision Impact / Validity  
+**Domain:** Autonomous Logistics Digital Twin
 
 ---
 
-## 1. Objective
+## 1. Purpose
 
-EXP-005 investigates whether runtime assurance should respond merely to the
-presence or magnitude of physical–digital divergence, or instead consider the
-effect of that divergence on the specific AI-generated decision being evaluated.
+EXP-004 demonstrated an important limitation of relevance-only runtime
+assurance:
 
-Earlier experiments established two important observations:
+> A physical–digital divergence can affect a variable required by an
+> autonomous decision without making that decision physically invalid.
 
-1. global Digital Twin divergence can cause unnecessary intervention when the
-   divergent state is unrelated to the current decision; and
-2. decision relevance alone is insufficient because a divergence may affect a
-   decision-dependent variable without actually invalidating the decision.
+EXP-005 therefore investigates whether runtime assurance can become more
+selective by evaluating the **impact of divergence on the validity of the
+specific decision**, rather than intervening whenever relevant divergence is
+detected.
 
-EXP-005 therefore introduces an additional reasoning layer:
-
-**Physical–Digital Divergence → Decision Relevance → Decision Impact → Runtime Assurance → Autonomous Authority**
-
-The experiment evaluates whether decision-specific impact information can
-reduce unnecessary interventions while still preventing autonomous execution
-of invalid decisions.
+The experiment focuses on vehicle-capacity decisions because capacity
+provides a transparent physical-validity boundary that can be independently
+evaluated.
 
 ---
 
 ## 2. Research Question
 
-> Can decision-impact-aware runtime assurance reduce unnecessary interventions
-> while still preventing autonomous execution when physical–digital divergence
-> materially invalidates a logistics decision?
+> **Can decision-specific impact and validity reasoning distinguish
+> consequential physical–digital divergence from relevant but
+> non-invalidating divergence?**
+
+The experiment tests whether decision-impact information provides additional
+assurance value beyond:
+
+- no assurance;
+- global divergence detection;
+- fixed divergence magnitude; and
+- decision relevance alone.
 
 ---
 
-## 3. Experimental Hypothesis
+## 3. Working Hypothesis
 
-The working hypothesis was:
+The working hypothesis is:
 
-> Decision-impact-aware assurance will reduce false interventions relative to
-> relevance-only assurance while preserving intervention when divergence
-> invalidates the proposed decision.
+> **Runtime intervention can become more selective when relevant divergence
+> is evaluated relative to the physical validity requirements of the
+> specific decision.**
 
-This hypothesis is evaluated only within the controlled conditions defined in
-EXP-005. The results are not treated as evidence of general superiority across
-all Digital Twin or logistics environments.
+For a capacity-dependent vehicle assignment, the important question is not
+simply:
 
----
+```text
+Is physical capacity different from Twin capacity?
+```
 
-## 4. Experimental Model
+or:
 
-The experiment uses vehicle capacity as a controlled decision dependency.
+```text
+Is capacity relevant to this decision?
+```
 
-For each condition:
+but:
 
-- `C_t` = capacity represented by the Digital Twin
-- `C_p` = physical vehicle capacity
-- `D` = order demand
-
-The physical decision-validity margin is:
-
-`M_p = C_p - D`
-
-Interpretation:
-
-- `M_p > 0` — positive capacity margin
-- `M_p = 0` — exact decision boundary
-- `M_p < 0` — physical capacity is insufficient
-
-A key distinction is maintained between **runtime evidence** and
-**experimental ground truth**.
-
-The physical validity margin is used by the experimental evaluator to determine
-whether intervention was actually required. It is not directly passed to the
-assurance policy as an outcome label.
+```text
+Does the observed physical capacity still satisfy the demand required by
+this particular assignment?
+```
 
 ---
 
-## 5. Decision-Impact States
+## 4. Experimental Principle
 
-EXP-005 introduces the following impact states:
+For a vehicle-assignment decision with demand \(q\), physical validity is
+defined independently as:
 
-| Impact State | Interpretation |
-|---|---|
-| `NO_IMPACT` | Runtime evidence does not reduce the relevant decision margin |
-| `MARGIN_REDUCED` | Divergence affects the decision dependency but the estimated margin remains positive |
-| `BOUNDARY` | Runtime evidence places the decision exactly at its validity boundary |
-| `INVALIDATING` | Runtime evidence indicates that the decision constraint has been violated |
-| `UNCERTAIN` | Available runtime evidence is insufficient to establish impact confidently |
+\[
+C_{physical} \geq q
+\]
 
-The experimental impact-aware policy maps these states to autonomous authority.
+where:
 
-`NO_IMPACT` and `MARGIN_REDUCED` permit autonomous execution.
+- \(C_{physical}\) is physical vehicle capacity; and
+- \(q\) is the demand required by the order.
 
-`BOUNDARY` restricts autonomous authority.
+The decision is physically invalid when:
 
-`INVALIDATING` and `UNCERTAIN` defer autonomous execution.
+\[
+C_{physical} < q
+\]
+
+A useful validity margin can therefore be represented as:
+
+\[
+M = C_{physical} - q
+\]
+
+where:
+
+- \(M > 0\): positive feasibility margin;
+- \(M = 0\): exact physical boundary;
+- \(M < 0\): physically invalid assignment.
+
+This formulation makes impact decision-specific.
 
 ---
 
-## 6. Policies Compared
+## 5. Why Divergence Magnitude Is Not Enough
 
-Five assurance strategies were evaluated under the same controlled conditions.
+Consider two decisions with identical physical–digital divergence:
+
+```text
+Twin capacity     = 10
+Physical capacity = 7
+Divergence        = 3
+```
+
+### Decision A
+
+```text
+Demand = 5
+
+7 >= 5
+```
+
+The decision remains physically valid.
+
+### Decision B
+
+```text
+Demand = 8
+
+7 < 8
+```
+
+The decision is physically invalid.
+
+Therefore:
+
+> **Equal divergence magnitude can produce different decision consequences.**
+
+This comparison directly motivates decision-impact reasoning.
+
+---
+
+## 6. Controlled Experimental Matrix
+
+EXP-005 evaluates **15 controlled capacity conditions**.
+
+The conditions vary:
+
+- Twin capacity;
+- physical capacity;
+- order demand;
+- divergence magnitude; and
+- resulting physical validity.
+
+The matrix deliberately includes:
+
+- synchronized conditions;
+- divergent but valid decisions;
+- divergent and invalid decisions;
+- different validity margins;
+- equal-divergence/different-impact comparisons; and
+- exact-boundary conditions.
+
+The purpose is not to simulate the entire logistics domain.
+
+It is to isolate whether decision-specific validity information improves
+runtime intervention decisions.
+
+---
+
+## 7. Important Equal-Divergence Pair
+
+A particularly important comparison is I7 versus I8.
+
+Both conditions use:
+
+```text
+Twin capacity     = 10
+Physical capacity = 7
+Divergence        = 3
+```
+
+### I7
+
+```text
+Demand = 5
+
+Physical capacity = 7
+Demand            = 5
+
+7 >= 5
+```
+
+The assignment is physically valid.
+
+### I8
+
+```text
+Demand = 8
+
+Physical capacity = 7
+Demand            = 8
+
+7 < 8
+```
+
+The assignment is physically invalid.
+
+The physical–digital divergence is identical.
+
+The decision consequence is not.
+
+This pair isolates the distinction between:
+
+```text
+Divergence magnitude
+```
+
+and:
+
+```text
+Decision impact
+```
+
+---
+
+## 8. Assurance Strategies
+
+Five strategies are evaluated.
 
 ### B0 — No Assurance
 
-The AI-generated decision is allowed to execute without runtime intervention.
+The decision is allowed without runtime intervention.
+
+This maximises autonomy but does not respond to invalid decisions caused by
+physical–digital divergence.
+
+---
 
 ### B1 — Global Divergence
 
 Any detected physical–digital divergence triggers intervention.
 
-### B2 — Fixed Magnitude
-
-Intervention is based on a fixed divergence-magnitude threshold.
-
-For EXP-005, the configured threshold is `5`.
-
-### B3 — Decision Relevance
-
-Intervention occurs when detected divergence affects a state variable on which
-the current decision depends.
-
-### P1 — Decision-Impact-Aware Assurance
-
-Intervention depends on the estimated effect of the relevant divergence on the
-decision-specific validity margin.
+This provides high sensitivity to mismatch but does not distinguish
+decision consequence.
 
 ---
 
-## 7. Controlled Conditions
+### B2 — Fixed-Magnitude Assurance
 
-EXP-005 evaluates 15 controlled conditions, labelled `I0`–`I14`.
+Intervention is determined using a fixed divergence-magnitude threshold.
 
-The matrix varies:
-
-- Digital Twin capacity;
-- physical capacity;
-- order demand;
-- divergence magnitude;
-- decision-specific validity margin; and
-- whether intervention is actually required.
-
-The conditions include:
-
-- synchronised states;
-- valid decisions with reduced margins;
-- exact decision boundaries;
-- invalid decisions;
-- different decision boundaries; and
-- equal divergence magnitudes producing different decision consequences.
-
-A particularly important pair is:
-
-### I7 — Same Divergence, Valid Decision
-
-- Twin capacity: `10`
-- Physical capacity: `7`
-- Demand: `5`
-- Divergence magnitude: `3`
-- Physical margin: `+2`
-
-The divergence is decision-relevant, but the decision remains physically valid.
-
-### I8 — Same Divergence, Invalid Decision
-
-- Twin capacity: `10`
-- Physical capacity: `7`
-- Demand: `8`
-- Divergence magnitude: `3`
-- Physical margin: `-1`
-
-The divergence magnitude is identical to I7, but the decision is physically
-invalid.
-
-This pair tests whether divergence magnitude alone contains sufficient
-information for runtime intervention.
+This tests whether a simple severity rule can approximate the physical
+validity boundary.
 
 ---
 
-## 8. Evaluation Outcomes
+### B3 — Decision-Relevance Assurance
 
-Each policy decision is classified into one of four outcome categories.
+Intervention occurs when detected divergence affects a dependency of the
+current decision.
 
-| Outcome | Meaning |
-|---|---|
-| True Intervention (TI) | Intervention occurred and was required |
-| False Intervention (FI) | Intervention occurred but was unnecessary |
-| Missed Intervention (MI) | Intervention was required but did not occur |
-| Correct Non-Intervention (CNI) | Autonomous execution was allowed and intervention was unnecessary |
+This represents the relevance mechanism developed in EXP-001 to EXP-003.
 
-These categories separate unsafe under-intervention from unnecessary
-over-intervention.
+EXP-004 demonstrated that relevance alone may over-intervene.
 
 ---
 
-## 9. Evaluation Metrics
+### P1 — Decision-Impact Assurance
 
-The following aggregate metrics are calculated across all 15 conditions.
+The decision-impact mechanism evaluates the relationship between:
 
-### Assurance Accuracy
+- the decision dependency;
+- required demand; and
+- evidence about physical capacity.
 
-`Accuracy = (TI + CNI) / N`
+The purpose is to determine whether divergence crosses the decision's
+validity boundary rather than merely whether divergence exists.
 
-### Intervention Precision
+For EXP-005, the impact mechanism uses deterministic physical-capacity
+evidence.
 
-`Precision = TI / (TI + FI)`
+This represents an intentionally controlled setting.
 
-This measures how often an intervention was actually required when the policy
-intervened.
-
-### Intervention Recall
-
-`Recall = TI / (TI + MI)`
-
-This measures how many required interventions were successfully identified.
-
-### Autonomy Availability
-
-`Autonomy Availability = (MI + CNI) / N`
-
-This measures the proportion of proposed decisions that remain autonomously
-executable.
-
-Autonomy availability is reported alongside assurance metrics because a policy
-that intervenes on nearly every decision may achieve high intervention recall
-while substantially reducing useful autonomous operation.
+The assumption of reliable evidence is challenged later in EXP-006.
 
 ---
 
-## 10. Verified Results
+## 9. Evaluation Outcomes
 
-The experiment produced the following aggregate results across the 15
-controlled conditions.
+Each policy outcome is evaluated against independent physical ground truth.
 
-| Policy | TI | FI | MI | CNI | Accuracy | Precision | Recall | Autonomy Availability |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|
-| No Assurance | 0 | 0 | 6 | 9 | 0.600 | 0.000 | 0.000 | 1.000 |
-| Global Divergence | 6 | 8 | 0 | 1 | 0.467 | 0.429 | 1.000 | 0.067 |
-| Fixed Magnitude | 3 | 0 | 3 | 9 | 0.800 | 1.000 | 0.500 | 0.800 |
-| Decision Relevance | 6 | 8 | 0 | 1 | 0.467 | 0.429 | 1.000 | 0.067 |
-| Decision Impact | 6 | 2 | 0 | 7 | 0.867 | 0.750 | 1.000 | 0.467 |
+Four outcome classes are used.
 
-The implementation and metric calculations were validated by the repository
-test suite before these results were interpreted.
+### True Intervention — TI
 
----
+```text
+Decision physically invalid
++
+Policy intervenes
+```
 
-## 11. Result Analysis
+### False Intervention — FI
 
-### 11.1 No Assurance
+```text
+Decision physically valid
++
+Policy intervenes
+```
 
-The no-assurance baseline retained full autonomy availability:
+### Missed Intervention — MI
 
-`1.000`
+```text
+Decision physically invalid
++
+Policy allows execution
+```
 
-However, it missed all six conditions requiring intervention:
+### Correct Non-Intervention — CNI
 
-- TI = `0`
-- MI = `6`
-- Recall = `0.000`
+```text
+Decision physically valid
++
+Policy allows execution
+```
 
-This demonstrates the unsafe behaviour expected from unrestricted autonomous
-execution under the controlled divergence conditions.
-
----
-
-### 11.2 Global Divergence
-
-Global-divergence assurance identified all six required interventions:
-
-- TI = `6`
-- MI = `0`
-- Recall = `1.000`
-
-However, it also produced eight false interventions:
-
-- FI = `8`
-- Precision = `0.429`
-
-Autonomy availability fell to:
-
-`0.067`
-
-Within this experimental matrix, reacting to any divergence therefore produced
-substantial over-intervention.
+This separation prevents an assurance policy from defining its own
+evaluation labels.
 
 ---
 
-### 11.3 Fixed-Magnitude Assurance
+## 10. Verified Aggregate Results
 
-The fixed-magnitude baseline produced:
+The implemented 15-condition experiment produces the following results:
 
-- TI = `3`
-- FI = `0`
-- MI = `3`
-- CNI = `9`
+| Policy | Conditions | TI | FI | MI | CNI | Accuracy | Precision | Recall | Autonomy Availability |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| No Assurance | 15 | 0 | 0 | 6 | 9 | 0.600 | 0.000 | 0.000 | 1.000 |
+| Global Divergence | 15 | 6 | 8 | 0 | 1 | 0.467 | 0.429 | 1.000 | 0.067 |
+| Fixed Magnitude | 15 | 3 | 0 | 3 | 9 | 0.800 | 1.000 | 0.500 | 0.800 |
+| Decision Relevance | 15 | 6 | 8 | 0 | 1 | 0.467 | 0.429 | 1.000 | 0.067 |
+| Decision Impact | 15 | 6 | 2 | 0 | 7 | 0.867 | 0.750 | 1.000 | 0.467 |
 
-Its intervention precision was:
+These values describe only the controlled EXP-005 matrix.
 
-`1.000`
-
-but recall was:
-
-`0.500`
-
-The threshold therefore avoided unnecessary interventions in this matrix but
-failed to identify half of the required interventions.
-
-The I7/I8 pair illustrates the underlying limitation: equal divergence
-magnitude can correspond to different decision consequences.
-
-A fixed magnitude alone cannot represent that distinction without additional
-decision context.
+They should not be interpreted as general system-performance estimates.
 
 ---
 
-### 11.4 Decision-Relevance Assurance
+## 11. No-Assurance Result
 
-Decision-relevance assurance identified all six required interventions:
+No Assurance allows every decision.
 
-- TI = `6`
-- MI = `0`
-- Recall = `1.000`
+This produces:
 
-However, it also produced eight false interventions:
+```text
+TI  = 0
+FI  = 0
+MI  = 6
+CNI = 9
+```
 
-- FI = `8`
-- Precision = `0.429`
-- Autonomy availability = `0.067`
+with:
 
-Within this capacity-focused experiment, all introduced capacity divergences
-were relevant to the vehicle-assignment decision.
+```text
+Accuracy = 0.600
+Recall   = 0.000
+Autonomy = 1.000
+```
 
-Relevance therefore established that the changed state mattered to the
-decision dependency, but it did not establish whether the change was large
-enough to invalidate the decision.
+The policy preserves complete autonomy but misses all six physically invalid
+decisions.
+
+This illustrates why autonomy availability cannot be interpreted as an
+assurance-quality metric by itself.
+
+---
+
+## 12. Global-Divergence Result
+
+Global Divergence produces:
+
+```text
+TI  = 6
+FI  = 8
+MI  = 0
+CNI = 1
+```
+
+with:
+
+```text
+Accuracy  = 0.467
+Precision = 0.429
+Recall    = 1.000
+Autonomy  = 0.067
+```
+
+The policy catches all physically invalid decisions but unnecessarily
+intervenes in eight valid conditions.
+
+This demonstrates the opposite extreme from No Assurance.
+
+High intervention recall is achieved at substantial cost to autonomous
+availability.
+
+---
+
+## 13. Fixed-Magnitude Result
+
+Fixed Magnitude produces:
+
+```text
+TI  = 3
+FI  = 0
+MI  = 3
+CNI = 9
+```
+
+with:
+
+```text
+Accuracy  = 0.800
+Precision = 1.000
+Recall    = 0.500
+Autonomy  = 0.800
+```
+
+The threshold is selective and avoids false intervention in this matrix.
+
+However, it misses half of the physically invalid conditions.
+
+The result demonstrates that a simple threshold can preserve autonomy but
+may fail when the same divergence magnitude has different consequences under
+different decision requirements.
+
+---
+
+## 14. Decision-Relevance Result
+
+Decision Relevance produces:
+
+```text
+TI  = 6
+FI  = 8
+MI  = 0
+CNI = 1
+```
+
+with:
+
+```text
+Accuracy  = 0.467
+Precision = 0.429
+Recall    = 1.000
+Autonomy  = 0.067
+```
+
+Within this capacity-focused matrix, nearly every divergence concerns the
+capacity dependency of the current decision.
+
+The relevance mechanism therefore correctly identifies the divergence as
+decision-relevant but cannot determine whether the remaining physical
+capacity is still sufficient for the order.
 
 This confirms the limitation exposed by EXP-004:
 
-> Decision relevance is necessary for filtering unrelated divergence, but
-> relevance alone is not sufficient for determining whether autonomous
-> execution should be interrupted.
+> **Decision relevance identifies what matters to the decision, but does not
+> necessarily determine whether the decision remains valid.**
 
 ---
 
-### 11.5 Decision-Impact-Aware Assurance
+## 15. Decision-Impact Result
 
-The decision-impact policy produced:
+Decision Impact produces:
 
-- TI = `6`
-- FI = `2`
-- MI = `0`
-- CNI = `7`
+```text
+TI  = 6
+FI  = 2
+MI  = 0
+CNI = 7
+```
 
-This corresponds to:
+with:
 
-- Accuracy = `0.867`
-- Precision = `0.750`
-- Recall = `1.000`
-- Autonomy availability = `0.467`
+```text
+Accuracy  = 0.867
+Precision = 0.750
+Recall    = 1.000
+Autonomy  = 0.467
+```
 
-Within the controlled EXP-005 matrix, the policy preserved intervention on all
-six invalid decisions while reducing false interventions from eight under the
-relevance-only policy to two.
+Within the controlled matrix, decision-impact reasoning:
 
-The experiment therefore provides preliminary evidence that decision-specific
-impact information can improve the balance between intervention and autonomy
-relative to relevance-only reasoning.
+- intervenes in all six physically invalid conditions;
+- avoids six of the eight false interventions produced by relevance-only
+  assurance;
+- preserves substantially more autonomous execution than global or
+  relevance-only intervention; and
+- still produces two false interventions.
 
-This conclusion is restricted to the controlled capacity scenarios evaluated
-here.
+The result therefore supports the usefulness of decision-specific validity
+reasoning without suggesting that the implemented policy is perfect.
 
 ---
 
-## 12. The Remaining False Interventions
+## 16. Boundary Behaviour
 
-The decision-impact policy still produced two false interventions.
+The two false interventions produced by the decision-impact policy are
+important.
 
-These results are important and are not treated as implementation noise.
+They occur at exact-boundary conditions where:
 
-The current policy classifies an exact decision boundary as requiring
-restricted autonomous authority.
+```text
+physical capacity = demand
+```
 
-However, the experimental ground-truth definition treats:
+The independent physical validator treats equality as physically valid:
 
-`C_p = D`
+\[
+C_{physical} \geq q
+\]
 
-as physically valid.
+However, the impact policy treats the zero-margin boundary conservatively.
 
-Consequently, exact-boundary conditions can produce conservative
-interventions even though the physical decision remains technically feasible.
+Therefore:
 
-This exposes a distinction between:
+```text
+Ground truth:
+margin = 0 → valid
 
-- **physical validity**, and
-- **operational safety margin**.
+Impact policy:
+margin = 0 → restrict
+```
 
-A decision may be technically valid at a zero margin while still offering no
-buffer against uncertainty, measurement error, or further system change.
+This produces a false intervention.
 
-The appropriate treatment of such boundary states therefore requires further
-investigation rather than simply modifying the policy to eliminate the false
+This should not be hidden or manually corrected merely to improve the
+reported metric.
+
+Instead, it identifies a genuine policy-design question:
+
+> Should an autonomous system retain full authority when a decision is
+> exactly feasible but has no remaining physical margin?
+
+The answer may depend on the operational risk model and cannot be resolved by
+this experiment alone.
+
+---
+
+## 17. Scientific Interpretation
+
+EXP-005 provides controlled evidence that the following concepts should be
+distinguished:
+
+```text
+Physical–Digital Divergence
+        ↓
+How different are physical and digital state?
+
+Decision Relevance
+        ↓
+Does the mismatch affect something this decision depends on?
+
+Decision Impact
+        ↓
+Does the mismatch change whether this decision remains physically valid?
+```
+
+This is more informative than treating all three questions as equivalent.
+
+---
+
+## 18. Assurance–Autonomy Trade-Off
+
+The experiment also illustrates the trade-off between intervention
+sensitivity and autonomy preservation.
+
+### No Assurance
+
+```text
+Autonomy = 1.000
+Recall   = 0.000
+```
+
+Maximum autonomy, but all required interventions are missed.
+
+### Global / Relevance
+
+```text
+Autonomy = 0.067
+Recall   = 1.000
+```
+
+All invalid conditions are caught, but autonomy is almost completely
+removed.
+
+### Fixed Magnitude
+
+```text
+Autonomy = 0.800
+Recall   = 0.500
+```
+
+Greater autonomy, but half of the required interventions are missed.
+
+### Decision Impact
+
+```text
+Autonomy = 0.467
+Recall   = 1.000
+```
+
+Within this controlled matrix, decision-impact reasoning preserves more
+autonomy than global/relevance-only intervention while retaining all required
 interventions.
 
----
+This does not establish an optimal trade-off.
 
-## 13. Key Finding
-
-The principal finding of EXP-005 is:
-
-> Within the controlled capacity experiment, divergence magnitude and decision
-> relevance alone were insufficient to determine whether autonomous
-> intervention was appropriate. Incorporating decision-specific impact
-> information reduced unnecessary intervention while preserving intervention
-> on invalid decisions.
-
-The result supports the evolving DARA-DT reasoning chain:
-
-**Physical–Digital Divergence  
-→ Decision Relevance  
-→ Decision Impact / Validity Margin  
-→ Runtime Assurance  
-→ Autonomous Authority**
-
-This is a controlled proof-of-concept result, not evidence that the proposed
-approach is universally superior to existing runtime-assurance methods.
+It demonstrates why both assurance effectiveness and autonomy preservation
+must be measured.
 
 ---
 
-## 14. Scientific Interpretation
+## 19. Relationship to EXP-004
 
-EXP-005 distinguishes three questions that should not be treated as
-equivalent:
+EXP-004 established:
 
-1. **Has the physical system diverged from its Digital Twin?**
-2. **Does that divergence affect a variable used by the current decision?**
-3. **Does the divergence materially alter the validity of that decision?**
+```text
+Relevant divergence ≠ Invalid decision
+```
 
-The experiment demonstrates that the answer to question 2 can be "yes" while
-the answer to question 3 remains "no".
+EXP-005 operationalises the next question:
 
-Similarly, two conditions can have the same divergence magnitude while
-producing different answers to question 3.
+```text
+If divergence is relevant,
+does it cross the validity boundary of this specific decision?
+```
 
-This distinction motivates decision-impact reasoning as a separate experimental
-component of DARA-DT.
+The resulting progression is:
+
+```text
+Decision Relevance
+        ↓
+Divergence Severity
+        ↓
+Decision Impact / Validity
+```
 
 ---
 
-## 15. Limitations
+## 20. Limitation Exposed by EXP-005
 
-EXP-005 remains deliberately narrow.
+The decision-impact mechanism in EXP-005 uses reliable evidence about
+physical capacity.
 
-### 15.1 Capacity-Only Decision Dependency
+That creates another important assumption:
 
-The current experiment evaluates capacity divergence only.
+```text
+Impact reasoning
+        ↓
+requires evidence about physical reality
+```
 
-The findings have not yet been demonstrated for:
+But deployed Digital Twins may receive:
 
-- vehicle operational status;
-- availability;
-- location;
-- temporal staleness;
-- route feasibility;
-- demand uncertainty; or
-- compound divergence.
-
-### 15.2 High-Quality Runtime Evidence
-
-The impact analyser receives a runtime capacity observation corresponding to
-the physical capacity used in the controlled simulation.
-
-Although the experimental evaluator remains logically separate from the
-assurance policy, this represents a strong runtime-information assumption.
-
-Real systems may contain:
-
-- sensor noise;
-- delayed observations;
+- delayed evidence;
 - missing observations;
-- contradictory evidence; or
-- uncertain state estimates.
+- noisy measurements;
+- conflicting observations; or
+- incorrect but apparently valid telemetry.
 
-The current result therefore does not establish performance under imperfect
-runtime evidence.
+Therefore a decision-impact mechanism may reason correctly from incorrect
+evidence.
 
-### 15.3 Small Controlled Matrix
-
-Only 15 deterministic conditions are evaluated.
-
-The matrix is designed for mechanism testing and falsification, not statistical
-generalisation.
-
-### 15.4 Boundary Policy
-
-The treatment of zero-margin decisions remains conservative and causes two
-false interventions.
-
-This behaviour requires explicit investigation rather than post-hoc adjustment.
-
-### 15.5 Scenario Weighting
-
-Some conditions intentionally reuse similar capacity configurations to test
-specific contrasts, including the equal-divergence comparison.
-
-Aggregate metrics should therefore be interpreted as performance over the
-designed experimental matrix rather than as estimates of real-world event
-frequency.
+This motivates EXP-006.
 
 ---
 
-## 16. Threats to Validity
+## 21. Connection to EXP-006
 
-Several competing explanations remain possible.
+EXP-006 asks:
 
-The observed improvement may depend on:
+> **How robust is decision-impact-aware runtime assurance when the evidence
+> used to estimate physical–digital divergence and decision impact is
+> imperfect?**
 
-- direct access to high-quality runtime capacity evidence;
-- the simplicity of a single numeric constraint;
-- deterministic decision boundaries;
-- the selected distribution of experimental conditions; or
-- the absence of interacting divergence sources.
+The progression becomes:
 
-Decision-impact reasoning must therefore be challenged under weaker evidence
-and more complex dependencies before stronger conclusions are justified.
+```text
+EXP-003
+Decision relevance
+        ↓
+EXP-004
+Relevance is insufficient
+        ↓
+EXP-005
+Decision impact / validity
+        ↓
+EXP-006
+Reliability of the evidence supporting impact
+```
 
----
+This advances the DARA-DT research model to:
 
-## 17. Falsification Criteria
-
-The decision-impact approach should be weakened or rejected if subsequent
-experiments show that it:
-
-- misses materially invalid decisions;
-- performs no better than relevance-only reasoning under imperfect evidence;
-- collapses into a tuned global magnitude threshold;
-- fails when the decision boundary changes;
-- fails on non-capacity dependencies;
-- cannot handle multiple interacting divergences; or
-- introduces unacceptable runtime overhead.
-
-These criteria are retained explicitly to avoid treating favourable EXP-005
-results as confirmation of the overall research hypothesis.
-
----
-
-## 18. Next Experiment
-
-The immediate next experiment should challenge one of EXP-005's strongest
-assumptions:
-
-**perfect runtime evidence.**
-
-EXP-006 should therefore investigate decision-impact-aware assurance under:
-
-- noisy observations;
-- delayed observations;
-- missing evidence; and
-- uncertain evidence.
-
-The central question becomes:
-
-> Can decision-impact-aware runtime assurance preserve useful intervention
-> behaviour when the evidence used to estimate decision impact is itself
-> imperfect?
-
-This provides a stronger test of whether the framework can move beyond a
-deterministic proof-of-concept toward realistic runtime assurance.
+```text
+Physical–Digital Divergence
+        ↓
+Decision Relevance
+        ↓
+Decision Impact / Validity
+        ↓
+Evidence Reliability
+        ↓
+Runtime Assurance
+        ↓
+Autonomous Authority
+```
 
 ---
 
-## 19. Reproducibility
+## 22. What EXP-005 Supports
 
-The EXP-005 implementation is contained within the repository and includes:
+Within the controlled 15-condition capacity matrix, EXP-005 supports the
+following observations:
 
-- controlled impact conditions;
-- decision-impact models;
-- impact analysis;
-- assurance policies;
-- policy comparison;
-- aggregate metric calculation; and
-- automated tests.
-
-The complete repository test suite passed after integration of EXP-005 and its
-metric evaluation.
-
-No result in this document should be interpreted beyond the experimental scope
-described above.
+- equal divergence magnitude can produce different decision consequences;
+- decision relevance alone does not distinguish valid from invalid
+  capacity-dependent assignments;
+- fixed magnitude can preserve autonomy while missing invalid decisions;
+- decision-specific validity reasoning can reduce unnecessary intervention
+  relative to global and relevance-only policies;
+- decision-impact reasoning retained intervention across all six physically
+  invalid conditions in this matrix; and
+- exact validity boundaries create an explicit policy-design problem.
 
 ---
 
-## 20. Experiment Status
+## 23. What EXP-005 Does Not Establish
 
-**EXP-005: COMPLETE — CONTROLLED PROOF-OF-CONCEPT**
+EXP-005 does **not** establish:
 
-Supported within the current experiment:
+- general superiority of decision-impact assurance;
+- general superiority of DARA-DT;
+- effectiveness outside capacity-dependent decisions;
+- effectiveness under imperfect evidence;
+- an optimal treatment of exact validity boundaries;
+- statistical generalisation;
+- real-world logistics effectiveness;
+- robustness under compound divergence;
+- acceptable computational overhead;
+- formal safety guarantees; or
+- confirmed novelty.
 
-- decision relevance alone can over-intervene;
-- equal divergence magnitude can have different decision consequences;
-- decision-specific validity margins provide additional information beyond
-  divergence magnitude;
-- impact-aware assurance reduced false interventions relative to
-  relevance-only assurance in the controlled matrix;
-- all required interventions were retained by the impact-aware policy in the
-  tested conditions; and
-- exact-boundary handling remains an unresolved assurance-design question.
+These remain subjects for further investigation.
 
-Not yet established:
+---
 
-- robustness to imperfect runtime evidence;
-- generalisation beyond capacity;
-- performance under compound divergence;
-- scalability;
-- real-world logistics effectiveness; or
-- novelty relative to all existing runtime-assurance approaches.
+## 24. Threats to Validity
+
+### 24.1 Capacity-Centric Evaluation
+
+The experiment focuses on a numeric capacity dependency.
+
+The observed behaviour may not transfer directly to categorical or spatial
+dependencies such as:
+
+- operational status;
+- availability; or
+- location.
+
+---
+
+### 24.2 Deterministic Evidence
+
+The impact mechanism receives controlled evidence about physical capacity.
+
+This simplifies causal interpretation but does not represent all real
+runtime evidence conditions.
+
+---
+
+### 24.3 Simplified Validity Function
+
+Physical validity is based on the transparent constraint:
+
+```text
+capacity >= demand
+```
+
+Real logistics decisions may involve multiple interacting constraints and
+objectives.
+
+---
+
+### 24.4 Controlled Experimental Matrix
+
+The 15 conditions are deliberately constructed.
+
+The resulting metrics describe this matrix and should not be interpreted as
+population-level performance estimates.
+
+---
+
+### 24.5 Boundary Policy
+
+The treatment of zero validity margin is conservative in the impact policy
+but valid under the independent physical ground-truth rule.
+
+This policy mismatch accounts for two false interventions and requires
+further investigation rather than silent removal.
+
+---
+
+## 25. Falsification Perspective
+
+The decision-impact hypothesis would be weakened if broader experiments show
+that:
+
+- impact reasoning provides no advantage over simpler thresholds;
+- the observed benefit exists only for capacity;
+- impact estimates become unreliable under realistic evidence conditions;
+- missed interventions increase substantially;
+- autonomy gains disappear under broader scenarios; or
+- the computational cost of impact reasoning outweighs its assurance value.
+
+The purpose of subsequent experiments is therefore to challenge the mechanism
+under increasingly difficult conditions.
+
+---
+
+## 26. Reproducibility
+
+The decision-impact experiment is implemented through the repository's
+impact experiment and evaluation modules.
+
+Key experimental components include:
+
+```text
+src/dara_dt/experiments/impact_experiment.py
+src/dara_dt/experiments/impact_metrics.py
+src/dara_dt/impact/model.py
+src/dara_dt/impact/analyser.py
+src/dara_dt/assurance/impact_policy.py
+```
+
+The aggregate metrics can be reproduced through the repository experiment
+runner:
+
+```bash
+uv run python -m dara_dt.experiments.impact_metrics
+```
+
+Automated tests verify the controlled conditions, impact calculations,
+assurance outcomes and aggregate metrics.
+
+---
+
+## 27. Research Integrity
+
+The experiment does not modify the baseline policies to make DARA-DT appear
+superior.
+
+In particular:
+
+- relevance-only assurance is preserved as an intentionally incomplete
+  baseline;
+- the fixed-magnitude policy is retained even where it performs well;
+- the two decision-impact false interventions are retained;
+- exact-boundary behaviour is explicitly documented; and
+- conclusions are limited to the controlled capacity matrix.
+
+This allows later experiments to test whether the observed mechanism
+generalises.
+
+---
+
+## 28. Conclusion
+
+EXP-005 demonstrates that physical–digital divergence should not be
+interpreted independently of the decision it affects.
+
+Within the controlled capacity matrix, the same divergence magnitude can
+leave one vehicle-assignment decision valid while invalidating another.
+
+Decision-impact reasoning therefore provides information that is absent from
+divergence magnitude and decision relevance alone.
+
+The experiment supports the transition:
+
+```text
+Physical–Digital Divergence
+        ↓
+Decision Relevance
+        ↓
+Decision Impact / Validity
+```
+
+However, EXP-005 relies on reliable evidence about physical state.
+
+The next experiment therefore asks whether the same reasoning remains
+dependable when runtime evidence is incomplete, stale, conflicting or
+incorrect.
+
+That question is investigated in EXP-006.
