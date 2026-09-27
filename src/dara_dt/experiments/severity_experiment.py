@@ -3,15 +3,15 @@
 This module evaluates how increasing physical-digital capacity divergence
 affects decision validity and runtime assurance behaviour.
 
-The experiment preserves independent physical ground truth and compares:
+The experiment compares:
 
 1. No assurance
 2. Global-divergence assurance
 3. Magnitude-threshold assurance
 4. DARA-DT decision-relevance assurance
 
-The experiment is deliberately diagnostic. It does not assume that DARA-DT
-will outperform the baselines.
+Physical decision validity is evaluated independently from the assurance
+policies so that the experiment does not assume that any policy is correct.
 """
 
 from dataclasses import dataclass
@@ -21,7 +21,7 @@ from dara_dt.assurance.baselines import (
     NoAssurancePolicy,
 )
 from dara_dt.assurance.magnitude_policy import MagnitudeAssurancePolicy
-from dara_dt.assurance.policy import DARADTPolicy
+from dara_dt.assurance.policy import DivergenceAwarePolicy
 from dara_dt.decision.controller import LogisticsDecisionController
 from dara_dt.decision.dependency import DependencyMapper
 from dara_dt.divergence.detector import DivergenceDetector
@@ -94,9 +94,12 @@ def run_severity_condition(
     twin = DigitalTwin()
     twin.synchronize(environment.snapshot())
 
-    # Divergence is introduced after synchronization so that the Twin
-    # retains the original capacity while the physical system changes.
-    environment.vehicles["vehicle_00"].capacity = condition.physical_capacity
+    # Change the physical system only after Twin synchronization.
+    # The Twin therefore retains capacity 10 while physical capacity
+    # follows the selected EXP-004 condition.
+    environment.vehicles["vehicle_00"].capacity = (
+        condition.physical_capacity
+    )
 
     physical_state = environment.snapshot()
 
@@ -147,7 +150,7 @@ def run_severity_condition(
         divergences=divergences,
     )
 
-    dara_decision = DARADTPolicy().decide(
+    dara_decision = DivergenceAwarePolicy().evaluate(
         decision=decision,
         relevance=relevance,
     )
