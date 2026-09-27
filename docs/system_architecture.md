@@ -1,1204 +1,1363 @@
+# DARA-DT System Architecture
 
-# System Architecture
-
-## Divergence-Aware Runtime Assurance for AI-Driven Digital Twins in Autonomous Logistics Systems
-
+**Project:** Divergence-Aware Runtime Assurance for AI-Driven Digital Twins  
 **Framework:** DARA-DT  
-**Research stage:** Architecture Design  
-**Status:** Proposed — Pre-Implementation  
-**Last updated:** September 2026
+**Domain:** Autonomous Logistics Systems  
+**Architecture Status:** Implemented Research Prototype  
+**Validated Experimental Stages:** EXP-001 to EXP-006  
+**Next Planned Stage:** Cross-Dependency Generalisation
 
 ---
 
 ## 1. Architecture Purpose
 
-This document translates the research methodology into an implementable software architecture.
+DARA-DT is a research architecture for investigating how
+physical–digital divergence should influence autonomous AI decision-making
+in logistics Digital Twins.
 
-The system is designed to investigate:
+The architecture separates:
 
-> **Whether decision-relevant physical–digital divergence can improve runtime assurance of AI-generated decisions in dynamic logistics Digital Twins.**
+- physical logistics state;
+- Digital Twin state;
+- autonomous decision generation;
+- physical–digital divergence detection;
+- decision dependencies;
+- decision relevance;
+- decision impact and validity;
+- runtime evidence;
+- assurance policy;
+- autonomous authority; and
+- independent evaluation.
 
-The architecture deliberately separates:
-
-- physical simulation;
-- Digital Twin representation;
-- decision generation;
-- divergence injection;
-- divergence detection;
-- decision-dependency mapping;
-- runtime assurance;
-- autonomy management; and
-- experimental evaluation.
-
-This separation allows individual research components to be independently tested, replaced, and compared.
+The architecture is deliberately modular so that each research hypothesis
+can be tested independently.
 
 ---
 
-## 2. System Overview
+## 2. Current Architectural Model
 
-The proposed architecture contains nine principal components:
+The developing DARA-DT architecture is:
 
-1. Logistics Simulator
-2. Digital Twin
-3. Divergence Injector
-4. AI Decision Engine
-5. Divergence Monitor
-6. Decision Dependency Mapper
-7. DARA-DT Assurance Engine
-8. Autonomy Manager
-9. Experiment and Evaluation Pipeline
-
-```mermaid
-flowchart LR
-    PS["Physical Logistics Simulator"]
-    DT["Digital Twin"]
-    AI["AI Decision Engine"]
-    DM["Divergence Monitor"]
-    DEP["Decision Dependency Mapper"]
-    ASS["DARA-DT Assurance Engine"]
-    AM["Autonomy Manager"]
-    EX["Execution"]
-    LOG["Experiment Logger"]
-
-    PS --> DT
-    DT --> AI
-    AI --> DEP
-    AI --> ASS
-
-    PS --> DM
-    DT --> DM
-
-    DM --> ASS
-    DEP --> ASS
-
-    ASS --> AM
-    AM --> EX
-    EX --> PS
-
-    PS --> LOG
-    DT --> LOG
-    AI --> LOG
-    DM --> LOG
-    ASS --> LOG
-    AM --> LOG
+```text
+┌──────────────────────────────┐
+│ Physical Logistics System    │
+└──────────────┬───────────────┘
+               │
+               │ state / observations
+               ↓
+┌──────────────────────────────┐
+│ Digital Twin                 │
+└──────────────┬───────────────┘
+               │
+               │ represented state
+               ↓
+┌──────────────────────────────┐
+│ AI Decision Controller       │
+└──────────────┬───────────────┘
+               │
+               │ proposed decision
+               ↓
+┌──────────────────────────────┐
+│ Decision Dependency Model    │
+└──────────────┬───────────────┘
+               │
+               ↓
+┌──────────────────────────────┐
+│ Divergence Detection         │
+│ Physical State ↔ Twin State  │
+└──────────────┬───────────────┘
+               │
+               ↓
+┌──────────────────────────────┐
+│ Decision-Relevance Analysis  │
+└──────────────┬───────────────┘
+               │
+               ↓
+┌──────────────────────────────┐
+│ Decision Impact / Validity   │
+└──────────────┬───────────────┘
+               │
+               ↓
+┌──────────────────────────────┐
+│ Evidence Reliability Layer   │
+└──────────────┬───────────────┘
+               │
+               ↓
+┌──────────────────────────────┐
+│ Runtime Assurance Policy     │
+└──────────────┬───────────────┘
+               │
+               ↓
+┌──────────────────────────────┐
+│ Autonomous Authority         │
+│ ALLOW / RESTRICT / DEFER     │
+└──────────────┬───────────────┘
+               │
+               ↓
+┌──────────────────────────────┐
+│ Outcome Evaluation           │
+└──────────────────────────────┘
 ```
 
----
+This diagram represents the conceptual architecture.
 
-# 3. Architectural Principle
-
-The most important architectural rule is:
-
-> **The physical simulator and Digital Twin must maintain separate states.**
-
-Let:
-
-\[
-s_t
-\]
-
-represent the authoritative physical state.
-
-Let:
-
-\[
-\hat{s}_t
-\]
-
-represent the Digital Twin state.
-
-Under normal conditions:
-
-\[
-s_t \approx \hat{s}_t
-\]
-
-Under experimental divergence:
-
-\[
-s_t \neq \hat{s}_t
-\]
-
-The AI decision engine primarily observes:
-
-\[
-\hat{s}_t
-\]
-
-rather than the hidden physical ground truth.
-
-This prevents the AI controller from bypassing the Digital Twin and ensures that divergence can genuinely influence decisions.
+Individual experiments activate only the components required by their
+research question.
 
 ---
 
-# 4. Component 1 — Physical Logistics Simulator
+## 3. Critical State Separation
 
-## Purpose
+The architecture distinguishes three forms of state.
 
-The Logistics Simulator represents the physical logistics environment and provides experimental ground truth.
-
-Candidate implementation:
-
-**SimPy + Python**
-
-The simulator will initially model dynamic vehicle routing and dispatch.
-
----
-
-## Responsibilities
-
-The simulator maintains:
-
-- vehicles;
-- vehicle locations;
-- vehicle capacities;
-- vehicle availability;
-- customer orders;
-- order deadlines;
-- road/network conditions;
-- travel times;
-- active assignments;
-- completed deliveries;
-- operational disruptions.
-
----
-
-## Example Physical State
-
-```python
-physical_state = {
-    "time": 125,
-    "vehicles": {
-        "vehicle_07": {
-            "location": "node_14",
-            "capacity_remaining": 40,
-            "available": False,
-            "status": "broken_down"
-        }
-    },
-    "orders": {
-        "order_42": {
-            "location": "node_21",
-            "demand": 20,
-            "deadline": 180,
-            "status": "waiting"
-        }
-    }
-}
+```text
+Physical Ground Truth
+        ≠
+Runtime Evidence
+        ≠
+Digital Twin State
 ```
 
-This state represents experimental ground truth.
+### Physical Ground Truth
 
-It must not automatically become visible to the AI decision engine.
+Represents the actual physical logistics environment in the controlled
+simulation.
 
----
+It is used for independent experimental validation.
 
-# 5. Component 2 — Digital Twin
+### Digital Twin State
 
-## Purpose
+Represents the system state available to the autonomous decision controller.
 
-The Digital Twin maintains the digital representation used for operational decision-making.
+The Twin may become stale or inconsistent with physical reality.
 
-Its state is:
+### Runtime Evidence
 
-\[
-\hat{s}_t
-\]
+Represents observations available to the assurance mechanism.
 
-The Digital Twin receives updates from the simulated physical environment.
+Evidence may be:
 
----
+- accurate;
+- inaccurate;
+- stale;
+- missing; or
+- conflicting.
 
-## Responsibilities
-
-The Digital Twin will:
-
-- maintain current digital state;
-- receive physical-state updates;
-- timestamp observations;
-- expose state to the decision engine;
-- retain update metadata;
-- support delayed or missing updates;
-- provide information required for divergence measurement.
+This separation became especially important in EXP-006.
 
 ---
 
-## Example Twin State
+# Part I — Core System Layers
 
-```python
-twin_state = {
-    "time": 125,
-    "vehicles": {
-        "vehicle_07": {
-            "location": "node_14",
-            "capacity_remaining": 40,
-            "available": True,
-            "status": "operational",
-            "last_update": 115
-        }
-    }
-}
+## 4. Physical Simulation Layer
+
+Implementation:
+
+```text
+src/dara_dt/simulation/
 ```
 
-The physical system may know that Vehicle 7 has failed while the Digital Twin still reports it as operational.
+Key components include:
+
+```text
+vehicle.py
+order.py
+environment.py
+```
+
+The simulation layer represents the physical logistics system.
+
+Its responsibilities include:
+
+- maintaining vehicle state;
+- maintaining order state;
+- exposing physical system state;
+- representing capacity;
+- representing location;
+- representing operational status;
+- representing availability; and
+- supporting controlled state modification.
+
+The physical simulation provides the authoritative ground truth used by the
+experimental evaluator.
+
+---
+
+## 5. Digital Twin Layer
+
+Implementation:
+
+```text
+src/dara_dt/twin/
+```
+
+Key component:
+
+```text
+digital_twin.py
+```
+
+The Digital Twin stores a digital representation of the physical logistics
+system.
+
+The Twin can be synchronised with physical state:
+
+```text
+Physical State
+        ↓
+Digital Twin
+```
+
+A physical change can subsequently occur without immediate Twin
+synchronisation:
+
+```text
+Physical State
+        ↓
+changes
+
+Digital Twin
+        ↓
+remains stale
+```
 
 This produces controlled physical–digital divergence.
 
 ---
 
-# 6. Component 3 — Divergence Injector
+## 6. Decision Layer
 
-## Purpose
-
-The Divergence Injector creates controlled experimental discrepancies between physical and digital states.
-
-It is a research instrument rather than part of the normal operational Digital Twin.
-
----
-
-## Divergence Types
-
-The injector will support:
+Implementation:
 
 ```text
-D0  Synchronised
-D1  Temporal
-D2  State
-D3  Operational
-D4  Distributional
-D5  Compound
+src/dara_dt/decision/
 ```
 
----
+Key components include:
 
-## Example Configuration
-
-```yaml
-divergence:
-  type: operational
-  target: vehicle_07.status
-  start_time: 120
-  duration: 30
-
-  physical_value: broken_down
-  twin_value: operational
+```text
+model.py
+dependency.py
+controller.py
 ```
 
-Configurations should be stored rather than hard-coded into experiments.
+The decision layer generates autonomous logistics decisions from the Digital
+Twin representation.
 
-This enables reproducibility.
-
----
-
-# 7. Component 4 — AI Decision Engine
-
-## Purpose
-
-The Decision Engine proposes logistics actions based primarily on the Digital Twin state.
+The current experimental prototype primarily evaluates vehicle-assignment
+decisions.
 
 Conceptually:
 
-\[
-d_t = \pi(\hat{s}_t)
-\]
+```text
+Digital Twin
+        ↓
+Decision Controller
+        ↓
+Vehicle Assignment Decision
+```
 
-where:
-
-- \(\pi\) = decision policy;
-- \(\hat{s}_t\) = Digital Twin state;
-- \(d_t\) = proposed decision.
+The decision object provides the context required by downstream dependency,
+relevance and assurance mechanisms.
 
 ---
 
-## Initial Decision Types
+## 7. Decision Dependency Layer
 
-The first implementation will focus on decisions such as:
+Implementation includes:
 
 ```text
-ASSIGN vehicle TO order
+src/dara_dt/decision/dependency.py
 ```
 
-Example:
+The dependency layer identifies state variables required by a specific
+decision.
 
-```python
-decision = {
-    "decision_id": "decision_105",
-    "action": "assign_vehicle",
-    "vehicle_id": "vehicle_07",
-    "order_id": "order_42",
-    "timestamp": 125
-}
-```
-
----
-
-## Decision Strategies
-
-The architecture will allow interchangeable controllers.
-
-Candidate controllers:
-
-```text
-Heuristic Controller
-        ↓
-OR-Tools Optimisation
-        ↓
-AI / Learned Controller
-```
-
-The assurance framework should not depend on one specific controller.
-
----
-
-# 8. Component 5 — Divergence Monitor
-
-## Purpose
-
-The Divergence Monitor identifies discrepancies between physical and Digital Twin states.
-
-Conceptually:
-
-\[
-D_t = \Delta(s_t,\hat{s}_t)
-\]
-
-where:
-
-\[
-D_t
-\]
-
-is the set of detected divergences.
-
----
-
-## Example Output
-
-```python
-divergence = {
-    "variable": "vehicle_07.status",
-    "physical_value": "broken_down",
-    "twin_value": "operational",
-    "category": "operational",
-    "magnitude": 1.0,
-    "detected_at": 125
-}
-```
-
-Multiple divergences may exist simultaneously.
-
----
-
-# 9. Component 6 — Decision Dependency Mapper
-
-## Purpose
-
-The Dependency Mapper identifies which state variables a proposed decision depends upon.
-
-For decision:
-
-\[
-d_t
-\]
-
-the dependency set is:
+For decision \(d_t\):
 
 \[
 Dep(d_t)
 \]
 
----
+represents its dependency set.
 
-## Example
-
-For:
+Example dependencies may include:
 
 ```text
-Assign Vehicle 7 to Order 42
+vehicle.capacity
+vehicle.operational_status
+vehicle.availability
+vehicle.location
 ```
 
-the dependency set may contain:
+The exact dependency set depends on the decision.
 
-```text
-vehicle_07.available
-vehicle_07.status
-vehicle_07.location
-vehicle_07.capacity_remaining
-order_42.location
-order_42.demand
-order_42.deadline
-route_07_42.accessibility
-route_07_42.travel_time
-```
+This allows DARA-DT to reason about:
+
+> Which parts of system state actually matter to the current decision?
 
 ---
 
-## Initial Implementation
+## 8. Divergence Detection Layer
 
-The first version will use explicit rules.
+Implementation:
+
+```text
+src/dara_dt/divergence/
+```
+
+Key components include:
+
+```text
+detector.py
+injector.py
+relevance.py
+```
+
+The divergence detector compares physical and Digital Twin state.
+
+Conceptually:
+
+\[
+D_t = \{s_i : s_i^{physical} \neq s_i^{twin}\}
+\]
+
+The detector identifies mismatch but does not independently determine whether
+that mismatch requires intervention.
 
 Example:
 
-```python
-dependencies = {
-    "assign_vehicle": [
-        "vehicle.available",
-        "vehicle.status",
-        "vehicle.location",
-        "vehicle.capacity_remaining",
-        "order.location",
-        "order.demand",
-        "order.deadline",
-        "route.accessibility",
-        "route.travel_time"
-    ]
-}
-```
-
-Explicit rules make the initial experiments:
-
-- interpretable;
-- auditable;
-- reproducible;
-- easier to validate.
-
-Automated dependency learning may be investigated later if required.
-
----
-
-# 10. Decision-Relevance Engine
-
-The architecture combines divergence information with decision dependencies.
-
-Given:
-
-\[
-D_t
-\]
-
-and:
-
-\[
-Dep(d_t)
-\]
-
-decision-relevant divergence is:
-
-\[
-D_t^{rel}(d_t)
-=
-D_t \cap Dep(d_t)
-\]
-
----
-
-## Example 1 — Relevant Divergence
-
 ```text
-Divergence:
-vehicle_07.status
+Physical vehicle capacity = 4
+Twin vehicle capacity     = 10
 
-Decision:
-Assign vehicle_07 to order_42
-
-Dependency:
-vehicle_07.status
-
-Result:
-DECISION-RELEVANT
+Detected divergence:
+capacity 10 → 4
 ```
 
 ---
 
-## Example 2 — Irrelevant Divergence
+## 9. Decision-Relevance Layer
+
+Implementation includes:
 
 ```text
-Divergence:
-vehicle_03.capacity
-
-Decision:
-Assign vehicle_07 to order_42
-
-Dependencies:
-vehicle_07.*
-order_42.*
-
-Result:
-DECISION-IRRELEVANT
+src/dara_dt/divergence/relevance.py
+src/dara_dt/decision/dependency.py
 ```
 
-This distinction forms the central mechanism to be experimentally evaluated.
-
----
-
-# 11. DARA-DT Assurance Engine
-
-## Purpose
-
-The assurance engine evaluates whether a proposed autonomous decision should be permitted.
-
-Inputs may include:
+Decision relevance combines:
 
 ```text
-Proposed Decision
-        +
 Detected Divergence
         +
 Decision Dependencies
-        +
-Decision-Relevant Divergence
-        +
-AI Uncertainty
-        +
-Operational Constraints
 ```
+
+to produce:
+
+```text
+Relevant Divergence
+        +
+Irrelevant Divergence
+```
+
+Conceptually:
+
+\[
+D_t^{rel}(d_t) = Dep(d_t) \cap D_t
+\]
+
+This mechanism was developed and evaluated through EXP-001 to EXP-003.
 
 ---
 
-## Conceptual Model
+## 10. Why Relevance Is a Separate Layer
+
+Consider a decision involving:
+
+```text
+vehicle_07
+```
+
+while divergence exists on:
+
+```text
+vehicle_02
+vehicle_04
+vehicle_11
+```
+
+The Digital Twin may contain several mismatches.
+
+However, if none affect a dependency of the selected decision, global
+divergence alone provides limited evidence that the decision should be
+interrupted.
+
+The relevance layer therefore transforms:
+
+```text
+System-level mismatch
+```
+
+into:
+
+```text
+Decision-specific mismatch
+```
+
+EXP-004 subsequently demonstrated that relevance itself is not sufficient.
+
+---
+
+## 11. Decision Impact Layer
+
+Implementation:
+
+```text
+src/dara_dt/impact/
+```
+
+Key components include:
+
+```text
+model.py
+analyser.py
+```
+
+The decision-impact layer evaluates whether relevant divergence changes the
+physical validity of the decision.
+
+For a capacity-dependent decision:
 
 \[
-R_t =
-f(
-D_t^{rel},
-U_t,
-C_t
-)
+M = C - q
 \]
 
 where:
 
-- \(R_t\) = estimated decision risk;
-- \(D_t^{rel}\) = decision-relevant divergence;
-- \(U_t\) = AI uncertainty where available;
-- \(C_t\) = operational consequences or constraints.
+- \(C\) is the observed physical capacity; and
+- \(q\) is required demand.
 
-This formulation is provisional and will be refined experimentally.
-
----
-
-## Example Assurance Result
-
-```python
-assurance_result = {
-    "decision_id": "decision_105",
-    "divergence_detected": True,
-    "decision_relevant": True,
-    "risk_score": 0.91,
-    "recommended_authority": "fallback",
-    "reason": "assigned vehicle physical status conflicts with twin state"
-}
-```
-
----
-
-# 12. Component 7 — Autonomy Manager
-
-## Purpose
-
-The Autonomy Manager converts assurance results into execution authority.
-
-Four initial authority states are proposed:
+Conceptually:
 
 ```text
-EXECUTE
-RESTRICT
-FALLBACK
-DEFER
+Relevant Divergence
+        ↓
+Decision Requirement
+        ↓
+Validity Margin
+        ↓
+Decision Impact
 ```
 
----
+This mechanism was introduced after EXP-004 demonstrated:
 
-## Execute
-
-The AI-generated decision is executed.
+> **Relevant divergence does not necessarily imply an invalid decision.**
 
 ---
 
-## Restrict
+## 12. Evidence Layer
 
-The action may proceed under additional constraints.
-
----
-
-## Fallback
-
-The system uses an alternative decision mechanism.
-
-For example:
+Implementation:
 
 ```text
-AI Controller
-      ↓
-DARA-DT detects relevant divergence
-      ↓
-Fallback
-      ↓
-Rule-based or optimisation controller
+src/dara_dt/evidence/
 ```
 
----
-
-## Defer
-
-Execution is delayed until sufficient information becomes available.
-
----
-
-# 13. Execution Layer
-
-Only decisions authorised by the Autonomy Manager reach the physical simulator.
-
-This creates the control loop:
+Key components include:
 
 ```text
-Physical System
-      ↓
-Digital Twin
-      ↓
+model.py
+generator.py
+```
+
+The evidence layer represents runtime observations used by the assurance
+mechanism.
+
+Evidence can differ from both:
+
+- physical ground truth; and
+- Digital Twin state.
+
+Conceptually:
+
+```text
+Physical Reality
+        ↓
+observation process
+        ↓
+Runtime Evidence
+```
+
+The evidence model supports controlled conditions including:
+
+- accurate evidence;
+- inaccurate evidence;
+- stale evidence;
+- missing evidence; and
+- conflicting evidence.
+
+This layer is central to EXP-006.
+
+---
+
+# Part II — Runtime Assurance
+
+## 13. Assurance Layer
+
+Implementation:
+
+```text
+src/dara_dt/assurance/
+```
+
+Current components include:
+
+```text
+model.py
+policy.py
+baselines.py
+magnitude_policy.py
+impact_policy.py
+evidence_policy.py
+```
+
+The assurance layer determines whether the proposed autonomous action should
+retain authority.
+
+Different policies deliberately use different amounts of information.
+
+This allows controlled comparison of alternative assurance strategies.
+
+---
+
+## 14. No-Assurance Baseline
+
+Conceptually:
+
+```text
 AI Decision
-      ↓
-Runtime Assurance
-      ↓
-Autonomy Manager
-      ↓
-Execution
-      ↓
-Physical System
+        ↓
+ALLOW
 ```
 
----
+No runtime assurance is applied.
 
-# 14. Experiment Logger
+Purpose:
 
-## Purpose
-
-Every important research event must be recorded.
-
-The Experiment Logger will capture:
-
-- physical state;
-- Twin state;
-- divergence event;
-- proposed decision;
-- decision dependencies;
-- relevant divergences;
-- assurance output;
-- authority decision;
-- executed action;
-- operational outcome;
-- performance metrics.
+- establish unrestricted autonomy;
+- measure missed interventions; and
+- provide a baseline against which intervention strategies can be compared.
 
 ---
 
-## Example Record
+## 15. Global-Divergence Baseline
 
-```json
-{
-  "experiment_id": "EXP_001",
-  "seed": 42,
-  "time": 125,
-  "decision_id": "decision_105",
-  "controller": "ortools",
-  "divergence_type": "operational",
-  "divergent_variable": "vehicle_07.status",
-  "decision_relevant": true,
-  "authority": "fallback",
-  "decision_executed": false
-}
-```
-
-Experimental records should be machine-readable.
-
----
-
-# 15. Evaluation Pipeline
-
-After experiments are completed, the evaluation layer will calculate:
-
-### Assurance
-
-- inappropriate-action prevention;
-- missed interventions;
-- false interventions;
-- intervention latency.
-
-### Autonomy
-
-- autonomy availability;
-- fallback frequency;
-- restriction frequency;
-- defer frequency.
-
-### Logistics
-
-- service rate;
-- lateness;
-- travel distance;
-- operational cost;
-- vehicle utilisation;
-- recovery time.
-
-### System
-
-- assurance latency;
-- decision latency;
-- computational overhead.
-
----
-
-# 16. Baseline Architecture
-
-All assurance methods must operate on the same experimental environment.
-
-```mermaid
-flowchart LR
-    ENV["Same Logistics Scenario"]
-    --> B0["No Assurance"]
-
-    ENV --> B1["Fixed Threshold"]
-    ENV --> B2["Global Fidelity"]
-    ENV --> B3["AI Uncertainty"]
-    ENV --> B4["Operational Envelope"]
-    ENV --> B5["Assumption Monitoring"]
-    ENV --> B6["Fidelity + Uncertainty"]
-    ENV --> B7["DARA-DT"]
-
-    B0 --> EVAL["Common Evaluation"]
-    B1 --> EVAL
-    B2 --> EVAL
-    B3 --> EVAL
-    B4 --> EVAL
-    B5 --> EVAL
-    B6 --> EVAL
-    B7 --> EVAL
-```
-
-This prevents different methods from receiving easier or harder experimental scenarios.
-
----
-
-# 17. Proposed Software Structure
-
-The planned implementation structure is:
+Conceptually:
 
 ```text
-divergence-aware-digital-twin/
-│
-├── README.md
-├── pyproject.toml
-├── uv.lock
-│
-├── docs/
-│   ├── research_gap.md
-│   ├── literature_matrix.md
-│   ├── novelty_evidence_matrix.md
-│   ├── closest_prior_work.md
-│   ├── research_questions.md
-│   ├── methodology.md
-│   ├── system_architecture.md
-│   └── benchmark_protocol.md
-│
-├── configs/
-│   ├── experiments/
-│   ├── scenarios/
-│   └── divergence/
-│
-├── src/
-│   └── dara_dt/
-│       ├── __init__.py
-│       │
-│       ├── simulation/
-│       │   ├── environment.py
-│       │   ├── vehicle.py
-│       │   ├── order.py
-│       │   └── network.py
-│       │
-│       ├── twin/
-│       │   ├── digital_twin.py
-│       │   └── state.py
-│       │
-│       ├── controllers/
-│       │   ├── heuristic.py
-│       │   └── optimizer.py
-│       │
-│       ├── divergence/
-│       │   ├── injector.py
-│       │   ├── detector.py
-│       │   └── types.py
-│       │
-│       ├── dependencies/
-│       │   └── mapper.py
-│       │
-│       ├── assurance/
-│       │   ├── engine.py
-│       │   ├── policies.py
-│       │   └── baselines.py
-│       │
-│       ├── autonomy/
-│       │   └── manager.py
-│       │
-│       ├── experiments/
-│       │   ├── runner.py
-│       │   └── logger.py
-│       │
-│       └── evaluation/
-│           └── metrics.py
-│
-├── tests/
-│   ├── test_simulation.py
-│   ├── test_digital_twin.py
-│   ├── test_divergence.py
-│   ├── test_dependencies.py
-│   ├── test_assurance.py
-│   └── test_autonomy.py
-│
-├── experiments/
-│
-├── results/
-│
-└── scripts/
+Any divergence?
+   ↓
+ YES → INTERVENE
+ NO  → ALLOW
 ```
 
-This structure is provisional and may change as implementation evidence develops.
+This policy treats every detected mismatch as potentially sufficient for
+intervention.
+
+It does not evaluate:
+
+- decision dependency;
+- decision consequence; or
+- evidence quality.
 
 ---
 
-# 18. Component Interfaces
+## 16. Magnitude-Based Baseline
 
-Components should communicate through explicit data structures rather than unrestricted shared state.
-
-Core objects will include:
+Conceptually:
 
 ```text
-PhysicalState
-TwinState
-DivergenceEvent
-Decision
-DecisionDependency
-AssuranceResult
-AuthorityDecision
-ExperimentRecord
+Divergence magnitude
+        ↓
+Fixed threshold
+        ↓
+ALLOW / INTERVENE
 ```
 
-This reduces coupling and improves testability.
+This tests whether divergence severity alone can provide an adequate
+assurance rule.
+
+EXP-004 and EXP-005 show why a fixed magnitude should not automatically be
+interpreted as decision consequence.
 
 ---
 
-# 19. Testing Architecture
+## 17. Decision-Relevance Policy
 
-Each research component will have corresponding automated tests.
-
-### Simulation Tests
-
-Verify:
-
-- vehicle movement;
-- capacity constraints;
-- order lifecycle;
-- time progression.
-
-### Digital Twin Tests
-
-Verify:
-
-- state updates;
-- timestamp handling;
-- delayed updates;
-- stale-state behaviour.
-
-### Divergence Tests
-
-Verify:
-
-- correct injection;
-- correct detection;
-- divergence categorisation;
-- magnitude calculations.
-
-### Dependency Tests
-
-Verify:
-
-- expected dependencies are identified;
-- unrelated state variables are excluded.
-
-### Assurance Tests
-
-Verify:
-
-- relevant divergence can trigger intervention;
-- irrelevant divergence does not automatically trigger intervention;
-- policies behave consistently.
-
-### Autonomy Tests
-
-Verify transitions between:
+Conceptually:
 
 ```text
-EXECUTE
+Detected Divergence
+        ↓
+Decision Dependency Match
+        ↓
+Relevant?
+   ↙          ↘
+ NO           YES
+ ↓             ↓
+ALLOW      INTERVENE
+```
+
+This mechanism improves selectivity relative to global divergence in the
+early controlled experiments.
+
+However, EXP-004 shows that it can over-intervene when a relevant mismatch
+does not invalidate the decision.
+
+---
+
+## 18. Decision-Impact Policy
+
+Conceptually:
+
+```text
+Relevant Divergence
+        ↓
+Decision Requirement
+        ↓
+Observed Physical Value
+        ↓
+Validity / Impact
+        ↓
+Assurance Action
+```
+
+This mechanism asks:
+
+> Does the mismatch actually change whether the current decision remains
+> feasible?
+
+EXP-005 evaluates this architecture under controlled capacity conditions.
+
+---
+
+## 19. Evidence-Aware Policy
+
+Conceptually:
+
+```text
+Runtime Evidence
+        ↓
+Evidence Status
+        ↓
+Decision Impact
+        ↓
+ALLOW / RESTRICT / DEFER
+```
+
+The implemented controlled behaviour includes:
+
+```text
+MISSING     → DEFER
+STALE       → DEFER
+CONFLICTING → DEFER
+```
+
+For usable capacity evidence:
+
+```text
+observed capacity < demand → DEFER
+
+observed capacity = demand → RESTRICT
+
+observed capacity > demand → ALLOW
+```
+
+EXP-006 demonstrates that even this architecture can fail when apparently
+usable evidence is incorrect.
+
+---
+
+## 20. Autonomous Authority
+
+The assurance layer regulates whether the AI-generated decision retains
+authority.
+
+The broader architecture supports the conceptual actions:
+
+```text
+ALLOW
 RESTRICT
-FALLBACK
 DEFER
+FALLBACK
 ```
+
+### ALLOW
+
+The AI decision retains autonomous authority.
+
+### RESTRICT
+
+The decision is prevented from unrestricted autonomous execution.
+
+### DEFER
+
+The decision is withheld pending additional evidence or another
+decision-making mechanism.
+
+### FALLBACK
+
+Control would transfer to an alternative mechanism.
+
+`FALLBACK` is part of the broader architecture but should not be described as
+experimentally validated until a fallback controller is explicitly
+implemented and evaluated.
 
 ---
 
-# 20. Research-Critical Test
+# Part III — Independent Evaluation
 
-One test is especially important.
+## 21. Evaluation Layer
 
-Consider:
-
-```text
-Global divergence = HIGH
-
-Divergent variable:
-vehicle_03.capacity
-
-Proposed decision:
-assign vehicle_07 to order_42
-```
-
-The architecture should recognise that the system is globally divergent while the detected discrepancy may not affect the proposed decision.
-
-Now compare:
+Implementation:
 
 ```text
-Global divergence = LOW
-
-Divergent variable:
-vehicle_07.status
-
-Physical:
-BROKEN_DOWN
-
-Twin:
-AVAILABLE
-
-Proposed decision:
-assign vehicle_07 to order_42
+src/dara_dt/evaluation/
 ```
 
-The architecture should recognise that a relatively small global discrepancy may be highly relevant to the proposed action.
+Key components include:
 
-This **B-versus-C distinction** will become a central benchmark test.
+```text
+outcomes.py
+metrics.py
+validity.py
+```
+
+The evaluation layer is intentionally separate from the assurance policy.
+
+Its role is to determine:
+
+1. whether the decision is physically valid;
+2. whether intervention was required;
+3. what action the assurance policy produced; and
+4. whether that action was correct relative to physical ground truth.
 
 ---
 
-# 21. Reproducibility Architecture
+## 22. Assurance Outcome Model
 
-Each experiment should be reconstructable from:
-
-```text
-Experiment Configuration
-        +
-Scenario Configuration
-        +
-Random Seed
-        +
-Divergence Configuration
-        +
-Controller Configuration
-        +
-Assurance Configuration
-        +
-Code Version
-```
-
-producing:
+Four primary outcomes are used.
 
 ```text
-Raw Event Log
-        +
-Metrics
-        +
-Analysis
+                    Ground Truth
+               Valid          Invalid
+
+Intervene       FI              TI
+
+Allow           CNI             MI
 ```
 
-Experiment configuration should therefore remain separate from implementation code.
+where:
+
+- **TI** = True Intervention;
+- **FI** = False Intervention;
+- **MI** = Missed Intervention;
+- **CNI** = Correct Non-Intervention.
+
+This structure allows the project to measure both:
+
+- protection from invalid autonomous execution; and
+- unnecessary loss of autonomy.
 
 ---
 
-# 22. Planned Technology Stack
+## 23. Architectural Trade-Off
 
-| Layer | Planned Technology |
-|---|---|
-| Language | Python 3.12+ |
-| Environment / Dependencies | uv |
-| Simulation | SimPy |
-| Data | NumPy / Pandas |
-| Optimisation | OR-Tools |
-| ML | PyTorch / scikit-learn where required |
-| Configuration | Hydra or lightweight YAML configuration |
-| Experiment Tracking | MLflow where justified |
-| API | FastAPI at later integration stage |
-| Validation | Pydantic where appropriate |
-| Testing | pytest |
-| CI | GitHub Actions |
-| Containerisation | Docker |
-| Visualisation | Matplotlib / Streamlit where appropriate |
+The system is not designed to optimise intervention recall in isolation.
 
-Not every technology must be introduced during the first implementation stage.
+A policy that intervenes on every decision may obtain high recall while
+eliminating autonomous operation.
 
-Technologies will be added only when they support an experimental requirement.
+The architecture therefore exposes the trade-off:
+
+```text
+Assurance Effectiveness
+        ↕
+Autonomy Availability
+        ↕
+Logistics Performance
+```
+
+Current experiments measure assurance effectiveness and autonomy
+availability.
+
+Broader logistics-performance evaluation remains an important later stage.
 
 ---
 
-# 23. Implementation Order
+# Part IV — Experimental Architecture Evolution
 
-The architecture will be implemented incrementally.
+## 24. EXP-001 Architecture
 
 ```text
-Phase 1
-Physical Logistics Simulator
-
+Physical System
         ↓
-
-Phase 2
 Digital Twin
-
         ↓
-
-Phase 3
-Decision Controller
-
+Decision
         ↓
-
-Phase 4
-Controlled Divergence Injection
-
-        ↓
-
-Phase 5
 Divergence Detection
-
         ↓
-
-Phase 6
-Decision Dependency Mapping
-
+Decision Relevance
         ↓
-
-Phase 7
-Baseline Assurance
-
-        ↓
-
-Phase 8
-DARA-DT Assurance
-
-        ↓
-
-Phase 9
-Autonomy Management
-
-        ↓
-
-Phase 10
-Benchmark Experiments
-
-        ↓
-
-Phase 11
-Statistical Evaluation
+Assurance
 ```
 
-Each stage should be tested before the next research-critical component is introduced.
+Purpose:
+
+> Initial B-vs-C relevance pilot.
 
 ---
 
-# 24. Architectural Boundaries
+## 25. EXP-002 Architecture
 
-The initial architecture will deliberately avoid unnecessary infrastructure.
-
-The first experimental system does **not** require:
-
-- Kubernetes;
-- distributed microservices;
-- blockchain;
-- Kafka;
-- large language model agents;
-- multi-agent orchestration;
-- cloud-scale deployment.
-
-These technologies could make the repository appear more complex without improving the research evidence.
-
-The priority is:
-
-> **experimental validity before infrastructure complexity.**
-
----
-
-# 25. Architecture Success Criteria
-
-The architecture will be considered suitable for the experimental phase when it can:
-
-1. simulate dynamic logistics operations;
-2. maintain separate physical and Digital Twin states;
-3. intentionally introduce reproducible divergence;
-4. generate logistics decisions from Twin state;
-5. detect physical–digital discrepancies;
-6. identify decision dependencies;
-7. determine whether divergence intersects those dependencies;
-8. apply multiple assurance strategies;
-9. regulate autonomous execution;
-10. record complete experimental evidence;
-11. reproduce experiments from configuration; and
-12. compare assurance methods under equivalent conditions.
-
----
-
-# 26. Architecture Status
-
-| Component | Status |
-|---|---|
-| Physical simulator | Designed |
-| Digital Twin | Designed |
-| Divergence injector | Designed |
-| AI decision engine | Designed |
-| Divergence monitor | Designed |
-| Dependency mapper | Designed |
-| DARA-DT assurance engine | Designed conceptually |
-| Autonomy manager | Designed |
-| Experiment logger | Designed |
-| Evaluation pipeline | Designed |
-| Implementation | Not started |
-| Validation | Not started |
-
----
-
-# 27. Next Research Artifact
-
-The next document is:
+Added controlled policy comparison:
 
 ```text
-docs/benchmark_protocol.md
+No Assurance
+Global Divergence
+Decision-Relevant DARA-DT
 ```
 
-The benchmark protocol will freeze the experimental rules before implementation.
+Purpose:
 
-It will define:
-
-- experimental scenarios;
-- D0–D5 divergence conditions;
-- B-versus-C decision-relevance experiment;
-- assurance baselines;
-- experimental controls;
-- metrics;
-- repetitions;
-- statistical comparison;
-- ablation experiments;
-- acceptance and falsification criteria.
-
-This prevents the experimental design from being changed after results are observed simply to favour the proposed method.
+> Compare intervention behaviour across seven controlled conditions.
 
 ---
 
-## Research Integrity Note
+## 26. EXP-003 Architecture
 
-This architecture describes a **planned experimental system**.
+Formalised:
 
-The existence of the architecture does not establish that decision-relevant divergence is novel or superior to existing runtime-assurance approaches.
+```text
+Decision
+        ↓
+Dependency Mapping
 
-DARA-DT remains a research hypothesis until its components are implemented and evaluated against appropriate baselines.
+Detected Divergence
+        ↓
+Decision-Relevance Analysis
+        ↓
+Relevant / Irrelevant
+```
+
+Purpose:
+
+> Make decision relevance an explicit architectural component.
+
+---
+
+## 27. EXP-004 Architecture
+
+EXP-004 exposed the limitation:
+
+```text
+Relevant Divergence
+        ↓
+does not necessarily mean
+        ↓
+Invalid Decision
+```
+
+This required an additional architectural stage.
+
+---
+
+## 28. EXP-005 Architecture
+
+Decision impact was introduced:
+
+```text
+Relevant Divergence
+        ↓
+Decision Requirement
+        ↓
+Validity Margin
+        ↓
+Decision Impact
+        ↓
+Assurance
+```
+
+Purpose:
+
+> Determine whether relevant divergence actually changes decision validity.
+
+---
+
+## 29. EXP-006 Architecture
+
+EXP-006 introduced imperfect evidence:
+
+```text
+Physical Ground Truth
+        │
+        │ observation
+        ↓
+Runtime Evidence
+        ↓
+Decision Impact
+        ↓
+Evidence-Aware Assurance
+```
+
+while independent evaluation continues to use:
+
+```text
+Physical Ground Truth
+```
+
+This separation prevents the runtime evidence used by the policy from also
+defining the experimental truth.
+
+---
+
+## 30. Current Integrated Architecture
+
+The current research architecture can therefore be represented as:
+
+```text
+┌─────────────────────────────┐
+│ Physical Logistics System   │
+└─────────────┬───────────────┘
+              │
+       ┌──────┴───────┐
+       │              │
+       ↓              ↓
+Digital Twin     Runtime Evidence
+       │              │
+       ↓              │
+AI Decision           │
+       │              │
+       ↓              │
+Decision Dependencies │
+       │              │
+       └──────┬───────┘
+              ↓
+      Divergence Detection
+              ↓
+     Decision Relevance
+              ↓
+      Decision Impact
+              ↓
+      Evidence Reliability
+              ↓
+      Runtime Assurance
+              ↓
+     Autonomous Authority
+              ↓
+     Executed / Withheld
+              │
+              ↓
+     Independent Evaluation
+```
+
+This is the current conceptual integration of the implemented research
+components.
+
+---
+
+# Part V — Implementation Map
+
+## 31. Repository Architecture
+
+```text
+src/
+└── dara_dt/
+    ├── simulation/
+    │   ├── vehicle.py
+    │   ├── order.py
+    │   └── environment.py
+    │
+    ├── twin/
+    │   └── digital_twin.py
+    │
+    ├── divergence/
+    │   ├── detector.py
+    │   ├── injector.py
+    │   └── relevance.py
+    │
+    ├── decision/
+    │   ├── model.py
+    │   ├── dependency.py
+    │   └── controller.py
+    │
+    ├── impact/
+    │   ├── model.py
+    │   └── analyser.py
+    │
+    ├── evidence/
+    │   ├── model.py
+    │   └── generator.py
+    │
+    ├── assurance/
+    │   ├── model.py
+    │   ├── policy.py
+    │   ├── baselines.py
+    │   ├── magnitude_policy.py
+    │   ├── impact_policy.py
+    │   └── evidence_policy.py
+    │
+    ├── evaluation/
+    │   ├── outcomes.py
+    │   ├── metrics.py
+    │   └── validity.py
+    │
+    └── experiments/
+        └── controlled experiment modules
+```
+
+This modular structure separates:
+
+```text
+world representation
+decision generation
+assurance reasoning
+experimental evaluation
+```
+
+so that individual mechanisms can be changed without silently redefining the
+entire system.
+
+---
+
+## 32. Experimental Modules
+
+The experiment package currently contains modules supporting:
+
+- B-vs-C pilot evaluation;
+- controlled relevance conditions;
+- divergence-count experiments;
+- seven-condition policy comparison;
+- severity experiments;
+- decision-impact experiments;
+- imperfect-evidence experiments; and
+- aggregate metrics.
+
+Representative modules include:
+
+```text
+bc_pilot.py
+divergence_count.py
+experimental_matrix.py
+matrix_metrics.py
+relevance_conditions.py
+relevance_generator.py
+severity_conditions.py
+severity_experiment.py
+impact_conditions.py
+impact_experiment.py
+impact_metrics.py
+evidence_conditions.py
+evidence_experiment.py
+evidence_metrics.py
+```
+
+The exact experiment documentation should remain the authoritative source for
+the interpretation of each experiment.
+
+---
+
+## 33. Testing Architecture
+
+Automated tests cover major architectural components including:
+
+- simulation state;
+- Digital Twin behaviour;
+- divergence detection;
+- dependency mapping;
+- decision relevance;
+- assurance policies;
+- controlled experiment generation;
+- physical validity;
+- decision impact;
+- runtime evidence; and
+- aggregate experimental metrics.
+
+At the latest verified checkpoint:
+
+```text
+275 tests passed
+```
+
+This supports implementation correctness for the tested behaviours.
+
+It does not by itself establish scientific validity or real-world
+effectiveness.
+
+---
+
+## 34. Continuous Integration
+
+The repository's automated workflow performs:
+
+```text
+Repository checkout
+        ↓
+Python 3.12 setup
+        ↓
+uv dependency installation
+        ↓
+pytest
+        ↓
+B-vs-C pilot
+        ↓
+Controlled matrix
+        ↓
+Aggregate matrix metrics
+        ↓
+EXP-005 impact metrics
+        ↓
+EXP-006 evidence metrics
+```
+
+This provides a reproducible verification path for the implemented
+experimental stages.
+
+---
+
+# Part VI — Architecture Boundaries
+
+## 35. Implemented
+
+The current prototype contains implemented components for:
+
+- logistics simulation;
+- Digital Twin state;
+- vehicle-assignment decisions;
+- divergence detection;
+- decision dependency mapping;
+- decision relevance;
+- divergence magnitude;
+- decision impact;
+- physical validity;
+- runtime evidence;
+- baseline assurance policies;
+- evidence-aware assurance;
+- outcome classification;
+- metrics;
+- controlled experiments; and
+- automated testing.
+
+---
+
+## 36. Experimentally Evaluated
+
+Controlled experimental evidence currently exists for:
+
+- decision relevance;
+- irrelevant versus relevant divergence;
+- divergence-count variation;
+- operational-status divergence;
+- availability divergence;
+- capacity divergence;
+- divergence severity;
+- decision validity boundaries;
+- decision-impact reasoning;
+- exact-boundary behaviour; and
+- imperfect capacity evidence.
+
+The depth of evidence is not equal across all categories.
+
+Later experiments are substantially more capacity-focused.
+
+---
+
+## 37. Planned or Not Yet Fully Validated
+
+The following should remain clearly identified as future or incomplete work:
+
+- cross-dependency impact generalisation;
+- compound divergence evaluation;
+- broad stochastic testing;
+- learned AI decision controllers;
+- full routing optimisation evaluation;
+- adaptive fallback controllers;
+- large-scale logistics simulation;
+- extensive logistics-performance analysis;
+- computational scalability;
+- real sensor integration;
+- probabilistic evidence fusion;
+- deployment-level runtime assurance; and
+- real-world validation.
+
+These should not be represented as completed capabilities.
+
+---
+
+# Part VII — Next Architectural Stage
+
+## 38. EXP-007 Requirement
+
+The current architecture has developed strongly around capacity-based
+decision impact.
+
+The next experiment should therefore test whether the architecture can apply
+the same reasoning across different decision dependencies.
+
+Proposed dependency families are:
+
+```text
+Capacity
+Operational Status
+Location / Availability
+```
+
+The intended question is:
+
+> **Does the relationship between divergence, decision relevance, decision
+> impact and runtime intervention generalise across different logistics
+> decision dependencies?**
+
+EXP-007 should initially use reliable evidence.
+
+This prevents evidence uncertainty from becoming a confounding variable while
+dependency generalisation is being tested.
+
+---
+
+## 39. Architecture Extension Principle
+
+New components should only be added when required by a research question.
+
+The project should avoid introducing technologies merely to increase apparent
+complexity.
+
+Examples that should not become independent architecture streams without
+experimental justification include:
+
+- blockchain;
+- large language models;
+- multi-agent systems;
+- complex cybersecurity infrastructure;
+- event-streaming platforms;
+- large cloud deployments; and
+- dashboards.
+
+Architectural complexity must remain subordinate to the research question.
+
+---
+
+## 40. Research Integrity
+
+The architecture should distinguish:
+
+```text
+IMPLEMENTED
+```
+
+from:
+
+```text
+EXPERIMENTALLY VALIDATED
+```
+
+from:
+
+```text
+PLANNED
+```
+
+An implemented component is not automatically scientifically validated.
+
+Likewise, a conceptual architecture diagram does not establish operational
+effectiveness.
+
+All architectural claims should therefore remain traceable to:
+
+- source code;
+- tests;
+- experiment results; or
+- clearly identified future work.
+
+---
+
+## 41. Current Architecture Position
+
+The current DARA-DT architecture embodies the following progression:
+
+```text
+Physical–Digital Divergence
+        ↓
+Decision Relevance
+        ↓
+Decision Impact / Validity
+        ↓
+Evidence Reliability
+        ↓
+Decision Risk
+        ↓
+Runtime Assurance
+        ↓
+Autonomous Authority
+```
+
+The strongest current implementation and controlled evidence exists through:
+
+```text
+Divergence
+        ↓
+Relevance
+        ↓
+Impact / Validity
+        ↓
+Evidence-Aware Assurance
+```
+
+`Decision Risk` remains a developing integration concept rather than a fully
+validated independent subsystem.
+
+This distinction should remain explicit.
+
+---
+
+## 42. Conclusion
+
+DARA-DT is implemented as a modular research architecture for investigating
+runtime assurance under physical–digital divergence.
+
+The architecture separates:
+
+```text
+What is physically true?
+        ↓
+What does the Digital Twin represent?
+        ↓
+What evidence does assurance receive?
+        ↓
+What decision is the AI proposing?
+        ↓
+Which divergent state matters to that decision?
+        ↓
+Does the divergence change physical validity?
+        ↓
+How reliable is the evidence?
+        ↓
+What autonomous authority should be retained?
+```
+
+The architecture has evolved through EXP-001 to EXP-006 rather than being
+fixed in advance.
+
+Each experimental stage has either supported or exposed a limitation in the
+previous architecture.
+
+The next architectural challenge is not to add more components.
+
+It is to determine whether the existing divergence → relevance → impact
+mechanism generalises beyond capacity to multiple logistics decision
+dependencies.
+
+That question forms the basis of EXP-007.
