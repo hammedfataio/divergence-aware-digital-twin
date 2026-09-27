@@ -68,7 +68,7 @@ def _build_runtime_evidence(
     condition: EvidenceCondition,
     generator: EvidenceGenerator,
 ) -> tuple[RuntimeEvidence, ...]:
-    """Generate the runtime evidence defined by a condition."""
+    """Generate runtime evidence for one controlled condition."""
 
     if condition.evidence_type == EvidenceConditionType.ACCURATE:
         return (
@@ -155,17 +155,17 @@ def _deterministic_impact_assurance(
     """Evaluate the EXP-005 perfect-evidence impact baseline.
 
     This baseline intentionally receives the true physical capacity as
-    its runtime observation. It represents the perfect-evidence
-    assumption used by EXP-005.
+    its runtime observation.
 
-    EXP-006 then compares this idealised baseline against assurance
-    operating on imperfect runtime evidence.
+    It therefore represents the idealised perfect-evidence assumption
+    used in EXP-005 and provides a comparison point for EXP-006.
     """
 
     analyser = DecisionImpactAnalyser()
 
     perfect_evidence = ImpactEvidence(
         source="perfect_runtime_capacity",
+        variable=CAPACITY_DEPENDENCY,
         observed_value=condition.physical_capacity,
         twin_value=condition.twin_capacity,
     )
@@ -189,7 +189,7 @@ def run_evidence_condition(
     """Execute one controlled EXP-006 condition."""
 
     # ---------------------------------------------------------
-    # 1. Construct the physical logistics system
+    # 1. Construct physical logistics environment
     # ---------------------------------------------------------
 
     environment = LogisticsEnvironment()
@@ -222,10 +222,10 @@ def run_evidence_condition(
     )
 
     # ---------------------------------------------------------
-    # 3. Change physical reality after synchronisation
+    # 3. Introduce physical-digital divergence
     #
-    # The Digital Twin therefore retains the original capacity,
-    # while the physical system contains the actual capacity.
+    # The physical capacity changes after synchronisation.
+    # The Digital Twin therefore retains the earlier value.
     # ---------------------------------------------------------
 
     environment.vehicles["vehicle_001"].capacity = (
@@ -233,7 +233,7 @@ def run_evidence_condition(
     )
 
     # ---------------------------------------------------------
-    # 4. AI controller generates its decision from the Twin
+    # 4. AI generates a decision using the Digital Twin
     # ---------------------------------------------------------
 
     controller = LogisticsDecisionController()
@@ -257,7 +257,7 @@ def run_evidence_condition(
     )
 
     # ---------------------------------------------------------
-    # 6. Determine whether divergence is decision-relevant
+    # 6. Determine decision relevance
     # ---------------------------------------------------------
 
     relevance_analyser = DecisionRelevanceAnalyzer(
@@ -272,8 +272,8 @@ def run_evidence_condition(
     # ---------------------------------------------------------
     # 7. Establish independent physical ground truth
     #
-    # Ground truth is used for evaluation only.
-    # It is not supplied to the evidence-aware policy.
+    # This information is used only by the evaluator.
+    # It is not provided to the evidence-aware assurance policy.
     # ---------------------------------------------------------
 
     validator = PhysicalDecisionValidator()
@@ -286,8 +286,7 @@ def run_evidence_condition(
     evaluator = OutcomeEvaluator()
 
     # ---------------------------------------------------------
-    # 8. Baseline B1:
-    # Decision-relevance assurance
+    # 8. B1 — decision-relevance assurance
     # ---------------------------------------------------------
 
     relevance_policy = DivergenceAwarePolicy()
@@ -303,11 +302,10 @@ def run_evidence_condition(
     )
 
     # ---------------------------------------------------------
-    # 9. Baseline B2:
-    # Deterministic decision-impact assurance
+    # 9. B2 — deterministic decision-impact assurance
     #
-    # This preserves the perfect-observation assumption from
-    # EXP-005 and therefore provides the idealised comparison.
+    # This intentionally uses perfect physical-capacity evidence
+    # to reproduce the EXP-005 idealised baseline.
     # ---------------------------------------------------------
 
     deterministic_impact_assurance = (
@@ -323,10 +321,7 @@ def run_evidence_condition(
     )
 
     # ---------------------------------------------------------
-    # 10. Generate EXP-006 runtime evidence
-    #
-    # Depending on the condition, this evidence may be accurate,
-    # noisy, stale, missing, or conflicting.
+    # 10. Generate imperfect runtime evidence
     # ---------------------------------------------------------
 
     generator = EvidenceGenerator()
@@ -337,11 +332,10 @@ def run_evidence_condition(
     )
 
     # ---------------------------------------------------------
-    # 11. Proposed evidence-aware assurance policy
+    # 11. P1 — evidence-aware decision-impact assurance
     #
-    # IMPORTANT:
-    # This policy receives runtime evidence only.
-    # Physical ground truth remains hidden from it.
+    # Only runtime evidence is supplied here.
+    # Physical ground truth remains hidden from the policy.
     # ---------------------------------------------------------
 
     evidence_policy = EvidenceAwareDecisionPolicy()
@@ -354,8 +348,7 @@ def run_evidence_condition(
     )
 
     # ---------------------------------------------------------
-    # 12. Evaluate evidence-aware assurance against independent
-    # physical ground truth
+    # 12. Evaluate against independent physical ground truth
     # ---------------------------------------------------------
 
     evidence_aware_outcome = evaluator.evaluate(
@@ -364,7 +357,7 @@ def run_evidence_condition(
     )
 
     # ---------------------------------------------------------
-    # 13. Return the complete experimental record
+    # 13. Return complete experimental record
     # ---------------------------------------------------------
 
     return EvidenceExperimentResult(
