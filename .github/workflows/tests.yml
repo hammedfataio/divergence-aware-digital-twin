@@ -38,3 +38,6 @@ jobs:
 
       - name: Run EXP-005 impact metrics
         run: uv run python -m dara_dt.experiments.impact_metrics
+
+      - name: Run EXP-006 evidence metrics
+        run: uv run python -m dara_dt.experiments.evidence_metrics
