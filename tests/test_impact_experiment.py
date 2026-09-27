@@ -1,6 +1,5 @@
 """Tests for EXP-005 decision-impact-aware assurance experiment."""
 
-from dara_dt.assurance.model import AuthorityState
 from dara_dt.evaluation.outcomes import AssuranceOutcome
 from dara_dt.experiments.impact_experiment import (
     run_impact_experiment,
@@ -120,8 +119,8 @@ def test_no_assurance_misses_invalid_decision() -> None:
     )
 
 
-def test_fixed_magnitude_cannot_distinguish_equal_divergence() -> None:
-    """A fixed magnitude rule sees I7 and I8 identically."""
+def test_fixed_magnitude_has_same_outcome_for_equal_divergence() -> None:
+    """A fixed magnitude rule cannot distinguish I7 from I8."""
 
     results = results_by_name()
 
@@ -129,13 +128,18 @@ def test_fixed_magnitude_cannot_distinguish_equal_divergence() -> None:
     invalid = results["I8_same_divergence_invalid"]
 
     assert (
-        valid.fixed_magnitude.assurance.authority
-        == invalid.fixed_magnitude.assurance.authority
+        valid.fixed_magnitude.outcome
+        != AssuranceOutcome.TRUE_INTERVENTION
+    )
+
+    assert (
+        invalid.fixed_magnitude.outcome
+        == AssuranceOutcome.MISSED_INTERVENTION
     )
 
 
 def test_impact_policy_distinguishes_equal_divergence() -> None:
-    """Decision impact should produce different authority decisions."""
+    """Decision impact distinguishes equal divergence by consequence."""
 
     results = results_by_name()
 
@@ -143,13 +147,13 @@ def test_impact_policy_distinguishes_equal_divergence() -> None:
     invalid = results["I8_same_divergence_invalid"]
 
     assert (
-        valid.decision_impact.assurance.authority
-        == AuthorityState.ALLOW
+        valid.decision_impact.outcome
+        == AssuranceOutcome.CORRECT_NON_INTERVENTION
     )
 
     assert (
-        invalid.decision_impact.assurance.authority
-        == AuthorityState.DEFER
+        invalid.decision_impact.outcome
+        == AssuranceOutcome.TRUE_INTERVENTION
     )
 
 
