@@ -1,7 +1,7 @@
 """Tests for EXP-006 imperfect-runtime-evidence experiment."""
 
 from dara_dt.assurance.model import AuthorityState
-from dara_dt.evaluation.outcomes import OutcomeType
+from dara_dt.evaluation.outcomes import Outcome
 from dara_dt.experiments.evidence_experiment import (
     run_evidence_experiment,
 )
@@ -25,81 +25,66 @@ def test_experiment_runs_all_twelve_conditions() -> None:
 
 
 def test_every_condition_produces_runtime_evidence() -> None:
-    """Every condition should expose its runtime evidence to the policy."""
+    """Every condition should expose runtime evidence."""
 
     for result in run_evidence_experiment():
         assert len(result.runtime_evidence) >= 1
 
 
 def test_e0_accurate_invalid_evidence_triggers_intervention() -> None:
-    """Accurate evidence should identify the physically invalid decision."""
+    """Accurate evidence should identify a physically invalid decision."""
 
     result = _results_by_id()["E0"]
 
     assert result.condition.physical_valid is False
     assert result.evidence_aware_assurance.authority == AuthorityState.DEFER
-    assert (
-        result.evidence_aware_outcome.outcome
-        == OutcomeType.TRUE_INTERVENTION
-    )
+    assert result.evidence_aware_outcome.outcome == Outcome.TRUE_INTERVENTION
 
 
 def test_e3_misleading_evidence_can_hide_invalidity() -> None:
-    """Available but misleading evidence should expose a missed intervention."""
+    """Incorrect but usable evidence can hide physical invalidity."""
 
     result = _results_by_id()["E3"]
 
     assert result.condition.physical_valid is False
     assert result.condition.observed_capacity > result.condition.demand
     assert result.evidence_aware_assurance.authority == AuthorityState.ALLOW
-    assert (
-        result.evidence_aware_outcome.outcome
-        == OutcomeType.MISSED_INTERVENTION
-    )
+    assert result.evidence_aware_outcome.outcome == Outcome.MISSED_INTERVENTION
 
 
 def test_e4_stale_evidence_causes_conservative_intervention() -> None:
-    """Explicitly stale evidence should prevent unsafe autonomous execution."""
+    """Stale evidence should prevent unsafe autonomous execution."""
 
     result = _results_by_id()["E4"]
 
     assert result.condition.physical_valid is False
     assert result.evidence_aware_assurance.authority == AuthorityState.DEFER
-    assert (
-        result.evidence_aware_outcome.outcome
-        == OutcomeType.TRUE_INTERVENTION
-    )
+    assert result.evidence_aware_outcome.outcome == Outcome.TRUE_INTERVENTION
 
 
 def test_e5_missing_evidence_causes_conservative_intervention() -> None:
-    """Missing evidence should cause the evidence-aware policy to defer."""
+    """Missing evidence should cause conservative deferral."""
 
     result = _results_by_id()["E5"]
 
     assert result.condition.physical_valid is False
     assert result.evidence_aware_assurance.authority == AuthorityState.DEFER
-    assert (
-        result.evidence_aware_outcome.outcome
-        == OutcomeType.TRUE_INTERVENTION
-    )
+    assert result.evidence_aware_outcome.outcome == Outcome.TRUE_INTERVENTION
 
 
 def test_e6_conflicting_evidence_causes_conservative_intervention() -> None:
-    """Conflicting evidence should cause the evidence-aware policy to defer."""
+    """Conflicting evidence should cause conservative deferral."""
 
     result = _results_by_id()["E6"]
 
     assert result.condition.physical_valid is False
     assert len(result.runtime_evidence) == 2
     assert result.evidence_aware_assurance.authority == AuthorityState.DEFER
-    assert (
-        result.evidence_aware_outcome.outcome
-        == OutcomeType.TRUE_INTERVENTION
-    )
+    assert result.evidence_aware_outcome.outcome == Outcome.TRUE_INTERVENTION
 
 
 def test_e7_accurate_valid_evidence_preserves_autonomy() -> None:
-    """Accurate evidence for a valid decision should allow execution."""
+    """Accurate evidence for a valid decision should preserve autonomy."""
 
     result = _results_by_id()["E7"]
 
@@ -107,26 +92,23 @@ def test_e7_accurate_valid_evidence_preserves_autonomy() -> None:
     assert result.evidence_aware_assurance.authority == AuthorityState.ALLOW
     assert (
         result.evidence_aware_outcome.outcome
-        == OutcomeType.CORRECT_NON_INTERVENTION
+        == Outcome.CORRECT_NON_INTERVENTION
     )
 
 
 def test_e8_bad_evidence_can_create_false_intervention() -> None:
-    """Misleading evidence should expose false-intervention risk."""
+    """Incorrect evidence can create an unnecessary intervention."""
 
     result = _results_by_id()["E8"]
 
     assert result.condition.physical_valid is True
     assert result.condition.observed_capacity < result.condition.demand
     assert result.evidence_aware_assurance.authority == AuthorityState.DEFER
-    assert (
-        result.evidence_aware_outcome.outcome
-        == OutcomeType.FALSE_INTERVENTION
-    )
+    assert result.evidence_aware_outcome.outcome == Outcome.FALSE_INTERVENTION
 
 
 def test_e9_larger_margin_tolerates_observation_error() -> None:
-    """A larger decision margin should remain autonomous under mild error."""
+    """A larger decision margin should tolerate the controlled error."""
 
     result = _results_by_id()["E9"]
 
@@ -134,7 +116,7 @@ def test_e9_larger_margin_tolerates_observation_error() -> None:
     assert result.evidence_aware_assurance.authority == AuthorityState.ALLOW
     assert (
         result.evidence_aware_outcome.outcome
-        == OutcomeType.CORRECT_NON_INTERVENTION
+        == Outcome.CORRECT_NON_INTERVENTION
     )
 
 
@@ -145,27 +127,18 @@ def test_e10_boundary_error_prevents_unsafe_execution() -> None:
 
     assert result.condition.physical_valid is False
     assert result.evidence_aware_assurance.authority == AuthorityState.RESTRICT
-    assert (
-        result.evidence_aware_outcome.outcome
-        == OutcomeType.TRUE_INTERVENTION
-    )
+    assert result.evidence_aware_outcome.outcome == Outcome.TRUE_INTERVENTION
 
 
 def test_e11_stale_twin_matching_evidence_does_not_authorise() -> None:
-    """Old evidence agreeing with the Twin should still be treated as stale."""
+    """Old evidence agreeing with the Twin must still be treated as stale."""
 
     result = _results_by_id()["E11"]
 
     assert result.condition.physical_valid is False
-    assert (
-        result.condition.observed_capacity
-        == result.condition.twin_capacity
-    )
+    assert result.condition.observed_capacity == result.condition.twin_capacity
     assert result.evidence_aware_assurance.authority == AuthorityState.DEFER
-    assert (
-        result.evidence_aware_outcome.outcome
-        == OutcomeType.TRUE_INTERVENTION
-    )
+    assert result.evidence_aware_outcome.outcome == Outcome.TRUE_INTERVENTION
 
 
 def test_e3_exposes_limit_of_available_but_incorrect_evidence() -> None:
@@ -178,7 +151,7 @@ def test_e3_exposes_limit_of_available_but_incorrect_evidence() -> None:
 
 
 def test_e4_and_e11_show_value_of_evidence_quality_metadata() -> None:
-    """Staleness metadata should change authority despite apparently safe values."""
+    """Staleness metadata should matter despite apparently safe values."""
 
     results = _results_by_id()
 
@@ -190,18 +163,18 @@ def test_e4_and_e11_show_value_of_evidence_quality_metadata() -> None:
 
 
 def test_ground_truth_remains_independent_of_runtime_evidence() -> None:
-    """Opposite evidence errors must not alter physical validity labels."""
+    """Runtime evidence must not alter physical ground-truth validity."""
 
     results = _results_by_id()
 
-    # E3 looks safe but is physically invalid.
+    # E3 appears safe from runtime evidence but is physically invalid.
     assert results["E3"].condition.physical_valid is False
     assert (
         results["E3"].condition.observed_capacity
         >= results["E3"].condition.demand
     )
 
-    # E8 looks unsafe but is physically valid.
+    # E8 appears unsafe from runtime evidence but is physically valid.
     assert results["E8"].condition.physical_valid is True
     assert (
         results["E8"].condition.observed_capacity
