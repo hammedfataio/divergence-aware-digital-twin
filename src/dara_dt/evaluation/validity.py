@@ -1,5 +1,14 @@
-"""Independent physical decision-validity evaluation for DARA-DT."""
+"""Independent physical decision-validity evaluation for DARA-DT.
 
+Physical validity is evaluated from physical state only and remains
+independent from runtime assurance behaviour.
+
+The validator supports the existing logistics feasibility rules and
+optionally evaluates dispatch-location compatibility when an experiment
+defines an explicit set of permitted physical locations.
+"""
+
+from collections.abc import Collection
 from dataclasses import dataclass
 
 from dara_dt.decision.model import Decision
@@ -25,8 +34,28 @@ class PhysicalDecisionValidator:
         self,
         decision: Decision,
         physical_state: dict,
+        permitted_vehicle_locations: Collection[str] | None = None,
     ) -> DecisionValidity:
-        """Determine whether a decision is physically valid."""
+        """Determine whether a decision is physically valid.
+
+        Args:
+            decision:
+                Proposed logistics decision.
+
+            physical_state:
+                Independent physical-system state used as experimental
+                ground truth.
+
+            permitted_vehicle_locations:
+                Optional experiment-defined set of physical locations from
+                which the selected vehicle is permitted to execute the
+                assignment.
+
+                When omitted, location compatibility is not evaluated.
+                This preserves the semantics of experiments that pre-date
+                the explicit location-validity condition introduced for
+                EXP-007.
+        """
 
         if decision.action != "assign_vehicle":
             raise ValueError(
@@ -74,6 +103,33 @@ class PhysicalDecisionValidator:
                 reason="Selected vehicle has insufficient capacity.",
             )
 
+        if permitted_vehicle_locations is not None:
+            permitted = frozenset(permitted_vehicle_locations)
+
+            if not permitted:
+                raise ValueError(
+                    "At least one permitted vehicle location is required "
+                    "when location compatibility is evaluated."
+                )
+
+            if any(
+                not isinstance(location, str)
+                for location in permitted
+            ):
+                raise ValueError(
+                    "Permitted vehicle locations must be strings."
+                )
+
+            if vehicle["location"] not in permitted:
+                return DecisionValidity(
+                    decision_id=decision.decision_id,
+                    valid=False,
+                    reason=(
+                        "Selected vehicle is outside the physical "
+                        "locations permitted for this assignment."
+                    ),
+                )
+
         if order["status"] != "waiting":
             return DecisionValidity(
                 decision_id=decision.decision_id,
@@ -91,12 +147,14 @@ class PhysicalDecisionValidator:
         self,
         decision: Decision,
         physical_state: dict,
+        permitted_vehicle_locations: Collection[str] | None = None,
     ) -> GroundTruth:
-        """Convert physical validity into an intervention label."""
+        """Convert independent physical validity into an intervention label."""
 
         validity = self.validate(
-            decision,
-            physical_state,
+            decision=decision,
+            physical_state=physical_state,
+            permitted_vehicle_locations=permitted_vehicle_locations,
         )
 
         label = (
