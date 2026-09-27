@@ -1,7 +1,6 @@
 """Tests for EXP-006 imperfect-runtime-evidence experiment."""
 
 from dara_dt.assurance.model import AuthorityState
-from dara_dt.evaluation.outcomes import Outcome
 from dara_dt.experiments.evidence_experiment import (
     run_evidence_experiment,
 )
@@ -19,9 +18,7 @@ def _results_by_id():
 def test_experiment_runs_all_twelve_conditions() -> None:
     """EXP-006 should execute the complete evidence matrix."""
 
-    results = run_evidence_experiment()
-
-    assert len(results) == 12
+    assert len(run_evidence_experiment()) == 12
 
 
 def test_every_condition_produces_runtime_evidence() -> None:
@@ -38,7 +35,7 @@ def test_e0_accurate_invalid_evidence_triggers_intervention() -> None:
 
     assert result.condition.physical_valid is False
     assert result.evidence_aware_assurance.authority == AuthorityState.DEFER
-    assert result.evidence_aware_outcome.outcome == Outcome.TRUE_INTERVENTION
+    assert result.evidence_aware_outcome.outcome.value == "true_intervention"
 
 
 def test_e3_misleading_evidence_can_hide_invalidity() -> None:
@@ -49,7 +46,7 @@ def test_e3_misleading_evidence_can_hide_invalidity() -> None:
     assert result.condition.physical_valid is False
     assert result.condition.observed_capacity > result.condition.demand
     assert result.evidence_aware_assurance.authority == AuthorityState.ALLOW
-    assert result.evidence_aware_outcome.outcome == Outcome.MISSED_INTERVENTION
+    assert result.evidence_aware_outcome.outcome.value == "missed_intervention"
 
 
 def test_e4_stale_evidence_causes_conservative_intervention() -> None:
@@ -59,7 +56,7 @@ def test_e4_stale_evidence_causes_conservative_intervention() -> None:
 
     assert result.condition.physical_valid is False
     assert result.evidence_aware_assurance.authority == AuthorityState.DEFER
-    assert result.evidence_aware_outcome.outcome == Outcome.TRUE_INTERVENTION
+    assert result.evidence_aware_outcome.outcome.value == "true_intervention"
 
 
 def test_e5_missing_evidence_causes_conservative_intervention() -> None:
@@ -69,7 +66,7 @@ def test_e5_missing_evidence_causes_conservative_intervention() -> None:
 
     assert result.condition.physical_valid is False
     assert result.evidence_aware_assurance.authority == AuthorityState.DEFER
-    assert result.evidence_aware_outcome.outcome == Outcome.TRUE_INTERVENTION
+    assert result.evidence_aware_outcome.outcome.value == "true_intervention"
 
 
 def test_e6_conflicting_evidence_causes_conservative_intervention() -> None:
@@ -80,7 +77,7 @@ def test_e6_conflicting_evidence_causes_conservative_intervention() -> None:
     assert result.condition.physical_valid is False
     assert len(result.runtime_evidence) == 2
     assert result.evidence_aware_assurance.authority == AuthorityState.DEFER
-    assert result.evidence_aware_outcome.outcome == Outcome.TRUE_INTERVENTION
+    assert result.evidence_aware_outcome.outcome.value == "true_intervention"
 
 
 def test_e7_accurate_valid_evidence_preserves_autonomy() -> None:
@@ -91,8 +88,8 @@ def test_e7_accurate_valid_evidence_preserves_autonomy() -> None:
     assert result.condition.physical_valid is True
     assert result.evidence_aware_assurance.authority == AuthorityState.ALLOW
     assert (
-        result.evidence_aware_outcome.outcome
-        == Outcome.CORRECT_NON_INTERVENTION
+        result.evidence_aware_outcome.outcome.value
+        == "correct_non_intervention"
     )
 
 
@@ -104,7 +101,7 @@ def test_e8_bad_evidence_can_create_false_intervention() -> None:
     assert result.condition.physical_valid is True
     assert result.condition.observed_capacity < result.condition.demand
     assert result.evidence_aware_assurance.authority == AuthorityState.DEFER
-    assert result.evidence_aware_outcome.outcome == Outcome.FALSE_INTERVENTION
+    assert result.evidence_aware_outcome.outcome.value == "false_intervention"
 
 
 def test_e9_larger_margin_tolerates_observation_error() -> None:
@@ -115,8 +112,8 @@ def test_e9_larger_margin_tolerates_observation_error() -> None:
     assert result.condition.physical_valid is True
     assert result.evidence_aware_assurance.authority == AuthorityState.ALLOW
     assert (
-        result.evidence_aware_outcome.outcome
-        == Outcome.CORRECT_NON_INTERVENTION
+        result.evidence_aware_outcome.outcome.value
+        == "correct_non_intervention"
     )
 
 
@@ -127,7 +124,7 @@ def test_e10_boundary_error_prevents_unsafe_execution() -> None:
 
     assert result.condition.physical_valid is False
     assert result.evidence_aware_assurance.authority == AuthorityState.RESTRICT
-    assert result.evidence_aware_outcome.outcome == Outcome.TRUE_INTERVENTION
+    assert result.evidence_aware_outcome.outcome.value == "true_intervention"
 
 
 def test_e11_stale_twin_matching_evidence_does_not_authorise() -> None:
@@ -138,7 +135,7 @@ def test_e11_stale_twin_matching_evidence_does_not_authorise() -> None:
     assert result.condition.physical_valid is False
     assert result.condition.observed_capacity == result.condition.twin_capacity
     assert result.evidence_aware_assurance.authority == AuthorityState.DEFER
-    assert result.evidence_aware_outcome.outcome == Outcome.TRUE_INTERVENTION
+    assert result.evidence_aware_outcome.outcome.value == "true_intervention"
 
 
 def test_e3_exposes_limit_of_available_but_incorrect_evidence() -> None:
