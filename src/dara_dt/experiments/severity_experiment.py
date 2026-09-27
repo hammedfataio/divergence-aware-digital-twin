@@ -93,11 +93,15 @@ def run_severity_condition(
     environment = _build_environment()
 
     twin = DigitalTwin()
-    twin.synchronize(environment.snapshot())
 
-    # Introduce physical divergence only after Twin synchronization.
-    # The Twin therefore retains the original capacity of 10 while
-    # physical capacity follows the selected EXP-004 condition.
+    # Use the repository's existing British-spelling API.
+    twin.synchronise(environment.snapshot())
+
+    # Introduce physical divergence only after Twin synchronisation.
+    #
+    # The Digital Twin retains the original vehicle capacity of 10,
+    # while the physical system is changed according to the selected
+    # EXP-004 severity condition.
     environment.vehicles["vehicle_00"].capacity = (
         condition.physical_capacity
     )
@@ -106,6 +110,8 @@ def run_severity_condition(
 
     controller = LogisticsDecisionController()
 
+    # The controller makes its decision using the stale Digital Twin,
+    # not the updated physical system.
     decision = controller.assign_vehicle(
         twin=twin,
         order_id="order_00",
@@ -129,6 +135,8 @@ def run_severity_condition(
         divergences=divergences,
     )
 
+    # Ground truth is evaluated independently against the real
+    # physical state.
     validator = PhysicalDecisionValidator()
 
     ground_truth = validator.ground_truth(
@@ -136,15 +144,27 @@ def run_severity_condition(
         physical_state=physical_state,
     )
 
+    # ---------------------------------------------------------
+    # Assurance policy 1: No assurance
+    # ---------------------------------------------------------
+
     no_assurance_decision = NoAssurancePolicy().decide(
         decision=decision,
         divergences=divergences,
     )
 
+    # ---------------------------------------------------------
+    # Assurance policy 2: Any/global divergence
+    # ---------------------------------------------------------
+
     global_divergence_decision = AnyDivergencePolicy().decide(
         decision=decision,
         divergences=divergences,
     )
+
+    # ---------------------------------------------------------
+    # Assurance policy 3: Magnitude threshold
+    # ---------------------------------------------------------
 
     magnitude_decision = MagnitudeAssurancePolicy(
         threshold=magnitude_threshold
@@ -153,10 +173,18 @@ def run_severity_condition(
         divergences=divergences,
     )
 
+    # ---------------------------------------------------------
+    # Assurance policy 4: Current DARA-DT relevance policy
+    # ---------------------------------------------------------
+
     dara_decision = DivergenceAwarePolicy().evaluate(
         decision=decision,
         relevance=relevance,
     )
+
+    # ---------------------------------------------------------
+    # Evaluate assurance behaviour against independent truth
+    # ---------------------------------------------------------
 
     evaluator = OutcomeEvaluator()
 
