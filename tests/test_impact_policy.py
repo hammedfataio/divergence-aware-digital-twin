@@ -9,13 +9,13 @@ from dara_dt.impact.model import DecisionImpact, ImpactState
 
 
 def make_decision(decision_id: str = "decision_001") -> Decision:
-    """Create a minimal logistics decision for policy tests."""
+    """Create a logistics decision using the repository Decision API."""
 
     return Decision(
         decision_id=decision_id,
-        decision_type="assign_vehicle",
-        dependencies=("vehicle.capacity",),
-        payload={},
+        action="assign_vehicle",
+        vehicle_id="vehicle_001",
+        order_id="order_001",
         timestamp=0.0,
     )
 
@@ -131,7 +131,10 @@ def test_policy_rejects_impact_from_different_decision() -> None:
     """Impact evidence must belong to the decision being evaluated."""
 
     policy = DecisionImpactPolicy()
-    decision = make_decision(decision_id="decision_001")
+
+    decision = make_decision(
+        decision_id="decision_001",
+    )
 
     impact = make_impact(
         ImpactState.INVALIDATING,
@@ -143,17 +146,35 @@ def test_policy_rejects_impact_from_different_decision() -> None:
         ValueError,
         match="Decision impact does not belong",
     ):
-        policy.evaluate(decision, impact)
+        policy.evaluate(
+            decision,
+            impact,
+        )
 
 
 @pytest.mark.parametrize(
     ("state", "expected_authority"),
     [
-        (ImpactState.NO_IMPACT, AuthorityState.ALLOW),
-        (ImpactState.MARGIN_REDUCED, AuthorityState.ALLOW),
-        (ImpactState.BOUNDARY, AuthorityState.RESTRICT),
-        (ImpactState.INVALIDATING, AuthorityState.DEFER),
-        (ImpactState.UNCERTAIN, AuthorityState.DEFER),
+        (
+            ImpactState.NO_IMPACT,
+            AuthorityState.ALLOW,
+        ),
+        (
+            ImpactState.MARGIN_REDUCED,
+            AuthorityState.ALLOW,
+        ),
+        (
+            ImpactState.BOUNDARY,
+            AuthorityState.RESTRICT,
+        ),
+        (
+            ImpactState.INVALIDATING,
+            AuthorityState.DEFER,
+        ),
+        (
+            ImpactState.UNCERTAIN,
+            AuthorityState.DEFER,
+        ),
     ],
 )
 def test_all_impact_states_have_explicit_authority(
