@@ -67,8 +67,6 @@ def _build_environment(
         vehicle_id="vehicle_001",
         capacity=condition.twin_capacity,
         location="depot",
-        operational=True,
-        available=True,
     )
 
     order = Order(
@@ -82,9 +80,13 @@ def _build_environment(
     environment.add_order(order)
 
     twin = DigitalTwin()
-    twin.synchronise(environment.physical_state())
+    twin.synchronise(
+        environment.physical_state()
+    )
 
     # The physical system changes after Digital Twin synchronisation.
+    # This deliberately creates a stale capacity representation while
+    # preserving the Twin's earlier state.
     environment.vehicles["vehicle_001"].capacity = (
         condition.physical_capacity
     )
@@ -110,8 +112,10 @@ def run_impact_condition(
 
     detector = DivergenceDetector()
 
+    physical_state = environment.physical_state()
+
     divergences = detector.detect(
-        physical_state=environment.physical_state(),
+        physical_state=physical_state,
         twin_state=twin.state,
     )
 
@@ -126,15 +130,15 @@ def run_impact_condition(
 
     ground_truth = validator.ground_truth(
         decision=decision,
-        physical_state=environment.physical_state(),
+        physical_state=physical_state,
     )
 
     # Runtime observation used by the impact analyser.
     #
-    # In this controlled experiment the observation is assumed to be
-    # perfectly measured. It is intentionally represented separately
-    # from the evaluator's ground-truth validity result. Later
-    # experiments can introduce noisy, delayed, or incomplete evidence.
+    # EXP-005 initially assumes a perfectly observed capacity signal.
+    # This evidence is represented separately from the evaluator's
+    # ground-truth validity result so that later experiments can
+    # introduce noisy, delayed, or incomplete runtime observations.
     evidence = ImpactEvidence(
         source="runtime_capacity_monitor",
         variable="vehicle.capacity",
@@ -225,14 +229,30 @@ if __name__ == "__main__":
         print(
             result.condition.name,
             {
-                "divergence": result.condition.divergence_magnitude,
-                "physical_margin": result.condition.physical_margin,
-                "physically_valid": result.condition.physically_valid,
+                "divergence": (
+                    result.condition.divergence_magnitude
+                ),
+                "physical_margin": (
+                    result.condition.physical_margin
+                ),
+                "physically_valid": (
+                    result.condition.physically_valid
+                ),
                 "impact_state": result.impact_state,
-                "no_assurance": result.no_assurance.outcome.value,
-                "global": result.global_divergence.outcome.value,
-                "magnitude": result.fixed_magnitude.outcome.value,
-                "relevance": result.decision_relevance.outcome.value,
-                "impact": result.decision_impact.outcome.value,
+                "no_assurance": (
+                    result.no_assurance.outcome.value
+                ),
+                "global": (
+                    result.global_divergence.outcome.value
+                ),
+                "magnitude": (
+                    result.fixed_magnitude.outcome.value
+                ),
+                "relevance": (
+                    result.decision_relevance.outcome.value
+                ),
+                "impact": (
+                    result.decision_impact.outcome.value
+                ),
             },
         )
