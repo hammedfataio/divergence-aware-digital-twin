@@ -29,7 +29,7 @@ def make_evidence(
         dependency=dependency,
         observed_value=observed_value,
         status=status,
-        observed_at=10.0,
+        timestamp=10.0,
         confidence=1.0,
     )
 
