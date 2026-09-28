@@ -1,16 +1,15 @@
-"""Global evidence-quality assurance policy for EXP-009.
+"""Global evidence-uncertainty assurance policy for EXP-009.
 
-This policy intentionally does not perform entity filtering or
-decision-dependency reasoning.
+This module implements the system-wide uncertainty baseline used in
+Experiment 009.
 
-It represents a system-level conservative baseline:
+The policy deliberately ignores decision relevance. If any runtime evidence
+item is stale, missing, or conflicting, autonomous authority is deferred.
 
-- if all supplied runtime evidence is available, autonomous execution is
-  allowed;
-- if any supplied runtime evidence is stale, missing, or conflicting,
-  autonomous execution is deferred.
+This provides the conservative global baseline against which entity-filtered
+and decision-dependency-conditioned assurance mechanisms are compared.
 
-The policy never receives physical ground truth.
+Physical ground truth is never used by this policy.
 """
 
 from __future__ import annotations
@@ -22,7 +21,7 @@ from dara_dt.evidence.model import EvidenceStatus, RuntimeEvidence
 
 
 class GlobalEvidenceUncertaintyPolicy:
-    """React conservatively to uncertainty anywhere in runtime evidence."""
+    """Apply system-wide evidence-quality assurance."""
 
     _UNCERTAIN_STATUSES = {
         EvidenceStatus.STALE,
@@ -40,9 +39,8 @@ class GlobalEvidenceUncertaintyPolicy:
         regardless of whether that observation is relevant to the pending
         decision.
 
-        This behaviour is deliberate: EXP-009 uses this policy as the global
-        uncertainty baseline against which entity filtering and
-        decision-conditioned reasoning are compared.
+        This behaviour is intentional for EXP-009 because this policy is the
+        global uncertainty baseline.
         """
 
         evidence_items = tuple(evidence)
@@ -55,7 +53,7 @@ class GlobalEvidenceUncertaintyPolicy:
 
         if uncertain_items:
             return AssuranceDecision(
-                state=AuthorityState.DEFER,
+                authority=AuthorityState.DEFER,
                 reason=(
                     "System-wide runtime evidence contains "
                     f"{len(uncertain_items)} uncertain observation(s)."
@@ -63,6 +61,6 @@ class GlobalEvidenceUncertaintyPolicy:
             )
 
         return AssuranceDecision(
-            state=AuthorityState.ALLOW,
+            authority=AuthorityState.ALLOW,
             reason="No uncertain runtime evidence detected.",
         )
