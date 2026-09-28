@@ -44,3 +44,9 @@ jobs:
 
       - name: Run EXP-007 cross-dependency experiment
         run: uv run python -m dara_dt.experiments.cross_dependency_experiment
+
+      - name: Run EXP-008 imperfect-evidence experiment
+        run: uv run python -m dara_dt.experiments.imperfect_evidence_experiment
+
+      - name: Run EXP-008 imperfect-evidence metrics
+        run: uv run python -m dara_dt.experiments.imperfect_evidence_metrics
