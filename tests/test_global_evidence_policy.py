@@ -1,75 +1,157 @@
-"""Global evidence-quality assurance policy for EXP-009.
+"""Tests for the EXP-009 global evidence-uncertainty baseline."""
 
-This policy intentionally does not perform entity filtering or
-decision-dependency reasoning.
-
-It represents a system-level conservative baseline:
-
-- if all supplied runtime evidence is available, autonomous execution is
-  allowed;
-- if any supplied runtime evidence is stale, missing, or conflicting,
-  autonomous execution is deferred.
-
-The policy never receives physical ground truth.
-"""
-
-from __future__ import annotations
-
-from collections.abc import Iterable
-
-from dara_dt.assurance.model import AssuranceDecision, AuthorityState
-from dara_dt.evidence.model import EvidenceStatus, RuntimeEvidence
+from dara_dt.assurance.global_evidence_policy import (
+    GlobalEvidenceUncertaintyPolicy,
+)
+from dara_dt.assurance.model import AuthorityState
+from dara_dt.evidence.model import (
+    EvidenceStatus,
+    RuntimeEvidence,
+)
 
 
-class GlobalEvidenceUncertaintyPolicy:
-    """React conservatively to uncertainty anywhere in runtime evidence."""
+def _evidence(
+    dependency: str,
+    value: object,
+    status: EvidenceStatus = EvidenceStatus.AVAILABLE,
+) -> RuntimeEvidence:
+    """Create runtime evidence for policy tests."""
 
-    _UNCERTAIN_STATUSES = {
-        EvidenceStatus.STALE,
-        EvidenceStatus.MISSING,
-        EvidenceStatus.CONFLICTING,
-    }
+    return RuntimeEvidence(
+        source="test_sensor",
+        dependency=dependency,
+        observed_value=value,
+        timestamp=10.0,
+        status=status,
+    )
 
-    def evaluate(
-        self,
-        evidence: Iterable[RuntimeEvidence],
-        decision_id: str = "exp009",
-    ) -> AssuranceDecision:
-        """Evaluate system-wide runtime evidence quality.
 
-        Any stale, missing, or conflicting observation causes DEFER,
-        regardless of whether that observation is relevant to the pending
-        decision.
+def test_global_policy_allows_when_all_evidence_is_available() -> None:
+    policy = GlobalEvidenceUncertaintyPolicy()
 
-        This behaviour is deliberate: EXP-009 uses this policy as the global
-        uncertainty baseline against which entity filtering and
-        decision-conditioned reasoning are compared.
+    evidence = [
+        _evidence("vehicle_2.capacity", 10),
+        _evidence("vehicle_2.status", "operational"),
+        _evidence("vehicle_8.status", "operational"),
+    ]
 
-        Physical ground truth is never used.
-        """
+    result = policy.evaluate(evidence)
 
-        evidence_items = tuple(evidence)
+    assert result.authority == AuthorityState.ALLOW
 
-        uncertain_items = [
-            item
-            for item in evidence_items
-            if item.status in self._UNCERTAIN_STATUSES
-        ]
 
-        if uncertain_items:
-            return AssuranceDecision(
-                decision_id=decision_id,
-                authority=AuthorityState.DEFER,
-                reason=(
-                    "System-wide runtime evidence contains "
-                    f"{len(uncertain_items)} uncertain observation(s)."
-                ),
-                relevant_divergence_count=0,
-            )
+def test_global_policy_defers_on_stale_evidence() -> None:
+    policy = GlobalEvidenceUncertaintyPolicy()
 
-        return AssuranceDecision(
-            decision_id=decision_id,
-            authority=AuthorityState.ALLOW,
-            reason="No uncertain runtime evidence detected.",
-            relevant_divergence_count=0,
-        )
+    evidence = [
+        _evidence("vehicle_2.capacity", 10),
+        _evidence(
+            "vehicle_8.status",
+            "operational",
+            EvidenceStatus.STALE,
+        ),
+    ]
+
+    result = policy.evaluate(evidence)
+
+    assert result.authority == AuthorityState.DEFER
+
+
+def test_global_policy_defers_on_missing_evidence() -> None:
+    policy = GlobalEvidenceUncertaintyPolicy()
+
+    evidence = [
+        _evidence("vehicle_2.capacity", 10),
+        RuntimeEvidence(
+            source="test_sensor",
+            dependency="vehicle_8.status",
+            observed_value=None,
+            timestamp=10.0,
+            status=EvidenceStatus.MISSING,
+        ),
+    ]
+
+    result = policy.evaluate(evidence)
+
+    assert result.authority == AuthorityState.DEFER
+
+
+def test_global_policy_defers_on_conflicting_evidence() -> None:
+    policy = GlobalEvidenceUncertaintyPolicy()
+
+    evidence = [
+        _evidence("vehicle_2.capacity", 10),
+        _evidence(
+            "vehicle_8.status",
+            "maintenance_due",
+            EvidenceStatus.CONFLICTING,
+        ),
+    ]
+
+    result = policy.evaluate(evidence)
+
+    assert result.authority == AuthorityState.DEFER
+
+
+def test_global_policy_reacts_to_irrelevant_uncertainty() -> None:
+    """Global policy must not perform decision relevance filtering."""
+
+    policy = GlobalEvidenceUncertaintyPolicy()
+
+    evidence = [
+        _evidence("vehicle_2.capacity", 10),
+        _evidence(
+            "vehicle_8.status",
+            "operational",
+            EvidenceStatus.STALE,
+        ),
+    ]
+
+    result = policy.evaluate(evidence)
+
+    # Vehicle 8 may be irrelevant to a Vehicle 2 decision, but the global
+    # baseline intentionally reacts to uncertainty anywhere in the system.
+    assert result.authority == AuthorityState.DEFER
+
+
+def test_global_policy_defers_if_one_of_many_items_is_uncertain() -> None:
+    policy = GlobalEvidenceUncertaintyPolicy()
+
+    evidence = [
+        _evidence("vehicle_2.capacity", 10),
+        _evidence("vehicle_2.status", "operational"),
+        _evidence("vehicle_8.capacity", 20),
+        _evidence(
+            "vehicle_9.location",
+            "depot_b",
+            EvidenceStatus.STALE,
+        ),
+    ]
+
+    result = policy.evaluate(evidence)
+
+    assert result.authority == AuthorityState.DEFER
+
+
+def test_global_policy_allows_empty_evidence_collection() -> None:
+    """The policy reacts to observed uncertainty, not absence of a collection."""
+
+    policy = GlobalEvidenceUncertaintyPolicy()
+
+    result = policy.evaluate([])
+
+    assert result.authority == AuthorityState.ALLOW
+
+
+def test_global_policy_does_not_require_physical_ground_truth() -> None:
+    """The public policy interface must operate only on runtime evidence."""
+
+    policy = GlobalEvidenceUncertaintyPolicy()
+
+    evidence = [
+        _evidence("vehicle_2.capacity", 10),
+    ]
+
+    result = policy.evaluate(evidence)
+
+    assert result.authority == AuthorityState.ALLOW
