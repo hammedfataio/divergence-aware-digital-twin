@@ -32,6 +32,7 @@ class GlobalEvidenceUncertaintyPolicy:
     def evaluate(
         self,
         evidence: Iterable[RuntimeEvidence],
+        decision_id: str = "exp009",
     ) -> AssuranceDecision:
         """Evaluate system-wide runtime evidence quality.
 
@@ -41,6 +42,8 @@ class GlobalEvidenceUncertaintyPolicy:
 
         This behaviour is intentional for EXP-009 because this policy is the
         global uncertainty baseline.
+
+        Physical ground truth is never used.
         """
 
         evidence_items = tuple(evidence)
@@ -53,14 +56,18 @@ class GlobalEvidenceUncertaintyPolicy:
 
         if uncertain_items:
             return AssuranceDecision(
+                decision_id=decision_id,
                 authority=AuthorityState.DEFER,
                 reason=(
                     "System-wide runtime evidence contains "
                     f"{len(uncertain_items)} uncertain observation(s)."
                 ),
+                relevant_divergence_count=0,
             )
 
         return AssuranceDecision(
+            decision_id=decision_id,
             authority=AuthorityState.ALLOW,
             reason="No uncertain runtime evidence detected.",
+            relevant_divergence_count=0,
         )
