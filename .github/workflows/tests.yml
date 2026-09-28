@@ -41,3 +41,6 @@ jobs:
 
       - name: Run EXP-006 evidence metrics
         run: uv run python -m dara_dt.experiments.evidence_metrics
+
+      - name: Run EXP-007 cross-dependency experiment
+        run: uv run python -m dara_dt.experiments.cross_dependency_experiment
