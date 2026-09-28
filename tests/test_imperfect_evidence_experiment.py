@@ -1,4 +1,13 @@
-"""Tests for EXP-008 imperfect-evidence contract comparison."""
+"""Tests for EXP-008 imperfect-evidence contract comparison.
+
+These tests preserve the registered EXP-008 experimental design and verify
+that physical ground truth, Digital Twin state and runtime evidence remain
+separate information layers.
+
+The tests deliberately do not require DARA-DT and the uncertainty-aware
+runtime contract to produce identical authority states. EXP-008 evaluates
+that relationship empirically rather than assuming equivalence in advance.
+"""
 
 from collections import Counter
 
@@ -333,7 +342,7 @@ def test_missing_evidence_does_not_create_observed_divergence(conditions):
 
 
 def test_runtime_divergence_uses_evidence_not_physical_truth(conditions):
-    """Stale evidence matching the Twin must hide physical divergence."""
+    """Runtime mismatch must reflect visible evidence, not hidden truth."""
 
     condition = by_id(conditions, "CAP-S1")
 
@@ -344,9 +353,16 @@ def test_runtime_divergence_uses_evidence_not_physical_truth(conditions):
         evidence=evidence,
     )
 
-    assert condition.physical_value != condition.twin_value
-    assert condition.primary_evidence_value == condition.twin_value
-    assert divergences == []
+    assert condition.physical_value == 4.0
+    assert condition.primary_evidence_value == 8.0
+    assert condition.twin_value == 10.0
+
+    assert condition.physical_value != condition.primary_evidence_value
+    assert condition.primary_evidence_value != condition.twin_value
+
+    assert len(divergences) == 1
+    assert divergences[0].physical_value == 8.0
+    assert divergences[0].twin_value == 10.0
 
 
 def test_runtime_divergence_can_exist_when_physical_state_is_valid(
@@ -363,8 +379,37 @@ def test_runtime_divergence_can_exist_when_physical_state_is_valid(
         evidence=evidence,
     )
 
-    assert condition.physical_valid is True
+    assert condition.physical_value >= condition.order_demand
     assert len(divergences) == 1
+
+
+def test_stale_evidence_can_understate_true_physical_divergence(conditions):
+    """Observed divergence need not equal the hidden physical divergence."""
+
+    condition = by_id(conditions, "CAP-S1")
+
+    evidence = _build_runtime_evidence(condition)
+
+    divergences = _runtime_divergences(
+        condition=condition,
+        evidence=evidence,
+    )
+
+    assert len(divergences) == 1
+
+    observed_difference = abs(
+        divergences[0].physical_value
+        - divergences[0].twin_value
+    )
+
+    true_physical_difference = abs(
+        condition.physical_value
+        - condition.twin_value
+    )
+
+    assert observed_difference == 2.0
+    assert true_physical_difference == 6.0
+    assert observed_difference < true_physical_difference
 
 
 # ---------------------------------------------------------------------------
@@ -410,6 +455,30 @@ def test_reliable_invalid_conditions_trigger_intervention(
     )
 
     assert result.dara_dt_authority != AuthorityState.ALLOW
+
+
+@pytest.mark.parametrize(
+    "condition_id",
+    [
+        "CAP-R1",
+        "STATUS-R1",
+        "LOC-R1",
+    ],
+)
+def test_reliable_invalid_conditions_expose_authority_difference(
+    results,
+    condition_id,
+):
+    """Both intervene, but their authority response is not identical."""
+
+    result = by_id(results, condition_id)
+
+    assert (
+        result.uncertainty_contract_authority
+        == AuthorityState.RESTRICT
+    )
+
+    assert result.dara_dt_authority == AuthorityState.DEFER
 
 
 # ---------------------------------------------------------------------------
@@ -501,14 +570,41 @@ def test_kill_test_e_compares_all_24_conditions(results):
     assert len(comparisons) == 24
 
 
-def test_uncertainty_contract_and_dara_are_currently_equivalent(results):
-    """Record equivalence instead of engineering an artificial advantage."""
+def test_uncertainty_contract_and_dara_have_same_binary_intervention(
+    results,
+):
+    """Kill Test E compares intervention behaviour without forcing
+    identical authority-state semantics.
+    """
 
     assert all(
-        result.uncertainty_contract_authority
-        == result.dara_dt_authority
+        (
+            result.uncertainty_contract_authority
+            == AuthorityState.ALLOW
+        )
+        == (
+            result.dara_dt_authority
+            == AuthorityState.ALLOW
+        )
         for result in results
     )
+
+
+def test_authority_states_differ_only_on_reliable_invalid_cases(results):
+    differences = {
+        result.condition.condition_id
+        for result in results
+        if (
+            result.uncertainty_contract_authority
+            != result.dara_dt_authority
+        )
+    }
+
+    assert differences == {
+        "CAP-R1",
+        "STATUS-R1",
+        "LOC-R1",
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -585,7 +681,7 @@ def test_uncertainty_contract_false_interventions_are_explicit(results):
         for result in results
     )
 
-    # The valid stale, missing and conflicting cases are conservatively
+    # Valid stale, missing and conflicting cases are conservatively
     # deferred. This exposes the autonomy cost of uncertain evidence.
     assert false_interventions == 9
 
@@ -600,16 +696,35 @@ def test_dara_dt_false_interventions_are_explicit(results):
     assert false_interventions == 9
 
 
+def test_uncertainty_contract_and_dara_have_identical_binary_outcomes(
+    results,
+):
+    assert all(
+        result.uncertainty_contract.outcome
+        == result.dara_dt.outcome
+        for result in results
+    )
+
+
 # ---------------------------------------------------------------------------
 # Scientific-integrity checks
 # ---------------------------------------------------------------------------
 
 
-def test_stale_evidence_can_hide_invalid_physical_state(results):
+def test_stale_evidence_can_hide_true_degree_of_physical_divergence(
+    results,
+):
     result = by_id(results, "CAP-S1")
 
     assert result.ground_truth.intervention_required is True
-    assert result.runtime_divergence_count == 0
+
+    # Physical capacity is 4 while the Twin says 10, but runtime evidence
+    # reports 8. The runtime layer therefore sees a smaller mismatch than
+    # actually exists.
+    assert result.condition.physical_value == 4.0
+    assert result.condition.primary_evidence_value == 8.0
+    assert result.condition.twin_value == 10.0
+    assert result.runtime_divergence_count == 1
 
 
 def test_stale_evidence_can_create_false_runtime_mismatch(results):
@@ -648,10 +763,51 @@ def test_same_imperfect_policy_trades_autonomy_for_safety(results):
 
 
 def test_exp008_preserves_falsification_result(results):
-    """Do not claim DARA superiority if the comparator is equivalent."""
+    """The fair simpler comparator matches DARA-DT at the binary
+    intervention level in the frozen 24-condition EXP-008 matrix.
+
+    This result must be preserved rather than engineering an artificial
+    performance advantage for DARA-DT.
+    """
+
+    assert all(
+        result.uncertainty_contract.outcome
+        == result.dara_dt.outcome
+        for result in results
+    )
+
+
+def test_exp008_does_not_hide_authority_semantic_difference(results):
+    """Binary equivalence must not be misreported as identical authority."""
+
+    differences = [
+        result
+        for result in results
+        if (
+            result.uncertainty_contract_authority
+            != result.dara_dt_authority
+        )
+    ]
+
+    assert len(differences) == 3
+
+    assert {
+        result.condition.condition_id
+        for result in differences
+    } == {
+        "CAP-R1",
+        "STATUS-R1",
+        "LOC-R1",
+    }
+
+    assert all(
+        result.uncertainty_contract_authority
+        == AuthorityState.RESTRICT
+        for result in differences
+    )
 
     assert all(
         result.dara_dt_authority
-        == result.uncertainty_contract_authority
-        for result in results
+        == AuthorityState.DEFER
+        for result in differences
     )
