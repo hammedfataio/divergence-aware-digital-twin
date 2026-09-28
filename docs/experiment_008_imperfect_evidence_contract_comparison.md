@@ -1,77 +1,66 @@
-# Experiment 008 — Imperfect Evidence and Runtime-Contract Comparison
+# Experiment 008 — Imperfect-Evidence Contract Comparison
 
 **Project:** DARA-DT — Divergence-Aware Runtime Assurance for Digital Twins  
 **Experiment:** EXP-008  
-**Status:** Experimental Design — Pre-Implementation  
-**Research Stage:** Imperfect Evidence and Comparative Runtime Assurance
+**Status:** Complete  
+**Research Stage:** Comparative runtime assurance under imperfect evidence
 
 ---
 
 ## 1. Objective
 
-EXP-008 investigates whether decision-conditioned physical–digital divergence
-provides useful runtime-assurance information beyond direct runtime-contract
-checking when runtime evidence about the physical system is imperfect.
+EXP-008 evaluates whether decision-conditioned physical–digital divergence
+provides useful runtime-assurance information beyond direct runtime contracts
+when runtime evidence is incomplete, stale, inaccurate, or conflicting.
 
-EXP-007 established that Decision Impact and Runtime Contract produced identical
-intervention outcomes across the tested capacity, operational-status, and
-location/availability dependencies when reliable runtime evidence was available.
+The experiment was motivated directly by EXP-007.
 
-Therefore, EXP-008 deliberately removes the reliable-evidence assumption.
+EXP-007 showed that decision-impact-aware assurance generalised across three
+decision-dependency families:
 
-The experiment introduces controlled imperfections into runtime evidence while
-preserving independent knowledge of the physical ground truth.
+- vehicle capacity,
+- operational status,
+- location / availability.
 
-The purpose is not to demonstrate that DARA-DT is superior.
+However, under reliable runtime evidence, the Decision Impact policy and a
+simpler Runtime Contract baseline produced identical binary assurance outcomes.
 
-The purpose is to test whether the additional reasoning performed by DARA-DT
-produces measurably different and useful assurance behaviour when direct
-physical-state observations cannot be assumed to be complete and trustworthy.
+EXP-008 therefore introduces imperfect runtime evidence and a stronger
+uncertainty-aware contract comparator.
+
+The experiment is deliberately falsification-oriented.
+
+The purpose is not to demonstrate that DARA-DT must outperform the baselines.
+The purpose is to determine whether its decision-conditioned divergence
+mechanism contributes assurance information beyond simpler runtime validity
+mechanisms.
 
 ---
 
-## 2. Primary Research Question
+## 2. Research Question
+
+The primary research question is:
 
 > **Does decision-conditioned physical–digital divergence provide useful
 > runtime-assurance information beyond direct runtime contracts when
 > physical-state evidence is incomplete, stale, inaccurate, or conflicting?**
 
----
+EXP-008 additionally investigates:
 
-## 3. Supporting Research Questions
-
-### RQ8.1 — Evidence Reliability
-
-How does degradation in runtime evidence affect the intervention decisions of
-direct runtime contracts and divergence-aware assurance?
-
-### RQ8.2 — Safety
-
-Which assurance mechanism better avoids missed interventions when unreliable
-evidence hides a physically invalid decision?
-
-### RQ8.3 — Autonomy Preservation
-
-Which mechanism better avoids unnecessary intervention when imperfect evidence
-creates apparent risk while the proposed decision remains physically valid?
-
-### RQ8.4 — Uncertainty Handling
-
-Can explicit treatment of evidence quality support more appropriate
-ALLOW, RESTRICT, or DEFER behaviour than treating an observation as a
-definitive physical fact?
-
-### RQ8.5 — Comparative Contribution
-
-Does the divergence → relevance → impact → evidence reasoning chain provide
-assurance information that cannot be reproduced by a simpler runtime-contract
-mechanism under the same evidence constraints?
+1. how imperfect evidence affects unsafe-action detection;
+2. how evidence uncertainty affects unnecessary intervention;
+3. whether the observed behaviour generalises across different decision
+   dependencies;
+4. whether explicitly modelling evidence quality provides an advantage over
+   evidence-quality-unaware contracts;
+5. whether DARA-DT provides additional assurance discrimination beyond a
+   simpler uncertainty-aware runtime contract.
 
 ---
 
-## 4. Experimental Principle
+## 3. Experimental Principle
 
-EXP-008 separates three representations of system state:
+EXP-008 maintains a strict separation between three system states:
 
 \[
 P_t = \text{Physical Ground Truth}
@@ -85,754 +74,833 @@ T_t = \text{Digital Twin State}
 E_t = \text{Runtime Evidence}
 \]
 
-These states must not be treated as equivalent.
+These quantities are intentionally not treated as interchangeable.
 
-The physical state determines whether the proposed decision is actually valid.
+### Physical Ground Truth
+
+Physical ground truth represents the actual simulated logistics system.
+
+It is used only by the independent evaluator to determine whether the proposed
+AI decision is physically valid.
+
+Runtime assurance policies do not receive privileged access to physical ground
+truth.
+
+### Digital Twin State
 
 The Digital Twin represents the state available to the AI decision process.
 
-Runtime evidence represents observations available to the assurance mechanism.
+It may differ from the physical system.
 
-Therefore:
+### Runtime Evidence
+
+Runtime evidence represents observations available to the assurance layer.
+
+Evidence may be:
+
+- available and reliable,
+- stale,
+- missing,
+- conflicting.
+
+This separation allows the experiment to evaluate assurance behaviour without
+silently giving runtime policies access to evaluator-only information.
+
+---
+
+## 4. Dependency Families
+
+EXP-008 evaluates three decision-dependency families.
+
+### 4.1 Capacity
+
+The selected vehicle must have sufficient physical capacity for the order.
+
+### 4.2 Operational Status
+
+The selected vehicle must remain operational.
+
+### 4.3 Location / Availability
+
+The selected vehicle must remain available and within the permitted dispatch
+location.
+
+These dependency families were retained from EXP-007 to test whether findings
+under imperfect evidence generalise beyond a single capacity example.
+
+---
+
+## 5. Evidence Conditions
+
+Four evidence-quality conditions are evaluated.
+
+| Evidence condition | Meaning |
+|---|---|
+| Reliable / Available | Runtime evidence is current and usable |
+| Stale | Evidence represents an older system state |
+| Missing | No usable runtime observation is available |
+| Conflicting | Runtime sources provide incompatible observations |
+
+Each evidence condition contains one physically valid and one physically
+invalid decision for each dependency family.
+
+This produces:
 
 \[
-P_t \neq T_t \neq E_t
+3 \text{ dependency families}
+\times
+4 \text{ evidence conditions}
+\times
+2 \text{ physical validity states}
+=
+24 \text{ scenarios}
 \]
 
-may occur during the experiment.
+The complete matrix therefore contains:
 
-This separation is essential because imperfect runtime evidence is the variable
-being tested.
-
----
-
-## 5. Decision-Level Assurance Model
-
-The conceptual DARA-DT chain remains:
-
-\[
-D_t = \text{Detected Physical–Digital Divergence}
-\]
-
-\[
-D_t^{rel}(d_t) = Dep(d_t) \cap D_t
-\]
-
-where:
-
-- \(d_t\) is the proposed AI decision;
-- \(Dep(d_t)\) is the set of state dependencies required by that decision;
-- \(D_t\) is detected divergence;
-- \(D_t^{rel}(d_t)\) is decision-relevant divergence.
-
-Decision impact is then conditioned on runtime evidence:
-
-\[
-I_t = f(d_t, D_t^{rel}, E_t)
-\]
-
-and authority is determined by:
-
-\[
-A_t = \pi(d_t, D_t^{rel}, I_t, E_t)
-\]
-
-EXP-008 tests whether this richer reasoning provides useful assurance behaviour
-when \(E_t\) cannot be assumed to perfectly represent \(P_t\).
+- 12 physically valid decisions;
+- 12 physically invalid decisions.
 
 ---
 
-## 6. Dependency Families
+## 6. Experimental Conditions
 
-The experiment retains the three dependency families established in EXP-007:
+Each dependency family contains the following eight conditions:
 
-1. **Capacity**
-2. **Operational Status**
-3. **Location / Availability**
+| Condition | Evidence | Physical decision |
+|---|---|---|
+| R0 | Reliable | Valid |
+| R1 | Reliable | Invalid |
+| S0 | Stale | Valid |
+| S1 | Stale | Invalid |
+| M0 | Missing | Valid |
+| M1 | Missing | Invalid |
+| C0 | Conflicting | Valid |
+| C1 | Conflicting | Invalid |
 
-This prevents the experiment from becoming another capacity-only evaluation.
-
----
-
-## 7. Evidence Conditions
-
-Four primary evidence conditions are evaluated.
-
-### E0 — Reliable Evidence
-
-Runtime evidence accurately represents the relevant physical state.
-
-Example:
-
-- physical capacity = 6;
-- runtime evidence = 6.
-
-This provides the control condition.
-
----
-
-### E1 — Stale Evidence
-
-Runtime evidence was previously correct but no longer represents the current
-physical state.
-
-Example:
-
-- Digital Twin status = operational;
-- vehicle physically breaks down;
-- evidence still reports operational.
-
-This tests whether an assurance mechanism can recognise that apparently valid
-evidence may no longer be sufficiently trustworthy.
-
----
-
-### E2 — Missing Evidence
-
-Evidence required to validate a decision dependency is unavailable.
-
-Example:
-
-- current vehicle availability cannot be observed.
-
-A mechanism must determine whether to:
-
-- allow the decision;
-- restrict authority;
-- defer the decision;
-- use fallback behaviour.
-
----
-
-### E3 — Conflicting Evidence
-
-Two or more evidence sources provide incompatible observations.
-
-Example:
-
-- one location source reports `depot`;
-- another reports `remote_site`.
-
-The assurance mechanism must not silently treat one observation as unquestioned
-physical truth unless an explicit resolution rule justifies doing so.
-
----
-
-## 8. Optional Secondary Evidence Conditions
-
-If the primary experiment is successful and remains manageable, later extensions
-may examine:
-
-### E4 — Noisy Evidence
-
-Observed values contain bounded measurement error.
-
-### E5 — Incorrect but High-Confidence Evidence
-
-An evidence source reports an incorrect state while appearing trustworthy.
-
-### E6 — Compound Evidence Failure
-
-Multiple evidence limitations occur simultaneously.
-
-These are not required for the minimum EXP-008 matrix and should not be added
-until the primary experiment is complete.
-
----
-
-## 9. Core Experimental Matrix
-
-Each dependency family should contain at least the following evidence scenarios:
-
-| Scenario | Physical Decision State | Evidence State | Purpose |
-|---|---|---|---|
-| R0 | Valid | Reliable | Control — valid |
-| R1 | Invalid | Reliable | Control — invalid |
-| S0 | Valid | Stale | Test unnecessary intervention |
-| S1 | Invalid | Stale | Test hidden invalidity |
-| M0 | Valid | Missing | Test conservative uncertainty handling |
-| M1 | Invalid | Missing | Test safety under unavailable evidence |
-| C0 | Valid | Conflicting | Test false-intervention risk |
-| C1 | Invalid | Conflicting | Test missed-intervention risk |
-
-With three dependency families:
-
-\[
-3 \times 8 = 24
-\]
-
-minimum controlled experimental conditions.
-
-The minimum EXP-008 matrix therefore contains **24 conditions**.
-
----
-
-## 10. Example Capacity Conditions
+The complete experiment contains 24 conditions.
 
 Examples include:
 
-### CAP-R0
-
-Physical capacity satisfies demand and reliable evidence reports the correct
-capacity.
-
-Expected ground truth:
-
-**DO_NOT_INTERVENE**
-
----
-
-### CAP-R1
-
-Physical capacity is below required demand and reliable evidence reports the
-correct capacity.
-
-Expected ground truth:
-
-**INTERVENE**
+- `CAP-R0`
+- `CAP-R1`
+- `CAP-S0`
+- `CAP-S1`
+- `STATUS-M0`
+- `STATUS-M1`
+- `LOC-C0`
+- `LOC-C1`
 
 ---
 
-### CAP-S0
+## 7. Compared Assurance Policies
 
-Physical capacity satisfies demand, but stale evidence reports an older value
-that suggests insufficient capacity.
-
-Expected ground truth:
-
-**DO_NOT_INTERVENE**
-
-This condition measures unnecessary intervention caused by stale evidence.
-
----
-
-### CAP-S1
-
-Physical capacity has fallen below demand, but stale evidence reports an older
-higher capacity.
-
-Expected ground truth:
-
-**INTERVENE**
-
-This condition measures whether stale evidence can hide decision invalidity.
-
----
-
-### CAP-M0 / CAP-M1
-
-Current capacity evidence is unavailable while the physical decision is,
-respectively, valid or invalid.
-
-The assurance mechanism cannot know physical validity directly from the missing
-observation.
-
----
-
-### CAP-C0 / CAP-C1
-
-Multiple evidence sources disagree about current capacity.
-
-The physical ground truth remains independently known by the experiment.
-
----
-
-## 11. Status Conditions
-
-The same experimental structure is applied to operational status.
-
-Examples include:
-
-- operational physical vehicle with reliable operational evidence;
-- broken-down vehicle with reliable failure evidence;
-- stale operational evidence after physical breakdown;
-- stale failure evidence after physical recovery;
-- missing status evidence;
-- conflicting operational and failure reports.
-
-The physical state determines ground truth.
-
-Evidence determines what the assurance mechanism can observe.
-
----
-
-## 12. Location / Availability Conditions
-
-Location and availability are evaluated as a combined dispatch dependency.
-
-Examples include:
-
-- vehicle physically at an allowed location and available;
-- vehicle physically outside the permitted operational region;
-- stale location observation;
-- stale availability observation;
-- missing location or availability evidence;
-- conflicting location observations.
-
-A decision is physically valid only when the required location and availability
-constraints are satisfied.
-
----
-
-## 13. Assurance Policies
-
-The primary comparison includes four policy families.
+Five policies are evaluated.
 
 ### P0 — No Assurance
 
-Always permits the proposed AI decision.
+The AI-generated decision is allowed regardless of divergence or evidence
+quality.
 
-Purpose:
-
-Provide a lower-bound safety comparator.
+This represents the unprotected autonomy baseline.
 
 ---
 
 ### P1 — Global Divergence
 
-Intervenes whenever divergence is detected.
+The policy reacts to observed mismatch between runtime evidence and the Digital
+Twin without conditioning the mismatch on the specific decision dependency.
 
-Purpose:
-
-Test whether coarse divergence detection remains overly conservative.
+This represents global Twin mismatch monitoring.
 
 ---
 
 ### P2 — Direct Runtime Contract
 
-Evaluates the decision requirement using the runtime evidence available to it.
+The runtime observation is evaluated directly against the decision requirement.
 
-Examples:
+This baseline does not explicitly reason about evidence-quality metadata.
+
+Where no runtime value is available, the direct contract cannot evaluate the
+requirement and allows execution by default in the EXP-008 implementation.
+
+---
+
+### P3 — Uncertainty-Aware Runtime Contract
+
+This is the stronger contract baseline introduced specifically for EXP-008.
+
+When evidence is available, the relevant runtime contract is evaluated.
+
+When evidence is:
+
+- stale,
+- missing, or
+- conflicting,
+
+the policy defers autonomous execution.
+
+This comparator is important because it tests whether DARA-DT contributes
+something beyond simply adding evidence-quality awareness to an ordinary
+runtime contract.
+
+---
+
+### P4 — DARA-DT Evidence-Aware Assurance
+
+DARA-DT evaluates runtime evidence relative to the dependency and validity
+requirements of the specific AI-generated decision.
+
+The policy distinguishes authority states including:
+
+- `ALLOW`
+- `RESTRICT`
+- `DEFER`
+- `FALLBACK`
+
+In EXP-008, uncertain evidence associated with the selected decision dependency
+causes DARA-DT to defer execution.
+
+---
+
+## 8. Ground-Truth Evaluation
+
+Ground truth is determined independently from physical system state.
+
+A physically valid decision requires no intervention.
+
+A physically invalid decision requires intervention.
+
+Each policy result is classified as one of:
+
+- **True Intervention (TI)** — intervention was required and occurred;
+- **False Intervention (FI)** — intervention occurred although the decision was
+  physically valid;
+- **Missed Intervention (MI)** — intervention was required but did not occur;
+- **Correct Non-Intervention (CNI)** — the valid decision was correctly allowed.
+
+This ensures policy evaluation remains independent from the runtime evidence
+used by the assurance mechanism.
+
+---
+
+## 9. Aggregate Results
+
+The complete 24-condition matrix produced the following results.
+
+| Policy | N | TI | FI | MI | CNI | Accuracy | Precision | Recall | FI Rate | MI Rate | Autonomy |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| No Assurance | 24 | 0 | 0 | 12 | 12 | 0.500 | 0.000 | 0.000 | 0.000 | 1.000 | 1.000 |
+| Global Divergence | 24 | 5 | 7 | 7 | 5 | 0.417 | 0.417 | 0.417 | 0.583 | 0.583 | 0.500 |
+| Direct Runtime Contract | 24 | 3 | 3 | 9 | 9 | 0.500 | 0.500 | 0.250 | 0.250 | 0.750 | 0.750 |
+| Uncertainty-Aware Contract | 24 | 12 | 9 | 0 | 3 | 0.625 | 0.571 | 1.000 | 0.750 | 0.000 | 0.125 |
+| DARA-DT | 24 | 12 | 9 | 0 | 3 | 0.625 | 0.571 | 1.000 | 0.750 | 0.000 | 0.125 |
+
+---
+
+## 10. Aggregate Interpretation
+
+### 10.1 No Assurance
+
+No Assurance preserves maximum autonomy:
 
 \[
-capacity_{observed} \ge demand
+Autonomy = 1.000
+\]
+
+However, it misses all 12 physically invalid decisions:
+
+\[
+MI = 12
 \]
 
 \[
-status_{observed} = operational
+Recall = 0
+\]
+
+The result demonstrates the expected safety cost of unrestricted autonomy.
+
+---
+
+### 10.2 Global Divergence
+
+Global divergence monitoring produces:
+
+- 5 true interventions;
+- 7 false interventions;
+- 7 missed interventions;
+- 5 correct non-interventions.
+
+Its accuracy is:
+
+\[
+0.417
+\]
+
+The result demonstrates that global mismatch alone is not sufficient to
+reliably determine whether an individual AI-generated decision should execute.
+
+A mismatch may exist without invalidating the current decision, while imperfect
+evidence may also fail to expose the true physical condition.
+
+---
+
+### 10.3 Direct Runtime Contract
+
+The direct contract achieves:
+
+- 3 true interventions;
+- 3 false interventions;
+- 9 missed interventions;
+- 9 correct non-interventions.
+
+Its intervention recall is:
+
+\[
+0.250
+\]
+
+Its autonomy availability is:
+
+\[
+0.750
+\]
+
+The direct contract performs correctly when reliable runtime observations are
+available, but its lack of explicit evidence-quality handling makes it
+vulnerable when observations are stale, missing, or conflicting.
+
+---
+
+### 10.4 Uncertainty-Aware Runtime Contract
+
+The uncertainty-aware contract eliminates missed interventions:
+
+\[
+MI = 0
 \]
 
 \[
-location_{observed} \in permitted\_locations
+Recall = 1.000
 \]
 
-The runtime contract must receive the same evidence available to DARA-DT.
+However, this is achieved through conservative intervention.
 
-It must not receive privileged access to physical ground truth.
-
----
-
-### P3 — DARA-DT Evidence-Aware Assurance
-
-Uses:
-
-- detected divergence;
-- decision dependencies;
-- decision relevance;
-- estimated decision impact;
-- runtime evidence;
-- evidence quality or reliability state.
-
-The mechanism may return:
-
-- **ALLOW**
-- **RESTRICT**
-- **DEFER**
-- **FALLBACK**
-
-depending on the available evidence and estimated decision risk.
-
----
-
-## 14. Fair-Comparison Requirement
-
-Runtime Contract and DARA-DT must operate under the **same information
-constraints**.
-
-Neither mechanism may receive physical ground truth during runtime evaluation.
-
-Physical ground truth is reserved exclusively for experimental evaluation.
-
-This prevents unfair comparison such as:
+Nine of the twelve physically valid decisions are unnecessarily prevented:
 
 \[
-RuntimeContract(E_t)
+FI = 9
 \]
 
-versus:
-
 \[
-DARA(P_t, T_t, E_t)
+FI\ Rate = 0.750
 \]
 
-Instead, both policies must operate using information legitimately available at
-runtime.
-
-Ground truth \(P_t\) is revealed only to the evaluator after the assurance
-decision has been produced.
-
----
-
-## 15. Ground Truth
-
-Ground truth is determined independently using the physical system state.
-
-The validator determines whether the proposed decision is physically valid.
-
-Ground-truth classes remain:
-
-- **INTERVENE**
-- **DO_NOT_INTERVENE**
-
-This remains independent from policy output.
-
----
-
-## 16. Handling DEFER and RESTRICT
-
-EXP-008 introduces an important distinction between intervention correctness and
-authority state.
-
-A policy may produce:
-
-- ALLOW
-- RESTRICT
-- DEFER
-- FALLBACK
-
-For safety evaluation, non-ALLOW states may count as intervention.
-
-However, they should also be recorded separately.
-
-For example:
-
-- DEFER caused by missing evidence is not semantically identical to RESTRICT
-  caused by confirmed invalidity.
-
-Therefore EXP-008 must report both:
-
-1. binary intervention outcome;
-2. authority-state distribution.
-
----
-
-## 17. Primary Metrics
-
-For each policy:
-
-- True Interventions (TI)
-- False Interventions (FI)
-- Missed Interventions (MI)
-- Correct Non-Interventions (CNI)
-- Accuracy
-- Intervention Precision
-- Intervention Recall
-- False-Intervention Rate
-- Missed-Intervention Rate
-- Autonomy Availability
-
-Where:
+Autonomy availability falls to:
 
 \[
-AutonomyAvailability =
-\frac{ALLOW}{TotalDecisions}
+0.125
 \]
 
----
-
-## 18. Evidence-Specific Metrics
-
-Results must also be grouped by evidence condition:
-
-- reliable;
-- stale;
-- missing;
-- conflicting.
-
-This prevents strong performance under reliable evidence from hiding poor
-performance under degraded evidence.
+The policy therefore exchanges autonomy availability for protection against
+unsafe execution under uncertain evidence.
 
 ---
 
-## 19. Dependency-Specific Metrics
+### 10.5 DARA-DT
 
-Results must also be grouped by:
+DARA-DT produces exactly the same binary outcome counts as the
+uncertainty-aware contract:
 
-- capacity;
-- operational status;
-- location / availability.
+- 12 true interventions;
+- 9 false interventions;
+- 0 missed interventions;
+- 3 correct non-interventions.
 
-This tests whether any observed advantage is dependency-specific.
-
----
-
-## 20. Authority Metrics
-
-Record:
-
-- ALLOW count;
-- RESTRICT count;
-- DEFER count;
-- FALLBACK count.
-
-This allows the experiment to distinguish:
-
-> avoiding unsafe actions
-
-from:
-
-> simply refusing to make autonomous decisions.
-
-A mechanism that defers every uncertain case may achieve high intervention
-recall while providing very little useful autonomy.
-
----
-
-## 21. Safety–Autonomy Trade-Off
-
-EXP-008 explicitly evaluates:
+Therefore:
 
 \[
-\text{Safety}
+Accuracy = 0.625
+\]
+
+\[
+Precision = 0.571
+\]
+
+\[
+Recall = 1.000
+\]
+
+\[
+Autonomy = 0.125
+\]
+
+This is a central result of EXP-008.
+
+DARA-DT does **not** outperform the uncertainty-aware runtime contract at the
+binary intervention level in the frozen EXP-008 matrix.
+
+---
+
+## 11. Authority-State Results
+
+Although binary intervention outcomes are identical for the two strongest
+policies, their authority-state distributions differ.
+
+| Policy | ALLOW | RESTRICT | DEFER | FALLBACK |
+|---|---:|---:|---:|---:|
+| No Assurance | 24 | 0 | 0 | 0 |
+| Global Divergence | 12 | 0 | 12 | 0 |
+| Direct Runtime Contract | 18 | 6 | 0 | 0 |
+| Uncertainty-Aware Contract | 3 | 3 | 18 | 0 |
+| DARA-DT | 3 | 0 | 21 | 0 |
+
+The difference occurs in the three reliable but physically invalid cases:
+
+- `CAP-R1`
+- `STATUS-R1`
+- `LOC-R1`
+
+For these cases:
+
+\[
+UncertaintyAwareContract = RESTRICT
+\]
+
+while:
+
+\[
+DARA\text{-}DT = DEFER
+\]
+
+Both authority states count as interventions in the binary outcome evaluator.
+
+Therefore this difference demonstrates distinct authority semantics, but it
+does **not** establish superior assurance performance for DARA-DT.
+
+---
+
+## 12. Condition-Level Results
+
+| Condition | Evidence | Truth | No Assurance | Global | Direct | Uncertainty Contract | DARA-DT |
+|---|---|---|---|---|---|---|---|
+| CAP-R0 | available | ALLOW | allow | defer | allow | allow | allow |
+| CAP-R1 | available | INTERVENE | allow | defer | restrict | restrict | defer |
+| CAP-S0 | stale | ALLOW | allow | defer | restrict | defer | defer |
+| CAP-S1 | stale | INTERVENE | allow | defer | allow | defer | defer |
+| CAP-M0 | missing | ALLOW | allow | allow | allow | defer | defer |
+| CAP-M1 | missing | INTERVENE | allow | allow | allow | defer | defer |
+| CAP-C0 | conflicting | ALLOW | allow | defer | allow | defer | defer |
+| CAP-C1 | conflicting | INTERVENE | allow | defer | allow | defer | defer |
+| STATUS-R0 | available | ALLOW | allow | allow | allow | allow | allow |
+| STATUS-R1 | available | INTERVENE | allow | defer | restrict | restrict | defer |
+| STATUS-S0 | stale | ALLOW | allow | defer | restrict | defer | defer |
+| STATUS-S1 | stale | INTERVENE | allow | allow | allow | defer | defer |
+| STATUS-M0 | missing | ALLOW | allow | allow | allow | defer | defer |
+| STATUS-M1 | missing | INTERVENE | allow | allow | allow | defer | defer |
+| STATUS-C0 | conflicting | ALLOW | allow | allow | allow | defer | defer |
+| STATUS-C1 | conflicting | INTERVENE | allow | allow | allow | defer | defer |
+| LOC-R0 | available | ALLOW | allow | defer | allow | allow | allow |
+| LOC-R1 | available | INTERVENE | allow | defer | restrict | restrict | defer |
+| LOC-S0 | stale | ALLOW | allow | defer | restrict | defer | defer |
+| LOC-S1 | stale | INTERVENE | allow | allow | allow | defer | defer |
+| LOC-M0 | missing | ALLOW | allow | allow | allow | defer | defer |
+| LOC-M1 | missing | INTERVENE | allow | allow | allow | defer | defer |
+| LOC-C0 | conflicting | ALLOW | allow | defer | allow | defer | defer |
+| LOC-C1 | conflicting | INTERVENE | allow | allow | allow | defer | defer |
+
+---
+
+## 13. Evidence-Quality Analysis
+
+### 13.1 Reliable Evidence
+
+For the six available-evidence conditions:
+
+| Policy | Accuracy | Recall | Autonomy |
+|---|---:|---:|---:|
+| No Assurance | 0.500 | 0.000 | 1.000 |
+| Global Divergence | 0.667 | 1.000 | 0.167 |
+| Direct Contract | 1.000 | 1.000 | 0.500 |
+| Uncertainty-Aware Contract | 1.000 | 1.000 | 0.500 |
+| DARA-DT | 1.000 | 1.000 | 0.500 |
+
+With reliable evidence, the direct contract, uncertainty-aware contract and
+DARA-DT all perfectly classify the six controlled decisions.
+
+This reinforces the EXP-007 finding that a simpler runtime contract can be
+sufficient when reliable decision-relevant state is directly observable.
+
+---
+
+### 13.2 Stale Evidence
+
+For stale evidence, DARA-DT and the uncertainty-aware contract both produce:
+
+- 3 true interventions;
+- 3 false interventions;
+- 0 missed interventions;
+- 0 correct non-interventions.
+
+Therefore:
+
+\[
+Recall = 1.000
+\]
+
+but:
+
+\[
+Autonomy = 0
+\]
+
+Both mechanisms conservatively defer all stale-evidence decisions.
+
+The policy cannot distinguish a physically valid stale-evidence condition from
+a physically invalid stale-evidence condition using the current experimental
+mechanism.
+
+---
+
+### 13.3 Missing Evidence
+
+For missing evidence, DARA-DT and the uncertainty-aware contract again produce:
+
+- 3 true interventions;
+- 3 false interventions;
+- 0 missed interventions;
+- 0 correct non-interventions.
+
+Missing evidence therefore prevents unsafe autonomous execution but removes
+autonomy for all six conditions.
+
+Importantly, missing evidence is not treated as physical truth.
+
+---
+
+### 13.4 Conflicting Evidence
+
+The same pattern appears under conflicting evidence:
+
+- 3 true interventions;
+- 3 false interventions;
+- 0 missed interventions;
+- 0 correct non-interventions.
+
+Again:
+
+\[
+Recall = 1.000
+\]
+
+and:
+
+\[
+Autonomy = 0
+\]
+
+This confirms that the current DARA-DT implementation treats uncertain
+decision-relevant evidence conservatively.
+
+---
+
+## 14. Cross-Dependency Results
+
+The DARA-DT results are identical across all three dependency families.
+
+| Dependency | N | TI | FI | MI | CNI | Accuracy | Recall | Autonomy |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| Capacity | 8 | 4 | 3 | 0 | 1 | 0.625 | 1.000 | 0.125 |
+| Status | 8 | 4 | 3 | 0 | 1 | 0.625 | 1.000 | 0.125 |
+| Location / Availability | 8 | 4 | 3 | 0 | 1 | 0.625 | 1.000 | 0.125 |
+
+The uncertainty-aware contract produces the same binary metrics for all three
+dependency families.
+
+Therefore the EXP-008 result is not confined to the capacity dependency.
+
+Within this controlled matrix, the safety–autonomy trade-off generalises across
+capacity, operational status, and location / availability.
+
+---
+
+## 15. Safety–Autonomy Trade-Off
+
+EXP-008 exposes an important trade-off.
+
+No Assurance maximises autonomy:
+
+\[
+Autonomy = 1.000
+\]
+
+but misses every required intervention:
+
+\[
+Recall = 0
+\]
+
+DARA-DT and the uncertainty-aware contract achieve:
+
+\[
+Recall = 1.000
+\]
+
+but autonomy falls to:
+
+\[
+0.125
+\]
+
+The result demonstrates that simply responding conservatively to uncertain
+evidence can protect against unsafe execution while severely reducing useful
+autonomous operation.
+
+A useful runtime-assurance mechanism therefore needs to consider both:
+
+\[
+Safety
+\]
+
+and:
+
+\[
+Autonomy\ Availability
+\]
+
+rather than optimising intervention recall alone.
+
+---
+
+## 16. Kill Test E — Strong Comparator Result
+
+EXP-008 explicitly included the following falsification condition:
+
+> If a simpler uncertainty-aware runtime contract produces equivalent
+> intervention outcomes to DARA-DT using the same runtime evidence, the claim
+> that DARA-DT provides superior binary runtime assurance is weakened.
+
+This condition was met.
+
+Across all 24 scenarios:
+
+\[
+BinaryOutcome(DARA\text{-}DT)
+=
+BinaryOutcome(UncertaintyAwareContract)
+\]
+
+The two policies have identical:
+
+- true interventions;
+- false interventions;
+- missed interventions;
+- correct non-interventions;
+- accuracy;
+- precision;
+- recall;
+- false-intervention rate;
+- missed-intervention rate;
+- autonomy availability.
+
+Therefore EXP-008 does **not** support a claim that DARA-DT outperforms the
+simpler uncertainty-aware contract at binary intervention classification.
+
+This falsification result is retained rather than removed or reframed as a
+performance advantage.
+
+---
+
+## 17. What EXP-008 Supports
+
+EXP-008 provides controlled evidence for the following bounded conclusions.
+
+### Finding 1
+
+Explicit evidence-quality handling can prevent unsafe autonomous execution
+under stale, missing and conflicting evidence in the tested matrix.
+
+### Finding 2
+
+That protection can impose a substantial autonomy cost.
+
+### Finding 3
+
+Global physical–digital mismatch alone is not sufficient for reliable
+decision-level assurance under imperfect evidence.
+
+### Finding 4
+
+Direct contracts that ignore evidence quality can miss physically invalid
+decisions when observations are stale, missing, or conflicting.
+
+### Finding 5
+
+Under reliable evidence, a simple runtime contract can match the tested
+decision-conditioned mechanisms.
+
+### Finding 6
+
+Under the imperfect-evidence conditions tested here, DARA-DT and an
+uncertainty-aware runtime contract are equivalent at the binary intervention
+level.
+
+### Finding 7
+
+DARA-DT and the uncertainty-aware contract retain different authority semantics
+for the three reliable-invalid conditions, but EXP-008 does not establish that
+this distinction improves assurance performance.
+
+---
+
+## 18. What EXP-008 Does Not Establish
+
+EXP-008 does not establish that:
+
+- DARA-DT is superior to uncertainty-aware runtime contracts;
+- decision-conditioned divergence is a novel mechanism;
+- DARA-DT improves logistics performance;
+- the observed results generalise to real logistics systems;
+- the framework handles arbitrary sensor uncertainty;
+- all forms of physical–digital divergence are covered;
+- conservative deferral is an optimal assurance strategy;
+- authority-state differences necessarily produce operational benefit.
+
+These questions require additional experimental and literature evidence.
+
+---
+
+## 19. Limitation Exposed by EXP-008
+
+The strongest limitation exposed by EXP-008 is that both DARA-DT and the
+uncertainty-aware contract respond conservatively whenever evidence associated
+with the selected decision dependency is stale, missing, or conflicting.
+
+Consequently, both mechanisms achieve zero missed interventions by sacrificing
+autonomy on physically valid imperfect-evidence cases.
+
+This means EXP-008 does not yet test an important aspect of the central
+decision-conditioning hypothesis:
+
+> What happens when imperfect evidence exists in the Digital Twin system but
+> does **not** affect a dependency of the specific AI-generated decision being
+> evaluated?
+
+For example, stale evidence concerning an unrelated vehicle should not
+necessarily remove authority from a decision involving a different vehicle.
+
+This distinction is not isolated by the frozen EXP-008 matrix.
+
+---
+
+## 20. Resulting Research Question
+
+EXP-008 therefore motivates a sharper subsequent question:
+
+> **Can decision-conditioned runtime assurance distinguish
+> decision-relevant evidence uncertainty from decision-irrelevant evidence
+> uncertainty, preserving autonomous authority without increasing missed
+> unsafe interventions?**
+
+This question directly tests whether decision conditioning contributes useful
+assurance information beyond generic evidence-quality awareness.
+
+---
+
+## 21. Proposed Next Experiment
+
+A subsequent experiment should introduce controlled imperfect evidence that is:
+
+1. relevant to the pending AI decision; or
+2. irrelevant to the pending AI decision.
+
+The experiment should compare at least:
+
+- global evidence-quality monitoring;
+- uncertainty-aware runtime contracts;
+- decision-conditioned DARA-DT assurance.
+
+The critical outcome would not simply be whether DARA-DT intervenes.
+
+The experiment should test whether decision conditioning can improve the
+trade-off:
+
+\[
+Safety
 \leftrightarrow
-\text{Autonomy Availability}
+Autonomy\ Availability
 \]
 
-A useful assurance mechanism should not be evaluated only by its ability to
-prevent invalid actions.
+without receiving privileged physical-ground-truth information.
 
-It should also preserve autonomous operation when sufficient evidence supports
-the decision.
+This experiment must be pre-registered before its results are observed.
 
 ---
 
-## 22. Hypotheses
+## 22. Research Progression
 
-### H8.1
-
-Global divergence monitoring will remain vulnerable to unnecessary intervention
-because it does not condition mismatch on the proposed decision.
-
-### H8.2
-
-Direct runtime contracts will perform strongly when evidence is reliable.
-
-### H8.3
-
-Runtime-contract performance may degrade when required evidence is stale,
-missing, or conflicting.
-
-### H8.4
-
-Evidence-aware DARA-DT may provide different authority behaviour under imperfect
-evidence by explicitly representing uncertainty rather than treating every
-observation as definitive physical truth.
-
-### H8.5
-
-Any improvement must be evaluated against the additional information and
-complexity required by DARA-DT.
-
-These are hypotheses, not expected results.
-
----
-
-## 23. Falsification Criteria
-
-EXP-008 is explicitly designed to challenge the proposed contribution.
-
-### Kill Test A — Runtime-Contract Equivalence
-
-If Runtime Contract performs equivalently to DARA-DT across imperfect-evidence
-conditions while requiring less information or complexity, the evidence does
-not support DARA-DT as a superior runtime-assurance mechanism.
-
-The contribution must be narrowed or reframed.
-
----
-
-### Kill Test B — Conservative Deferral
-
-If DARA-DT appears safer only because it defers or restricts nearly every
-uncertain decision, the result does not establish useful assurance superiority.
-
-Autonomy availability must be considered.
-
----
-
-### Kill Test C — Dependency Specificity
-
-If any advantage appears only for capacity and does not generalise to status or
-location/availability, the broad cross-dependency claim must be narrowed.
-
----
-
-### Kill Test D — Evidence Privilege
-
-If DARA-DT requires access to evidence unavailable to Runtime Contract, any
-performance difference cannot be attributed fairly to the assurance mechanism.
-
-Both mechanisms must receive equivalent runtime information.
-
----
-
-### Kill Test E — Equivalent Simpler Mechanism
-
-If a small extension to Runtime Contract, such as explicit UNKNOWN or evidence
-freshness checking, reproduces DARA-DT behaviour with substantially less
-complexity, the stronger DARA-DT contribution is weakened.
-
-This comparator should be considered before making novelty claims.
-
----
-
-## 24. Interpretation Rules
-
-The experiment must not conclude that DARA-DT is novel merely because it
-outperforms one baseline.
-
-Possible outcomes include:
-
-### Outcome A — DARA-DT and Runtime Contract remain equivalent
-
-The additional divergence-aware reasoning may not provide sufficient practical
-value under the tested conditions.
-
-### Outcome B — DARA-DT improves safety but sharply reduces autonomy
-
-The mechanism may be more conservative rather than more informative.
-
-### Outcome C — DARA-DT improves the safety–autonomy trade-off
-
-This would provide evidence supporting further investigation, but would not by
-itself establish novelty.
-
-### Outcome D — A simple uncertainty-aware contract matches DARA-DT
-
-The contribution may lie in system integration, evidence modelling, or
-decision-conditioned assurance rather than superior intervention performance.
-
-### Outcome E — Results vary substantially across dependencies
-
-The proposed general framework may need to become a family of
-dependency-specific assurance mechanisms.
-
----
-
-## 25. Relationship to Previous Experiments
-
-The experimental progression is:
-
-### EXP-001
-
-Demonstrated that equal divergence counts can have different decision
-consequences.
-
-### EXP-002
-
-Compared assurance policies across a controlled divergence matrix.
-
-### EXP-003
-
-Formalised decision relevance.
+The experimental progression is now:
 
 ### EXP-004
 
-Demonstrated that relevance alone does not determine invalidity.
+Decision relevance alone was shown to be insufficient because relevant
+divergence can exist without invalidating a decision.
 
 ### EXP-005
 
-Introduced decision-impact reasoning.
+Decision impact introduced decision-specific validity boundaries.
 
 ### EXP-006
 
-Demonstrated the importance of imperfect runtime evidence.
+Imperfect evidence demonstrated that decision-impact reasoning depends on the
+quality of runtime observations.
 
 ### EXP-007
 
-Demonstrated bounded cross-dependency generalisation and found equivalence
-between Decision Impact and Runtime Contract under reliable evidence.
+The relevance → impact → intervention relationship generalised across
+capacity, status, and location / availability, but a simpler runtime contract
+matched decision-impact assurance under reliable evidence.
 
 ### EXP-008
 
-Directly tests whether that equivalence persists when runtime evidence becomes
-imperfect.
+Evidence-quality-aware assurance prevented missed unsafe decisions under
+imperfect evidence, but DARA-DT matched a simpler uncertainty-aware contract at
+the binary level and incurred the same autonomy cost.
+
+The remaining experimental question is therefore whether decision conditioning
+adds value when evidence uncertainty exists outside the dependencies of the
+specific AI-generated decision.
 
 ---
 
-## 26. Expected Contribution of EXP-008
+## 23. Conclusion
 
-EXP-008 is not intended to prove the final research contribution.
+EXP-008 provides a controlled comparison of runtime assurance under reliable,
+stale, missing, and conflicting evidence.
 
-Its purpose is to determine whether the candidate contribution survives a
-stronger comparative test.
+The experiment shows that evidence-quality-aware mechanisms can eliminate
+missed interventions in the tested scenarios, but conservative handling of
+uncertain evidence substantially reduces autonomy availability.
 
-The key question is no longer simply:
+Most importantly, DARA-DT does not outperform the uncertainty-aware runtime
+contract at the binary intervention level:
 
-> Can DARA-DT identify invalid decisions?
+\[
+DARA\text{-}DT:
+TI=12,\ FI=9,\ MI=0,\ CNI=3
+\]
 
-Instead:
+\[
+UncertaintyAwareContract:
+TI=12,\ FI=9,\ MI=0,\ CNI=3
+\]
 
-> **Does decision-conditioned physical–digital divergence provide useful
-> assurance information beyond simpler runtime validity mechanisms when the
-> evidence describing physical reality is imperfect?**
+This result activates the pre-defined falsification concern and narrows the
+candidate contribution.
 
-This is a substantially stronger test of the research hypothesis.
+The next experiment should therefore test the aspect of decision conditioning
+that EXP-008 does not isolate: whether imperfect evidence should affect
+autonomous authority only when that evidence is relevant to the dependencies of
+the specific AI-generated decision.
 
----
-
-## 27. Threats to Validity
-
-Important limitations include:
-
-- controlled synthetic evidence failures;
-- simplified logistics dependencies;
-- limited number of dependency families;
-- deterministic proposed decisions;
-- simplified evidence reliability representation;
-- limited operational complexity;
-- absence of production-scale sensor infrastructure;
-- limited temporal dynamics in the initial matrix.
-
-Results must therefore be interpreted as controlled experimental evidence, not
-as production deployment evidence.
-
----
-
-## 28. Implementation Plan
-
-Implementation should proceed only after this design is frozen.
-
-Required components are expected to include:
-
-1. EXP-008 condition definitions;
-2. evidence-quality representation;
-3. equal-information runtime-contract comparator;
-4. DARA-DT evidence-aware policy;
-5. independent physical ground-truth evaluation;
-6. experiment runner;
-7. aggregate metrics;
-8. dependency-specific metrics;
-9. evidence-condition-specific metrics;
-10. automated tests;
-11. GitHub Actions execution;
-12. results documentation.
-
-No result should be entered into this document until generated by the
-implemented experiment.
-
----
-
-## 29. Pre-Implementation Status
-
-At this stage:
-
-- the research question is defined;
-- the experimental matrix is specified;
-- comparator policies are defined;
-- information-access constraints are defined;
-- evaluation metrics are defined;
-- falsification criteria are pre-registered;
-- no EXP-008 results have been generated.
-
-**EXP-008 remains a pre-implementation experimental design.**
+EXP-008 is now treated as a frozen experimental result.
