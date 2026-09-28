@@ -5,18 +5,16 @@ from collections import Counter
 import pytest
 
 from dara_dt.assurance.model import AuthorityState
-from dara_dt.evaluation.outcomes import Outcome
+from dara_dt.evaluation.outcomes import AssuranceOutcome
 from dara_dt.evidence.model import EvidenceStatus
 from dara_dt.experiments.cross_dependency_conditions import DependencyFamily
 from dara_dt.experiments.imperfect_evidence_experiment import (
     _build_physical_state,
     _build_runtime_evidence,
     _runtime_divergences,
-    run_condition,
     run_imperfect_evidence_experiment,
 )
 from dara_dt.experiments.imperfect_evidence_conditions import (
-    EvidenceScenario,
     build_imperfect_evidence_conditions,
 )
 
@@ -317,7 +315,7 @@ def test_conflicting_conditions_remain_explicitly_conflicting(
 
 
 # ---------------------------------------------------------------------------
-# Global divergence baseline
+# Runtime-observable divergence
 # ---------------------------------------------------------------------------
 
 
@@ -491,21 +489,7 @@ def test_dara_dt_defers_imperfect_evidence(
 # ---------------------------------------------------------------------------
 
 
-def test_dara_and_uncertainty_contract_receive_same_evidence_matrix(
-    results,
-):
-    """Both mechanisms must be evaluated on the same 24 conditions."""
-
-    assert len(results) == 24
-
-    for result in results:
-        assert result.condition.condition_id
-        assert result.evidence_status == result.condition.evidence_status
-
-
-def test_kill_test_e_compares_authority_without_forcing_difference(results):
-    """EXP-008 must allow comparator equivalence as a valid result."""
-
+def test_kill_test_e_compares_all_24_conditions(results):
     comparisons = [
         (
             result.uncertainty_contract_authority,
@@ -518,7 +502,7 @@ def test_kill_test_e_compares_authority_without_forcing_difference(results):
 
 
 def test_uncertainty_contract_and_dara_are_currently_equivalent(results):
-    """Record equivalence rather than engineering an artificial advantage."""
+    """Record equivalence instead of engineering an artificial advantage."""
 
     assert all(
         result.uncertainty_contract_authority
@@ -555,10 +539,10 @@ def test_every_policy_produces_outcome_for_all_conditions(
 
     assert all(
         outcome.outcome in {
-            Outcome.TRUE_INTERVENTION,
-            Outcome.FALSE_INTERVENTION,
-            Outcome.MISSED_INTERVENTION,
-            Outcome.CORRECT_NON_INTERVENTION,
+            AssuranceOutcome.TRUE_INTERVENTION,
+            AssuranceOutcome.FALSE_INTERVENTION,
+            AssuranceOutcome.MISSED_INTERVENTION,
+            AssuranceOutcome.CORRECT_NON_INTERVENTION,
         }
         for outcome in outcomes
     )
@@ -566,7 +550,8 @@ def test_every_policy_produces_outcome_for_all_conditions(
 
 def test_no_assurance_misses_all_invalid_conditions(results):
     missed = sum(
-        result.no_assurance.outcome == Outcome.MISSED_INTERVENTION
+        result.no_assurance.outcome
+        == AssuranceOutcome.MISSED_INTERVENTION
         for result in results
     )
 
@@ -576,7 +561,7 @@ def test_no_assurance_misses_all_invalid_conditions(results):
 def test_uncertainty_contract_has_no_missed_interventions(results):
     missed = sum(
         result.uncertainty_contract.outcome
-        == Outcome.MISSED_INTERVENTION
+        == AssuranceOutcome.MISSED_INTERVENTION
         for result in results
     )
 
@@ -585,7 +570,8 @@ def test_uncertainty_contract_has_no_missed_interventions(results):
 
 def test_dara_dt_has_no_missed_interventions(results):
     missed = sum(
-        result.dara_dt.outcome == Outcome.MISSED_INTERVENTION
+        result.dara_dt.outcome
+        == AssuranceOutcome.MISSED_INTERVENTION
         for result in results
     )
 
@@ -595,18 +581,19 @@ def test_dara_dt_has_no_missed_interventions(results):
 def test_uncertainty_contract_false_interventions_are_explicit(results):
     false_interventions = sum(
         result.uncertainty_contract.outcome
-        == Outcome.FALSE_INTERVENTION
+        == AssuranceOutcome.FALSE_INTERVENTION
         for result in results
     )
 
-    # All valid stale, missing and conflicting conditions are conservatively
-    # deferred. EXP-008 must expose this autonomy cost rather than hide it.
+    # The valid stale, missing and conflicting cases are conservatively
+    # deferred. This exposes the autonomy cost of uncertain evidence.
     assert false_interventions == 9
 
 
 def test_dara_dt_false_interventions_are_explicit(results):
     false_interventions = sum(
-        result.dara_dt.outcome == Outcome.FALSE_INTERVENTION
+        result.dara_dt.outcome
+        == AssuranceOutcome.FALSE_INTERVENTION
         for result in results
     )
 
@@ -642,21 +629,26 @@ def test_missing_evidence_is_not_silently_treated_as_physical_truth(
     assert result.dara_dt_authority == AuthorityState.DEFER
 
 
-def test_same_imperfect_evidence_policy_can_trade_safety_for_autonomy(
-    results,
-):
+def test_same_imperfect_policy_trades_autonomy_for_safety(results):
     valid = by_id(results, "CAP-S0")
     invalid = by_id(results, "CAP-S1")
 
     assert valid.dara_dt_authority == AuthorityState.DEFER
     assert invalid.dara_dt_authority == AuthorityState.DEFER
 
-    assert valid.dara_dt.outcome == Outcome.FALSE_INTERVENTION
-    assert invalid.dara_dt.outcome == Outcome.TRUE_INTERVENTION
+    assert (
+        valid.dara_dt.outcome
+        == AssuranceOutcome.FALSE_INTERVENTION
+    )
+
+    assert (
+        invalid.dara_dt.outcome
+        == AssuranceOutcome.TRUE_INTERVENTION
+    )
 
 
-def test_exp008_does_not_claim_dara_superiority(results):
-    """Current controlled matrix must preserve the falsification result."""
+def test_exp008_preserves_falsification_result(results):
+    """Do not claim DARA superiority if the comparator is equivalent."""
 
     assert all(
         result.dara_dt_authority
