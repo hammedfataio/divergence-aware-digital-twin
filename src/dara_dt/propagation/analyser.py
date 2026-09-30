@@ -1,14 +1,23 @@
-"""Propagation analysis for EXP-010.
+"""Context-sensitive propagation analysis for EXP-010.
 
 The analyser determines whether an observed physical-digital divergence
 has a declared relationship to a pending decision in the EXP-010
 multi-stage decision chain.
 
+A central EXP-010 requirement is that propagation is decision-context
+dependent. The same physical-digital divergence may propagate in one
+runtime context but remain irrelevant to a later decision in another.
+
+The analyser therefore supports observable active dependencies. A
+propagation rule is active only when at least one of the dependencies it
+would affect is active in the current decision context.
+
 It does NOT:
 
 - decide whether assurance should intervene;
 - inspect experimental ground-truth labels;
-- infer safety from physical validity;
+- inspect physical-validity labels;
+- inspect EXP-010 family or condition identifiers;
 - modify the existing DependencyMapper;
 - give DARA-DT access to evidence unavailable to comparator policies.
 
@@ -31,27 +40,7 @@ from dara_dt.propagation.model import (
 
 @dataclass(frozen=True, slots=True)
 class PropagationRule:
-    """A declared relationship between divergence and a later dependency.
-
-    Attributes:
-        origin_dependency:
-            Dependency at which physical-digital divergence originates.
-
-        source_decision_id:
-            Decision associated with the divergence origin.
-
-        target_decision_id:
-            Decision whose dependency or assumption may be affected.
-
-        affected_dependencies:
-            Downstream dependencies affected by the relationship.
-
-        propagation_type:
-            Direct, non-propagating, propagating, or compound.
-
-        description:
-            Human-readable explanation of the relationship.
-    """
+    """Declared relationship between divergence and a later dependency."""
 
     origin_dependency: str
     source_decision_id: str
@@ -93,7 +82,7 @@ class PropagationAnalysis:
 
     @property
     def has_matching_rule(self) -> bool:
-        """Return whether any declared relationship matched."""
+        """Return whether any active declared relationship matched."""
 
         return bool(self.matched_rules)
 
@@ -131,16 +120,24 @@ class PropagationAnalysis:
 
 
 class DivergencePropagationAnalyser:
-    """Trace declared divergence relationships through a decision chain.
+    """Trace divergence relationships through a decision chain.
 
-    The analyser is intentionally deterministic. Relationships are supplied
-    explicitly as rules rather than learned from EXP-010 ground-truth
-    outcomes.
+    Relationships are declared independently of experimental outcomes.
 
-    This separation is important because EXP-010 is testing whether explicit
-    propagation information contributes assurance information beyond strong
-    runtime contracts. The analyser must therefore describe propagation,
-    not encode the desired assurance result.
+    For cross-decision propagation, matching may additionally be
+    conditioned on observable active dependencies. This allows the same
+    divergence origin to propagate in one runtime decision context but
+    not another.
+
+    This distinction is essential for EXP-010 because:
+
+    vehicle_A.status divergence
+
+    may be non-propagating when recovery is irrelevant, while the same
+    divergence may propagate when the pending decision actively depends
+    on recovery-resource or recovery-timing assumptions.
+
+    No ground-truth intervention label is used to make that distinction.
     """
 
     def __init__(
@@ -168,33 +165,56 @@ class DivergencePropagationAnalyser:
         self,
         origin: DivergenceOrigin,
         pending_decision_id: str,
+        *,
+        active_dependencies: frozenset[str] | None = None,
     ) -> PropagationAnalysis:
         """Analyse an origin against a pending decision.
 
         A rule can match only when:
 
-        1. the physical and Digital Twin values actually diverge;
-        2. the rule's origin dependency equals the observed origin;
-        3. the rule targets the pending decision.
+        1. physical and Digital Twin values actually diverge;
+        2. the rule origin equals the observed divergence origin;
+        3. the rule targets the pending decision;
+        4. for context-sensitive cross-decision propagation, at least one
+           affected dependency is active in the observable decision
+           context.
 
-        No ground-truth intervention label is consulted.
+        ``active_dependencies=None`` preserves the original structural
+        analysis behaviour. This is useful for existing experiments and
+        tests that ask whether a structural propagation path exists.
+
+        Passing an explicit set activates EXP-010 context-sensitive
+        analysis. An empty set means that no downstream propagation
+        dependency is currently active.
+
+        Direct same-decision dependencies remain directly relevant and
+        do not require downstream context activation.
+
+        No ground-truth or physical-validity label is consulted.
         """
 
         self._chain.node(pending_decision_id)
 
         if not origin.is_divergent:
-            return PropagationAnalysis(
+            return self._empty_analysis(
                 origin=origin,
                 pending_decision_id=pending_decision_id,
-                matched_rules=(),
-                paths=(),
             )
 
-        matched_rules = tuple(
+        candidate_rules = tuple(
             rule
             for rule in self._rules
             if rule.origin_dependency == origin.dependency
             and rule.target_decision_id == pending_decision_id
+        )
+
+        matched_rules = tuple(
+            rule
+            for rule in candidate_rules
+            if self._rule_is_active(
+                rule=rule,
+                active_dependencies=active_dependencies,
+            )
         )
 
         paths = tuple(
@@ -238,8 +258,53 @@ class DivergencePropagationAnalyser:
             if rule.target_decision_id == decision_id
         )
 
+    @staticmethod
+    def _rule_is_active(
+        *,
+        rule: PropagationRule,
+        active_dependencies: frozenset[str] | None,
+    ) -> bool:
+        """Return whether a candidate rule is active in runtime context.
+
+        Direct same-decision dependencies are intrinsically active once
+        their origin matches the pending decision.
+
+        When ``active_dependencies`` is ``None``, structural matching is
+        preserved for backwards compatibility.
+
+        When an explicit dependency set is supplied, cross-decision
+        propagation requires an intersection between that set and the
+        dependencies affected by the propagation rule.
+        """
+
+        if rule.propagation_type is PropagationType.DIRECT:
+            return True
+
+        if active_dependencies is None:
+            return True
+
+        return bool(
+            frozenset(rule.affected_dependencies)
+            & active_dependencies
+        )
+
+    @staticmethod
+    def _empty_analysis(
+        *,
+        origin: DivergenceOrigin,
+        pending_decision_id: str,
+    ) -> PropagationAnalysis:
+        """Return a propagation analysis containing no matched path."""
+
+        return PropagationAnalysis(
+            origin=origin,
+            pending_decision_id=pending_decision_id,
+            matched_rules=(),
+            paths=(),
+        )
+
+    @staticmethod
     def _path_from_rule(
-        self,
         origin: DivergenceOrigin,
         rule: PropagationRule,
     ) -> PropagationPath:
@@ -265,6 +330,16 @@ class DivergencePropagationAnalyser:
     def _validate_rules(self) -> None:
         """Validate rule structure against the supplied decision chain."""
 
+        seen_rules: set[
+            tuple[
+                str,
+                str,
+                str,
+                tuple[str, ...],
+                PropagationType,
+            ]
+        ] = set()
+
         for rule in self._rules:
             source = self._chain.node(rule.source_decision_id)
             target = self._chain.node(rule.target_decision_id)
@@ -278,6 +353,21 @@ class DivergencePropagationAnalyser:
                 raise ValueError(
                     "PropagationRule must contain at least one "
                     "affected dependency."
+                )
+
+            if any(
+                not dependency
+                for dependency in rule.affected_dependencies
+            ):
+                raise ValueError(
+                    "PropagationRule affected dependencies cannot be empty."
+                )
+
+            if len(set(rule.affected_dependencies)) != len(
+                rule.affected_dependencies
+            ):
+                raise ValueError(
+                    "PropagationRule affected dependencies must be unique."
                 )
 
             if source.stage > target.stage:
@@ -300,6 +390,15 @@ class DivergencePropagationAnalyser:
                 )
 
             if (
+                rule.propagation_type is PropagationType.DIRECT
+                and source.stage != target.stage
+            ):
+                raise ValueError(
+                    "Direct propagation rules must remain within the "
+                    "same decision stage."
+                )
+
+            if (
                 rule.propagation_type is PropagationType.COMPOUND
                 and len(rule.affected_dependencies) < 2
             ):
@@ -308,18 +407,34 @@ class DivergencePropagationAnalyser:
                     "dependencies."
                 )
 
+            rule_identity = (
+                rule.origin_dependency,
+                rule.source_decision_id,
+                rule.target_decision_id,
+                rule.affected_dependencies,
+                rule.propagation_type,
+            )
+
+            if rule_identity in seen_rules:
+                raise ValueError(
+                    "Duplicate propagation rules are not permitted."
+                )
+
+            seen_rules.add(rule_identity)
+
 
 def build_exp010_propagation_rules() -> tuple[PropagationRule, ...]:
     """Build the pre-declared propagation relationships for EXP-010.
 
-    These rules encode the causal/dependency structure being tested.
+    These rules encode causal/dependency structures being tested.
     They do not contain experimental ground-truth labels.
 
-    F2 non-propagating cases intentionally have no propagation rule.
-    Their divergence can therefore exist without automatically reaching D2.
+    Whether a cross-decision rule becomes active is determined later from
+    observable runtime decision context.
 
-    Direct F1 relationships are represented separately from cross-decision
-    propagation so direct divergence remains distinguishable from F3/F4.
+    This is what allows the same origin, such as ``vehicle_A.status``, to
+    be non-propagating in one context and propagating in another without
+    consulting the frozen condition's expected outcome.
     """
 
     return (
