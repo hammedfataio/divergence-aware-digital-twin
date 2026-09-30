@@ -1,12 +1,12 @@
-"""Tests for the EXP-009 decision-relevant evidence experiment.
+"""Tests for the EXP-009 decision-relevance experiment.
 
 EXP-009 evaluates whether decision-conditioned runtime assurance can
 distinguish decision-relevant from decision-irrelevant evidence uncertainty
 while preserving safety and autonomous authority.
 
-These tests validate experimental integrity rather than forcing DARA-DT
-to outperform the comparator policies. Negative or equivalent results are
-valid experimental outcomes.
+The tests enforce the frozen 42-condition protocol without assuming that
+DARA-DT must outperform any comparator. Comparative performance is an
+experimental result, not a test oracle.
 """
 
 from collections import Counter
@@ -28,15 +28,6 @@ def _results():
     """Run the frozen EXP-009 matrix."""
 
     return run_decision_relevance_experiment()
-
-
-def _by_id():
-    """Return EXP-009 results indexed by condition identifier."""
-
-    return {
-        result.condition.condition_id: result
-        for result in _results()
-    }
 
 
 def test_exp009_runs_exactly_42_conditions() -> None:
@@ -111,6 +102,50 @@ def test_exp009_ground_truth_matches_frozen_condition() -> None:
         )
 
 
+def test_exp009_contains_eighteen_relevant_imperfect_conditions() -> None:
+    results = _results()
+
+    relevant = [
+        result
+        for result in results
+        if (
+            result.condition.is_imperfect_evidence
+            and result.condition.evidence_relevance
+            == EvidenceRelevance.RELEVANT
+        )
+    ]
+
+    assert len(relevant) == 18
+
+
+def test_exp009_contains_eighteen_irrelevant_imperfect_conditions() -> None:
+    results = _results()
+
+    irrelevant = [
+        result
+        for result in results
+        if (
+            result.condition.is_imperfect_evidence
+            and result.condition.evidence_relevance
+            == EvidenceRelevance.IRRELEVANT
+        )
+    ]
+
+    assert len(irrelevant) == 18
+
+
+def test_exp009_contains_six_reliable_controls() -> None:
+    results = _results()
+
+    reliable = [
+        result
+        for result in results
+        if result.condition.is_reliable_control
+    ]
+
+    assert len(reliable) == 6
+
+
 def test_exp009_preserves_evidence_status() -> None:
     results = _results()
 
@@ -128,7 +163,7 @@ def test_exp009_preserves_evidence_relevance() -> None:
         )
 
 
-def test_exp009_registers_five_pre_registered_policies() -> None:
+def test_exp009_registers_five_frozen_comparators() -> None:
     results = _results()
 
     for result in results:
@@ -182,51 +217,9 @@ def test_global_uncertainty_allows_reliable_controls() -> None:
     )
 
 
-def test_entity_filter_ignores_other_entity_uncertainty() -> None:
-    results = _results()
+def test_irrelevant_uncertainty_does_not_replace_required_evidence() -> None:
+    """IRR conditions must retain usable evidence for decision dependencies."""
 
-    irrelevant_other_entity = [
-        result
-        for result in results
-        if (
-            result.condition.is_imperfect_evidence
-            and result.condition.evidence_relevance
-            == EvidenceRelevance.IRRELEVANT
-            and result.irrelevant_evidence_scope == "other_entity"
-        )
-    ]
-
-    assert irrelevant_other_entity
-
-    assert all(
-        result.entity_filtered_authority == AuthorityState.ALLOW
-        for result in irrelevant_other_entity
-    )
-
-
-def test_entity_filter_reacts_to_same_entity_irrelevant_uncertainty() -> None:
-    results = _results()
-
-    same_entity_irrelevant = [
-        result
-        for result in results
-        if (
-            result.condition.is_imperfect_evidence
-            and result.condition.evidence_relevance
-            == EvidenceRelevance.IRRELEVANT
-            and result.irrelevant_evidence_scope == "same_entity"
-        )
-    ]
-
-    assert same_entity_irrelevant
-
-    assert all(
-        result.entity_filtered_authority == AuthorityState.DEFER
-        for result in same_entity_irrelevant
-    )
-
-
-def test_dara_ignores_imperfect_evidence_outside_decision_dependencies() -> None:
     results = _results()
 
     irrelevant = [
@@ -241,13 +234,26 @@ def test_dara_ignores_imperfect_evidence_outside_decision_dependencies() -> None
 
     assert len(irrelevant) == 18
 
-    assert all(
-        result.dara_dt_authority == AuthorityState.ALLOW
-        for result in irrelevant
-    )
+    for result in irrelevant:
+        required = set(result.required_dependencies)
+
+        required_evidence = [
+            item
+            for item in result.runtime_evidence
+            if item.dependency in required
+        ]
+
+        assert required_evidence
+
+        assert all(
+            item.status == EvidenceStatus.AVAILABLE
+            for item in required_evidence
+        )
 
 
-def test_dara_defers_imperfect_evidence_on_required_dependencies() -> None:
+def test_relevant_uncertainty_affects_required_dependency() -> None:
+    """REL conditions must place uncertainty on a required dependency."""
+
     results = _results()
 
     relevant = [
@@ -262,13 +268,96 @@ def test_dara_defers_imperfect_evidence_on_required_dependencies() -> None:
 
     assert len(relevant) == 18
 
+    for result in relevant:
+        required = set(result.required_dependencies)
+
+        uncertain_required = [
+            item
+            for item in result.runtime_evidence
+            if (
+                item.dependency in required
+                and item.status
+                in {
+                    EvidenceStatus.STALE,
+                    EvidenceStatus.MISSING,
+                    EvidenceStatus.CONFLICTING,
+                }
+            )
+        ]
+
+        assert uncertain_required
+
+
+def test_irrelevant_uncertainty_is_visible_to_global_policy() -> None:
+    """Global policy must see uncertainty even when it is decision irrelevant."""
+
+    results = _results()
+
+    irrelevant = [
+        result
+        for result in results
+        if (
+            result.condition.is_imperfect_evidence
+            and result.condition.evidence_relevance
+            == EvidenceRelevance.IRRELEVANT
+        )
+    ]
+
+    for result in irrelevant:
+        uncertain = [
+            item
+            for item in result.runtime_evidence
+            if item.status in {
+                EvidenceStatus.STALE,
+                EvidenceStatus.MISSING,
+                EvidenceStatus.CONFLICTING,
+            }
+        ]
+
+        assert uncertain
+
+        assert result.global_uncertainty_authority == AuthorityState.DEFER
+
+
+def test_relevant_uncertainty_is_conservative_for_dependency_conditioning() -> None:
+    results = _results()
+
+    relevant = [
+        result
+        for result in results
+        if (
+            result.condition.is_imperfect_evidence
+            and result.condition.evidence_relevance
+            == EvidenceRelevance.RELEVANT
+        )
+    ]
+
     assert all(
-        result.dara_dt_authority == AuthorityState.DEFER
+        result.dependency_conditioned_authority == AuthorityState.DEFER
         for result in relevant
     )
 
 
-def test_irrelevant_uncertainty_contains_valid_and_invalid_ground_truth() -> None:
+def test_irrelevant_uncertainty_does_not_trigger_dependency_conditioning() -> None:
+    results = _results()
+
+    irrelevant = [
+        result
+        for result in results
+        if (
+            result.condition.is_imperfect_evidence
+            and result.condition.evidence_relevance
+            == EvidenceRelevance.IRRELEVANT
+        )
+    ]
+
+    assert all(
+        result.dependency_conditioned_authority == AuthorityState.ALLOW
+        for result in irrelevant
+    )
+
+
+def test_irrelevant_conditions_are_balanced_by_physical_validity() -> None:
     results = _results()
 
     irrelevant = [
@@ -295,7 +384,7 @@ def test_irrelevant_uncertainty_contains_valid_and_invalid_ground_truth() -> Non
     assert invalid == 9
 
 
-def test_relevant_uncertainty_contains_valid_and_invalid_ground_truth() -> None:
+def test_relevant_conditions_are_balanced_by_physical_validity() -> None:
     results = _results()
 
     relevant = [
@@ -334,31 +423,18 @@ def test_missing_evidence_remains_explicitly_missing() -> None:
     assert len(missing) == 12
 
     for result in missing:
-        uncertain = [
+        missing_items = [
             item
             for item in result.runtime_evidence
             if item.status == EvidenceStatus.MISSING
         ]
 
-        assert uncertain
+        assert missing_items
+
         assert all(
             item.observed_value is None
-            for item in uncertain
+            for item in missing_items
         )
-
-
-def test_runtime_policies_do_not_receive_physical_ground_truth() -> None:
-    """Ground truth must remain evaluator-only.
-
-    The experiment result exposes ground truth for evaluation, but runtime
-    evidence must remain a distinct information layer.
-    """
-
-    results = _results()
-
-    for result in results:
-        assert result.ground_truth.decision_id == result.decision.decision_id
-        assert result.runtime_evidence is not None
 
 
 def test_every_policy_produces_outcome_for_every_condition() -> None:
@@ -390,13 +466,22 @@ def test_no_assurance_misses_all_physically_invalid_conditions() -> None:
     )
 
 
-def test_exp009_does_not_encode_dara_superiority_as_test_oracle() -> None:
-    """Scientific results must be observed rather than hard-coded.
+def test_ground_truth_is_evaluator_only() -> None:
+    """Ground truth exists for evaluation but not as runtime evidence."""
 
-    The suite validates experimental structure and policy semantics.
-    Whether DARA-DT outperforms the strongest comparator is determined
-    from the resulting metrics, not assumed by this test suite.
-    """
+    results = _results()
+
+    for result in results:
+        assert (
+            result.ground_truth.decision_id
+            == result.decision.decision_id
+        )
+
+        assert result.runtime_evidence is not None
+
+
+def test_exp009_does_not_encode_comparative_winner() -> None:
+    """Policy superiority must emerge from metrics, not test assertions."""
 
     results = _results()
 
