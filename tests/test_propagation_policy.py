@@ -93,7 +93,7 @@ def status_propagation_to_d2() -> PropagationAnalysis:
 
 
 def capacity_non_propagation_to_d2() -> PropagationAnalysis:
-    """Create an F2-style upstream non-propagating analysis."""
+    """Create an upstream non-propagating analysis."""
 
     analyser = build_analyser()
 
@@ -126,6 +126,34 @@ def synchronised_analysis_for_d2() -> PropagationAnalysis:
         origin=origin,
         pending_decision_id="D2",
     )
+
+
+def evaluate_p3_p4(
+    *,
+    evidence: dict[str, RuntimeEvidence],
+    propagation: PropagationAnalysis,
+):
+    """Evaluate P3 and P4 using exactly the same requirements/evidence."""
+
+    requirements = exp010_d2_requirements()
+
+    p3 = DependencyAwareComposedContractPolicy()
+    p4 = PropagationAwareAssurancePolicy()
+
+    p3_result = p3.evaluate(
+        decision_id="D2",
+        requirements=requirements,
+        evidence=evidence,
+    )
+
+    p4_result = p4.evaluate(
+        decision_id="D2",
+        requirements=requirements,
+        evidence=evidence,
+        propagation=propagation,
+    )
+
+    return p3_result, p4_result
 
 
 def test_synchronised_valid_state_allows() -> None:
@@ -168,12 +196,25 @@ def test_known_requirement_violation_restricts() -> None:
     assert result.assurance.authority is AuthorityState.RESTRICT
     assert result.intervene
 
-    assert "recovery_resource_available" in (
-        result.violated_dependencies
+    assert (
+        "recovery_resource_available"
+        in result.violated_dependencies
     )
 
 
-def test_propagation_relevant_stale_evidence_defers() -> None:
+@pytest.mark.parametrize(
+    "status",
+    [
+        EvidenceStatus.STALE,
+        EvidenceStatus.MISSING,
+        EvidenceStatus.CONFLICTING,
+    ],
+)
+def test_uncertain_required_evidence_defers(
+    status: EvidenceStatus,
+) -> None:
+    """Required uncertainty must defer regardless of propagation metadata."""
+
     policy = PropagationAwareAssurancePolicy()
 
     requirements = exp010_d2_requirements()
@@ -182,7 +223,7 @@ def test_propagation_relevant_stale_evidence_defers() -> None:
     evidence["recovery_resource_available"] = make_evidence(
         "recovery_resource_available",
         True,
-        status=EvidenceStatus.STALE,
+        status=status,
     )
 
     result = policy.evaluate(
@@ -194,60 +235,13 @@ def test_propagation_relevant_stale_evidence_defers() -> None:
 
     assert result.assurance.authority is AuthorityState.DEFER
 
-    assert "recovery_resource_available" in (
-        result.uncertain_dependencies
+    assert (
+        "recovery_resource_available"
+        in result.uncertain_dependencies
     )
 
 
-def test_propagation_relevant_missing_evidence_defers() -> None:
-    policy = PropagationAwareAssurancePolicy()
-
-    requirements = exp010_d2_requirements()
-    evidence = evidence_for_requirements(requirements)
-
-    evidence["recovery_resource_available"] = make_evidence(
-        "recovery_resource_available",
-        True,
-        status=EvidenceStatus.MISSING,
-    )
-
-    result = policy.evaluate(
-        decision_id="D2",
-        requirements=requirements,
-        evidence=evidence,
-        propagation=status_propagation_to_d2(),
-    )
-
-    assert result.assurance.authority is AuthorityState.DEFER
-
-    assert "recovery_resource_available" in (
-        result.uncertain_dependencies
-    )
-
-
-def test_propagation_relevant_conflicting_evidence_defers() -> None:
-    policy = PropagationAwareAssurancePolicy()
-
-    requirements = exp010_d2_requirements()
-    evidence = evidence_for_requirements(requirements)
-
-    evidence["recovery_resource_available"] = make_evidence(
-        "recovery_resource_available",
-        True,
-        status=EvidenceStatus.CONFLICTING,
-    )
-
-    result = policy.evaluate(
-        decision_id="D2",
-        requirements=requirements,
-        evidence=evidence,
-        propagation=status_propagation_to_d2(),
-    )
-
-    assert result.assurance.authority is AuthorityState.DEFER
-
-
-def test_absent_propagation_relevant_evidence_defers() -> None:
+def test_absent_required_evidence_defers() -> None:
     policy = PropagationAwareAssurancePolicy()
 
     requirements = exp010_d2_requirements()
@@ -264,52 +258,58 @@ def test_absent_propagation_relevant_evidence_defers() -> None:
 
     assert result.assurance.authority is AuthorityState.DEFER
 
-    assert "recovery_resource_available" in (
-        result.uncertain_dependencies
+    assert (
+        "recovery_resource_available"
+        in result.uncertain_dependencies
     )
 
 
 def test_non_propagating_divergence_does_not_automatically_intervene() -> None:
-    """F2-style divergence must not collapse into divergence=unsafe."""
+    """Physical-digital divergence alone must not imply intervention."""
 
     policy = PropagationAwareAssurancePolicy()
 
     requirements = exp010_d2_requirements()
     evidence = evidence_for_requirements(requirements)
 
+    propagation = capacity_non_propagation_to_d2()
+
     result = policy.evaluate(
         decision_id="D2",
         requirements=requirements,
         evidence=evidence,
-        propagation=capacity_non_propagation_to_d2(),
+        propagation=propagation,
     )
 
-    assert not result.propagation.is_propagating
+    assert not propagation.is_propagating
     assert result.assurance.authority is AuthorityState.ALLOW
     assert not result.intervene
 
 
 def test_propagation_alone_does_not_force_intervention() -> None:
-    """Reliable satisfying evidence may preserve autonomous authority."""
+    """Propagation provenance is not itself an intervention condition."""
 
     policy = PropagationAwareAssurancePolicy()
 
     requirements = exp010_d2_requirements()
     evidence = evidence_for_requirements(requirements)
 
+    propagation = status_propagation_to_d2()
+
     result = policy.evaluate(
         decision_id="D2",
         requirements=requirements,
         evidence=evidence,
-        propagation=status_propagation_to_d2(),
+        propagation=propagation,
     )
 
-    assert result.propagation.is_propagating
+    assert propagation.is_propagating
     assert result.assurance.authority is AuthorityState.ALLOW
+    assert not result.intervene
 
 
-def test_unrelated_uncertainty_does_not_force_dara_defer() -> None:
-    """P4 conditions uncertainty on propagation relevance."""
+def test_unrelated_required_uncertainty_still_defers() -> None:
+    """P4 must not ignore uncertainty merely because it is not propagated."""
 
     policy = PropagationAwareAssurancePolicy()
 
@@ -334,11 +334,16 @@ def test_unrelated_uncertainty_does_not_force_dara_defer() -> None:
         not in result.propagation_affected_dependencies
     )
 
-    assert result.assurance.authority is AuthorityState.ALLOW
+    assert result.assurance.authority is AuthorityState.DEFER
+
+    assert (
+        "vehicle_B.capacity_sufficient"
+        in result.uncertain_dependencies
+    )
 
 
 def test_unrelated_known_violation_still_restricts() -> None:
-    """A known required violation remains actionable even if not propagated."""
+    """Known required violations remain actionable."""
 
     policy = PropagationAwareAssurancePolicy()
 
@@ -358,7 +363,37 @@ def test_unrelated_known_violation_still_restricts() -> None:
     )
 
     assert result.assurance.authority is AuthorityState.RESTRICT
+
     assert "vehicle_B.status" in result.violated_dependencies
+
+
+def test_violation_has_precedence_over_uncertainty() -> None:
+    """Known unsafe evidence must dominate simultaneous uncertainty."""
+
+    policy = PropagationAwareAssurancePolicy()
+
+    requirements = exp010_d2_requirements()
+    evidence = evidence_for_requirements(requirements)
+
+    evidence["vehicle_B.status"] = make_evidence(
+        "vehicle_B.status",
+        "failed",
+    )
+
+    evidence["recovery_resource_available"] = make_evidence(
+        "recovery_resource_available",
+        True,
+        status=EvidenceStatus.STALE,
+    )
+
+    result = policy.evaluate(
+        decision_id="D2",
+        requirements=requirements,
+        evidence=evidence,
+        propagation=status_propagation_to_d2(),
+    )
+
+    assert result.assurance.authority is AuthorityState.RESTRICT
 
 
 def test_propagation_analysis_must_match_pending_decision() -> None:
@@ -406,33 +441,54 @@ def test_propagation_affected_dependencies_are_reported() -> None:
         propagation=status_propagation_to_d2(),
     )
 
-    assert "recovery_resource_available" in (
-        result.propagation_affected_dependencies
+    assert (
+        "recovery_resource_available"
+        in result.propagation_affected_dependencies
     )
 
-    assert "vehicle_C.available" in (
-        result.propagation_affected_dependencies
+    assert (
+        "vehicle_C.available"
+        in result.propagation_affected_dependencies
     )
 
 
-def test_p3_and_p4_receive_identical_evidence_mapping() -> None:
-    """Core EXP-010 fairness invariant."""
+def test_propagation_only_dependency_does_not_force_defer() -> None:
+    """Descriptive propagation dependencies cannot create hidden authority."""
+
+    policy = PropagationAwareAssurancePolicy()
 
     requirements = exp010_d2_requirements()
     evidence = evidence_for_requirements(requirements)
 
-    p3 = DependencyAwareComposedContractPolicy()
-    p4 = PropagationAwareAssurancePolicy()
+    propagation = status_propagation_to_d2()
 
-    p3_result = p3.evaluate(
+    assert "vehicle_B.assignment" in propagation.affected_dependencies
+
+    assert (
+        "vehicle_B.assignment"
+        not in {
+            requirement.dependency
+            for requirement in requirements
+        }
+    )
+
+    result = policy.evaluate(
         decision_id="D2",
         requirements=requirements,
         evidence=evidence,
+        propagation=propagation,
     )
 
-    p4_result = p4.evaluate(
-        decision_id="D2",
-        requirements=requirements,
+    assert result.assurance.authority is AuthorityState.ALLOW
+
+
+def test_p3_and_p4_receive_identical_evidence_mapping() -> None:
+    """Core EXP-010 evidence-parity invariant."""
+
+    requirements = exp010_d2_requirements()
+    evidence = evidence_for_requirements(requirements)
+
+    p3_result, p4_result = evaluate_p3_p4(
         evidence=evidence,
         propagation=status_propagation_to_d2(),
     )
@@ -447,7 +503,7 @@ def test_p3_and_p4_receive_identical_evidence_mapping() -> None:
 
 
 def test_p3_and_p4_agree_on_known_shared_violation() -> None:
-    """Both policies should detect an observable contract violation."""
+    """Both policies must detect the same observable violation."""
 
     requirements = exp010_d2_requirements()
     evidence = evidence_for_requirements(requirements)
@@ -457,18 +513,7 @@ def test_p3_and_p4_agree_on_known_shared_violation() -> None:
         False,
     )
 
-    p3 = DependencyAwareComposedContractPolicy()
-    p4 = PropagationAwareAssurancePolicy()
-
-    p3_result = p3.evaluate(
-        decision_id="D2",
-        requirements=requirements,
-        evidence=evidence,
-    )
-
-    p4_result = p4.evaluate(
-        decision_id="D2",
-        requirements=requirements,
+    p3_result, p4_result = evaluate_p3_p4(
         evidence=evidence,
         propagation=status_propagation_to_d2(),
     )
@@ -477,13 +522,39 @@ def test_p3_and_p4_agree_on_known_shared_violation() -> None:
     assert p4_result.assurance.authority is AuthorityState.RESTRICT
 
 
-def test_p3_and_p4_can_differ_on_irrelevant_uncertainty() -> None:
-    """The experiment is allowed to expose semantic differences.
+@pytest.mark.parametrize(
+    "status",
+    [
+        EvidenceStatus.STALE,
+        EvidenceStatus.MISSING,
+        EvidenceStatus.CONFLICTING,
+    ],
+)
+def test_p3_and_p4_agree_on_shared_uncertainty(
+    status: EvidenceStatus,
+) -> None:
+    """Same required uncertainty must produce the same authority."""
 
-    P3 treats uncertainty in any required contract dependency as grounds
-    for deferral. P4 conditions uncertain evidence on the observed
-    propagation path.
-    """
+    requirements = exp010_d2_requirements()
+    evidence = evidence_for_requirements(requirements)
+
+    evidence["recovery_resource_available"] = make_evidence(
+        "recovery_resource_available",
+        True,
+        status=status,
+    )
+
+    p3_result, p4_result = evaluate_p3_p4(
+        evidence=evidence,
+        propagation=status_propagation_to_d2(),
+    )
+
+    assert p3_result.assurance.authority is AuthorityState.DEFER
+    assert p4_result.assurance.authority is AuthorityState.DEFER
+
+
+def test_p3_and_p4_agree_on_non_propagated_required_uncertainty() -> None:
+    """Propagation metadata must not change base contract semantics."""
 
     requirements = exp010_d2_requirements()
     evidence = evidence_for_requirements(requirements)
@@ -494,23 +565,34 @@ def test_p3_and_p4_can_differ_on_irrelevant_uncertainty() -> None:
         status=EvidenceStatus.STALE,
     )
 
-    p3 = DependencyAwareComposedContractPolicy()
-    p4 = PropagationAwareAssurancePolicy()
+    propagation = status_propagation_to_d2()
 
-    p3_result = p3.evaluate(
-        decision_id="D2",
-        requirements=requirements,
-        evidence=evidence,
+    assert (
+        "vehicle_B.capacity_sufficient"
+        not in propagation.affected_dependencies
     )
 
-    p4_result = p4.evaluate(
-        decision_id="D2",
-        requirements=requirements,
+    p3_result, p4_result = evaluate_p3_p4(
+        evidence=evidence,
+        propagation=propagation,
+    )
+
+    assert p3_result.assurance.authority is AuthorityState.DEFER
+    assert p4_result.assurance.authority is AuthorityState.DEFER
+
+
+def test_p3_and_p4_agree_when_all_contract_evidence_is_satisfied() -> None:
+    """Propagation provenance alone must not manufacture a P4 advantage."""
+
+    requirements = exp010_d2_requirements()
+    evidence = evidence_for_requirements(requirements)
+
+    p3_result, p4_result = evaluate_p3_p4(
         evidence=evidence,
         propagation=status_propagation_to_d2(),
     )
 
-    assert p3_result.assurance.authority is AuthorityState.DEFER
+    assert p3_result.assurance.authority is AuthorityState.ALLOW
     assert p4_result.assurance.authority is AuthorityState.ALLOW
 
 
@@ -549,6 +631,41 @@ def test_relevant_divergence_count_reflects_affected_dependencies() -> None:
         result.assurance.relevant_divergence_count
         == len(propagation.affected_dependencies)
     )
+
+
+def test_duplicate_requirements_are_rejected() -> None:
+    """Duplicate dependencies would make P3/P4 comparison ambiguous."""
+
+    policy = PropagationAwareAssurancePolicy()
+
+    requirement = DependencyRequirement(
+        dependency="vehicle_B.status",
+        expected_value="operational",
+        description="Vehicle B must remain operational.",
+    )
+
+    requirements = (
+        requirement,
+        requirement,
+    )
+
+    evidence = {
+        "vehicle_B.status": make_evidence(
+            "vehicle_B.status",
+            "operational",
+        )
+    }
+
+    with pytest.raises(
+        ValueError,
+        match="Duplicate dependency requirements",
+    ):
+        policy.evaluate(
+            decision_id="D2",
+            requirements=requirements,
+            evidence=evidence,
+            propagation=synchronised_analysis_for_d2(),
+        )
 
 
 def test_contract_evaluation_translation_satisfied() -> None:
