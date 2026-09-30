@@ -2,22 +2,29 @@
 
 This module implements the EXP-010 P4 policy.
 
-The policy combines:
+P4 combines:
 
-1. observable runtime evidence;
-2. explicit divergence-propagation analysis;
-3. dependency requirements for the pending decision.
+1. the same observable runtime evidence available to P3;
+2. the same dependency requirements available to P3;
+3. explicit physical-digital divergence propagation provenance.
 
-It does not receive physical ground truth.
+The policy never receives physical ground truth.
 
-EXP-010 compares this policy against the strong dependency-aware composed
-runtime contract. Both policies must receive equivalent observable runtime
-evidence.
+Scientific fairness rule
+------------------------
+P3 and P4 must apply the same base runtime-contract semantics:
 
-The scientific question is therefore not whether DARA-DT has access to
-more sensor information. It is whether explicit knowledge of divergence
-origin and propagation contributes useful runtime-assurance information
-beyond a strong composed contract operating on the same evidence.
+- known violated requirement -> RESTRICT
+- missing, stale, conflicting, or absent required evidence -> DEFER
+- all required evidence available and satisfied -> ALLOW
+
+Propagation information may explain which dependencies were reached by a
+physical-digital divergence, but propagation alone must not create an
+intervention that the observable evidence cannot support.
+
+This design intentionally allows EXP-010 to produce equivalence between
+P3 and P4. Such equivalence is scientifically meaningful and must not be
+prevented by implementation choices.
 """
 
 from __future__ import annotations
@@ -110,28 +117,28 @@ class PropagationAssuranceResult:
 class PropagationAwareAssurancePolicy:
     """EXP-010 propagation-aware DARA-DT policy.
 
+    P4 deliberately preserves the base assurance semantics of the strong
+    P3 dependency-aware composed runtime contract.
+
     Decision semantics:
 
     known violated required dependency
         -> RESTRICT
 
-    uncertain evidence for a propagation-affected dependency
+    uncertain required evidence
         -> DEFER
 
-    propagation reaches the pending decision but cannot be evaluated
-    through an observable required dependency
-        -> DEFER
-
-    otherwise
+    all required evidence available and satisfied
         -> ALLOW
 
-    A propagation path alone is not automatically treated as evidence of
-    invalidity. This prevents the policy from collapsing into:
+    Propagation is retained as explicit runtime provenance. It identifies
+    which evaluated dependencies are connected to the physical-digital
+    divergence and supports propagation-specific analysis.
 
-        divergence exists -> propagation exists -> intervene
+    Propagation itself is not sufficient grounds for intervention.
 
-    Instead, the policy must connect propagation to the pending decision
-    and its runtime evidence.
+    This prevents the implementation from manufacturing an advantage for
+    DARA-DT merely because P4 has an explicit propagation graph.
     """
 
     def evaluate(
@@ -150,6 +157,11 @@ class PropagationAwareAssurancePolicy:
                 f"pending decision: {propagation.pending_decision_id!r} "
                 f"!= {decision_id!r}"
             )
+
+        self._validate_propagation_contract_parity(
+            requirements=requirements,
+            propagation=propagation,
+        )
 
         evaluations = tuple(
             self._evaluate_requirement(
@@ -172,21 +184,6 @@ class PropagationAwareAssurancePolicy:
             if evaluation.evaluation is PropagationEvaluation.UNCERTAIN
         )
 
-        requirement_dependencies = {
-            requirement.dependency
-            for requirement in requirements
-        }
-
-        propagated_dependencies = propagation.affected_dependencies
-
-        unresolved_propagation = (
-            propagation.is_propagating
-            and bool(
-                propagated_dependencies
-                - requirement_dependencies
-            )
-        )
-
         if violated:
             authority = AuthorityState.RESTRICT
             reason = self._violation_reason(violated)
@@ -195,19 +192,10 @@ class PropagationAwareAssurancePolicy:
             authority = AuthorityState.DEFER
             reason = self._uncertainty_reason(uncertain)
 
-        elif unresolved_propagation:
-            authority = AuthorityState.DEFER
-            reason = (
-                "Physical-digital divergence propagates to the pending "
-                "decision through dependencies not established by the "
-                "current observable runtime contract."
-            )
-
         else:
             authority = AuthorityState.ALLOW
-            reason = (
-                "No observable propagation-aware runtime condition "
-                "requires restriction of autonomous authority."
+            reason = self._allow_reason(
+                propagation=propagation,
             )
 
         assurance = AssuranceDecision(
@@ -233,7 +221,7 @@ class PropagationAwareAssurancePolicy:
         evidence: RuntimeEvidence | None,
         propagation: PropagationAnalysis,
     ) -> PropagationDependencyEvaluation:
-        """Evaluate one requirement in propagation context."""
+        """Evaluate one requirement using P3-equivalent evidence semantics."""
 
         affected = (
             requirement.dependency
@@ -241,26 +229,14 @@ class PropagationAwareAssurancePolicy:
         )
 
         if evidence is None:
-            if affected:
-                return PropagationDependencyEvaluation(
-                    requirement=requirement,
-                    evaluation=PropagationEvaluation.UNCERTAIN,
-                    evidence=None,
-                    affected_by_propagation=True,
-                    reason=(
-                        "Propagation reaches "
-                        f"{requirement.dependency}, but no runtime "
-                        "evidence is available."
-                    ),
-                )
-
             return PropagationDependencyEvaluation(
                 requirement=requirement,
-                evaluation=PropagationEvaluation.NOT_AFFECTED,
+                evaluation=PropagationEvaluation.UNCERTAIN,
                 evidence=None,
-                affected_by_propagation=False,
+                affected_by_propagation=affected,
                 reason=(
-                    f"No propagation reaches {requirement.dependency}."
+                    f"No runtime evidence is available for "
+                    f"{requirement.dependency}."
                 ),
             )
 
@@ -271,33 +247,37 @@ class PropagationAwareAssurancePolicy:
                 f"{requirement.dependency!r}"
             )
 
-        if evidence.status in {
-            EvidenceStatus.MISSING,
-            EvidenceStatus.STALE,
-            EvidenceStatus.CONFLICTING,
-        }:
-            if affected:
-                return PropagationDependencyEvaluation(
-                    requirement=requirement,
-                    evaluation=PropagationEvaluation.UNCERTAIN,
-                    evidence=evidence,
-                    affected_by_propagation=True,
-                    reason=(
-                        f"Propagation reaches {requirement.dependency}, "
-                        "but its runtime evidence is "
-                        f"{evidence.status.value}."
-                    ),
-                )
-
+        if evidence.status is EvidenceStatus.MISSING:
             return PropagationDependencyEvaluation(
                 requirement=requirement,
-                evaluation=PropagationEvaluation.NOT_AFFECTED,
+                evaluation=PropagationEvaluation.UNCERTAIN,
                 evidence=evidence,
-                affected_by_propagation=False,
+                affected_by_propagation=affected,
+                reason=(
+                    f"Evidence for {requirement.dependency} is missing."
+                ),
+            )
+
+        if evidence.status is EvidenceStatus.STALE:
+            return PropagationDependencyEvaluation(
+                requirement=requirement,
+                evaluation=PropagationEvaluation.UNCERTAIN,
+                evidence=evidence,
+                affected_by_propagation=affected,
+                reason=(
+                    f"Evidence for {requirement.dependency} is stale."
+                ),
+            )
+
+        if evidence.status is EvidenceStatus.CONFLICTING:
+            return PropagationDependencyEvaluation(
+                requirement=requirement,
+                evaluation=PropagationEvaluation.UNCERTAIN,
+                evidence=evidence,
+                affected_by_propagation=affected,
                 reason=(
                     f"Evidence for {requirement.dependency} is "
-                    f"{evidence.status.value}, but the dependency is "
-                    "not reached by the observed propagation path."
+                    "conflicting."
                 ),
             )
 
@@ -327,6 +307,35 @@ class PropagationAwareAssurancePolicy:
         )
 
     @staticmethod
+    def _validate_propagation_contract_parity(
+        *,
+        requirements: tuple[DependencyRequirement, ...],
+        propagation: PropagationAnalysis,
+    ) -> None:
+        """Protect the EXP-010 P3/P4 comparison from hidden P4 advantages.
+
+        The propagation analyser may use descriptive dependency names that
+        are more granular than the executable composed contract. Therefore
+        propagation-only dependencies are permitted as provenance.
+
+        They must not independently alter authority.
+
+        Any runtime condition used by P4 to RESTRICT or DEFER must be
+        represented by an explicit requirement and observable evidence,
+        exactly as it is for P3.
+        """
+
+        requirement_dependencies = {
+            requirement.dependency
+            for requirement in requirements
+        }
+
+        if len(requirement_dependencies) != len(requirements):
+            raise ValueError(
+                "Duplicate dependency requirements are not permitted."
+            )
+
+    @staticmethod
     def _violation_reason(
         evaluations: tuple[
             PropagationDependencyEvaluation,
@@ -354,7 +363,7 @@ class PropagationAwareAssurancePolicy:
             ...
         ],
     ) -> str:
-        """Build deterministic explanation for relevant uncertainty."""
+        """Build deterministic explanation for uncertain required evidence."""
 
         dependencies = ", ".join(
             sorted(
@@ -364,21 +373,35 @@ class PropagationAwareAssurancePolicy:
         )
 
         return (
-            "Autonomous authority is deferred because "
-            "propagation-relevant runtime evidence is uncertain for: "
-            f"{dependencies}."
+            "Autonomous authority is deferred because required runtime "
+            f"evidence is uncertain for: {dependencies}."
+        )
+
+    @staticmethod
+    def _allow_reason(
+        *,
+        propagation: PropagationAnalysis,
+    ) -> str:
+        """Build deterministic explanation for autonomous execution."""
+
+        if propagation.is_propagating:
+            return (
+                "A physical-digital divergence propagation path is "
+                "observed, but all executable runtime-contract "
+                "requirements are satisfied by available evidence."
+            )
+
+        return (
+            "All executable runtime-contract requirements are satisfied "
+            "by available evidence and no actionable propagation-aware "
+            "condition requires intervention."
         )
 
 
 def contract_evaluation_to_propagation(
     evaluation: ContractEvaluation,
 ) -> PropagationEvaluation:
-    """Translate shared contract semantics when required by experiments.
-
-    This helper makes the relationship between P3 and P4 evaluation
-    terminology explicit without coupling either policy implementation
-    to the other's decision procedure.
-    """
+    """Translate shared P3/P4 contract-evaluation terminology."""
 
     mapping = {
         ContractEvaluation.SATISFIED:
