@@ -50,3 +50,6 @@ jobs:
 
       - name: Run EXP-008 imperfect-evidence metrics
         run: uv run python -m dara_dt.experiments.imperfect_evidence_metrics
+
+      - name: Run EXP-009 decision-relevance metrics
+        run: uv run python -m dara_dt.experiments.decision_relevance_metrics
