@@ -2,7 +2,7 @@
 
 **Project:** DARA-DT — Divergence-Aware Runtime Assurance for Digital Twins  
 **Experiment:** EXP-009  
-**Status:** Pre-Registered — Not Yet Executed  
+**Status:** Completed  
 **Research Stage:** Decision-conditioned evidence uncertainty and autonomy preservation
 
 ---
@@ -38,7 +38,7 @@ EXP-008 did not isolate an important part of the DARA-DT hypothesis:
 > uncertain evidence is unrelated to the dependencies of the specific
 > AI-generated decision being evaluated.
 
-EXP-009 is designed specifically to test this question.
+EXP-009 was designed specifically to test this question.
 
 ---
 
@@ -68,7 +68,7 @@ EXP-009 investigates:
    interventions;
 
 5. whether the additional dependency information used by DARA-DT provides
-   measurable assurance value beyond a simpler uncertainty-aware mechanism.
+   measurable assurance value beyond simpler uncertainty-aware mechanisms.
 
 ---
 
@@ -205,18 +205,15 @@ This preserves continuity with the preceding experiments.
 
 ## 8. Evidence Quality Conditions
 
-EXP-009 focuses on the imperfect-evidence states already established by
-EXP-008:
+EXP-009 evaluates the imperfect-evidence states established by EXP-008:
 
 - stale;
 - missing;
 - conflicting.
 
-Reliable evidence is retained as a control condition where necessary.
+Reliable evidence is retained as a control.
 
-The critical new experimental variable is not merely evidence quality.
-
-It is:
+The critical additional experimental variable is:
 
 \[
 Evidence\ Relevance
@@ -229,190 +226,77 @@ with two principal states:
 
 ---
 
-## 9. Experimental Factors
+## 9. Frozen Experimental Matrix
 
-The controlled experiment varies four factors.
+The final matrix was frozen before execution.
 
-### Factor A — Dependency Family
+The experiment contains:
 
-- Capacity
-- Operational Status
-- Location / Availability
+- 3 dependency families;
+- 3 imperfect evidence states;
+- 2 evidence-relevance states;
+- 2 physical-validity states;
+- 6 reliable controls.
 
-### Factor B — Evidence Quality
+This produces:
 
-- Reliable
-- Stale
-- Missing
-- Conflicting
+\[
+36\ imperfect\ conditions + 6\ controls = 42\ conditions
+\]
 
-### Factor C — Evidence Relevance
+The matrix contains:
 
-- Relevant to the pending decision
-- Irrelevant to the pending decision
+- 14 capacity conditions;
+- 14 status conditions;
+- 14 location / availability conditions;
+- 21 physically valid conditions;
+- 21 physically invalid conditions;
+- 18 relevant imperfect-evidence conditions;
+- 18 irrelevant imperfect-evidence conditions;
+- 12 stale conditions;
+- 12 missing conditions;
+- 12 conflicting conditions;
+- 6 reliable controls.
 
-### Factor D — Physical Decision Validity
+The complete frozen condition definitions are recorded separately in:
 
-- Physically valid
-- Physically invalid
-
-The experiment will use a balanced controlled subset sufficient to isolate the
-effect of evidence relevance without unnecessarily expanding the experimental
-matrix.
-
-The final condition matrix must be frozen before implementation.
+`docs/experiment_009_condition_matrix.md`
 
 ---
 
-## 10. Required Paired Conditions
+## 10. Paired Conditions
 
-The design must contain paired conditions where evidence quality is held
-constant and only decision relevance changes.
+The matrix contains paired conditions where evidence quality is held constant
+while decision relevance changes.
 
-For example:
+The principal imperfect-evidence comparisons are:
 
-### Pair A — Irrelevant Stale Evidence
+### Irrelevant Uncertainty
 
-Physical decision:
+The uncertain evidence does not belong to a dependency required by the pending
+decision.
 
-\[
-VALID
-\]
+The pending decision retains usable evidence for its required dependency.
 
-Evidence:
+### Relevant Uncertainty
 
-\[
-STALE
-\]
+The uncertain evidence directly affects a dependency required by the pending
+decision.
 
-Evidence relevance:
+No reliable duplicate observation is introduced to silently resolve that
+uncertainty.
 
-\[
-IRRELEVANT
-\]
+This pairing is repeated for:
 
-Expected research question:
+- stale evidence;
+- missing evidence;
+- conflicting evidence;
 
-> Should unrelated stale evidence remove autonomous authority from an otherwise
-> valid decision?
+and across:
 
----
-
-### Pair B — Relevant Stale Evidence
-
-Physical decision:
-
-\[
-VALID
-\]
-
-Evidence:
-
-\[
-STALE
-\]
-
-Evidence relevance:
-
-\[
-RELEVANT
-\]
-
-Expected research question:
-
-> Should stale evidence concerning a required decision dependency cause
-> conservative authority reduction?
-
----
-
-### Pair C — Irrelevant Missing Evidence
-
-Physical decision:
-
-\[
-VALID
-\]
-
-Evidence:
-
-\[
-MISSING
-\]
-
-Evidence relevance:
-
-\[
-IRRELEVANT
-\]
-
----
-
-### Pair D — Relevant Missing Evidence
-
-Physical decision:
-
-\[
-VALID
-\]
-
-Evidence:
-
-\[
-MISSING
-\]
-
-Evidence relevance:
-
-\[
-RELEVANT
-\]
-
----
-
-### Pair E — Irrelevant Conflicting Evidence
-
-Physical decision:
-
-\[
-VALID
-\]
-
-Evidence:
-
-\[
-CONFLICTING
-\]
-
-Evidence relevance:
-
-\[
-IRRELEVANT
-\]
-
----
-
-### Pair F — Relevant Conflicting Evidence
-
-Physical decision:
-
-\[
-VALID
-\]
-
-Evidence:
-
-\[
-CONFLICTING
-\]
-
-Evidence relevance:
-
-\[
-RELEVANT
-\]
-
-These pairs directly test whether relevance changes runtime authority while
-holding evidence quality constant.
+- capacity;
+- status;
+- location / availability.
 
 ---
 
@@ -420,27 +304,26 @@ holding evidence quality constant.
 
 Autonomy preservation alone is insufficient evidence of improved assurance.
 
-EXP-009 must therefore include physically invalid decisions.
+The matrix therefore contains physically invalid decisions as well as valid
+decisions.
 
-These conditions test whether a policy that ignores irrelevant uncertainty
-still intervenes when the actual decision becomes unsafe.
-
-The experiment must contain cases where:
+For each condition:
 
 \[
-Physical\ Decision = INVALID
+Physical\ Decision \in \{VALID, INVALID\}
 \]
 
-and decision-relevant evidence indicates or fails to resolve the unsafe state.
+This allows the experiment to distinguish genuine autonomy preservation from
+unsafe permissiveness.
 
-This prevents an apparently high-autonomy policy from appearing successful
-simply because it allows more decisions.
+A policy cannot be interpreted as improved merely because it allows more
+decisions.
 
 ---
 
 ## 12. Comparator Policies
 
-EXP-009 must compare at least four policies.
+The frozen experiment evaluates five primary policies.
 
 ### P0 — No Assurance
 
@@ -456,36 +339,48 @@ Purpose:
 ### P1 — Global Evidence-Uncertainty Policy
 
 Reduces autonomous authority whenever uncertain runtime evidence exists,
-regardless of whether that evidence affects the current decision.
+regardless of whether the evidence affects the current decision.
 
 Purpose:
 
-- tests the cost of treating all system uncertainty as decision relevant.
-
-This comparator must receive the same runtime evidence as DARA-DT.
+- measure the cost of treating all system uncertainty as decision relevant.
 
 ---
 
-### P2 — Uncertainty-Aware Runtime Contract
+### P2 — Entity-Filtered Uncertainty
 
-Evaluates decision requirements and explicitly handles evidence quality.
-
-The policy must be given only the information justified by its defined
-interface.
-
-It must not be artificially weakened to favour DARA-DT.
+Filters uncertain evidence according to the entity selected by the pending
+decision.
 
 Purpose:
 
-- strongest simpler comparator;
-- continuation of EXP-008 Kill Test E.
+- test whether any apparent benefit can be explained by simple entity
+  filtering rather than dependency reasoning;
+- operationalise Kill Test F.
+
+This baseline does not perform full decision-dependency reasoning.
 
 ---
 
-### P3 — DARA-DT Decision-Conditioned Assurance
+### P3 — Uncertainty-Aware Runtime Contract
 
-Evaluates uncertain evidence relative to the dependencies of the specific
-AI-generated decision.
+Evaluates the requirements of the pending decision and explicitly handles
+evidence quality.
+
+Purpose:
+
+- strongest simpler assurance comparator;
+- continuation of the runtime-contract challenge exposed in EXP-007 and
+  EXP-008.
+
+The comparator is not artificially weakened to favour DARA-DT.
+
+---
+
+### P4 — DARA-DT Decision-Conditioned Assurance
+
+Evaluates runtime evidence relative to the dependencies of the specific
+AI-generated decision and combines this with decision-validity reasoning.
 
 Conceptually:
 
@@ -493,24 +388,49 @@ Conceptually:
 U_t^{rel}(d_t)=U_t\cap Dep(d_t)
 \]
 
-Decision-irrelevant uncertain evidence should not automatically remove
-autonomous authority.
+Decision-irrelevant uncertain evidence does not automatically remove autonomous
+authority.
 
-Decision-relevant uncertain evidence may trigger:
-
-- restriction;
-- deferral;
-- fallback;
-
-depending on the evidence and decision-validity mechanism.
+Decision-relevant uncertain evidence may reduce autonomous authority.
 
 ---
 
-## 13. Fairness Constraint
+## 13. Diagnostic Dependency-Conditioned Ablation
 
-All runtime policies must receive equivalent observable runtime information.
+In addition to the five primary policies, the implementation includes a raw
+dependency-conditioned uncertainty diagnostic.
 
-No policy may receive:
+Its purpose is to isolate the effect of exact dependency matching from the
+complete DARA-DT assurance mechanism.
+
+This diagnostic is not treated as a sixth primary comparator.
+
+The conceptual ablation is:
+
+\[
+Global\ Uncertainty
+\rightarrow
+Entity\text{-}Filtered\ Uncertainty
+\rightarrow
+Decision\text{-}Dependency\text{-}Conditioned\ Uncertainty
+\]
+
+This is important because:
+
+\[
+SelectedEntity \neq CompleteDecisionDependency
+\]
+
+A logistics decision can depend on multiple variables and entities rather than
+only a selected vehicle identifier.
+
+---
+
+## 14. Fairness Constraint
+
+All runtime policies receive equivalent observable runtime information.
+
+No policy receives:
 
 - physical ground truth;
 - evaluator labels;
@@ -518,14 +438,14 @@ No policy may receive:
 - hidden scenario identifiers;
 - information derived from the expected experimental outcome.
 
-Differences between policies must arise from their assurance logic rather than
-unequal access to evidence.
+Differences between policies arise from assurance logic rather than unequal
+access to evidence.
 
 ---
 
-## 14. Independent Ground Truth
+## 15. Independent Ground Truth
 
-Physical decision validity remains determined independently.
+Physical decision validity is determined independently.
 
 For every condition:
 
@@ -535,13 +455,14 @@ GroundTruth(d_t,P_t)
 
 determines whether intervention was actually required.
 
-Runtime policies must not call this evaluator during authority selection.
+Runtime policies do not call this evaluator during authority selection.
 
-Ground truth is used only after the policy decision to classify the outcome.
+Ground truth is used only after the assurance decision to classify the
+experimental outcome.
 
 ---
 
-## 15. Primary Outcome Categories
+## 16. Primary Outcome Categories
 
 Each assurance decision is classified as:
 
@@ -554,9 +475,9 @@ These remain consistent with EXP-005 through EXP-008.
 
 ---
 
-## 16. Primary Metrics
+## 17. Metrics
 
-The experiment will report:
+The experiment reports:
 
 ### Safety Metrics
 
@@ -583,13 +504,7 @@ The experiment will report:
 
 - Accuracy
 
----
-
-## 17. Key Comparative Metric
-
-The central comparison is not accuracy alone.
-
-EXP-009 tests the trade-off:
+The central evaluation remains the trade-off:
 
 \[
 Safety
@@ -597,56 +512,11 @@ Safety
 Autonomy\ Availability
 \]
 
-A policy that obtains zero missed interventions by deferring every uncertain
-case does not necessarily provide useful decision-conditioned assurance.
-
-The experiment therefore asks whether DARA-DT can preserve additional autonomy
-specifically in decision-irrelevant uncertainty conditions without increasing
-missed unsafe interventions.
-
 ---
 
-## 18. Expected Diagnostic Pattern
+## 18. Pre-Registered Falsification Criteria
 
-The following pattern would be consistent with the decision-conditioning
-hypothesis.
-
-For a physically valid decision with irrelevant uncertain evidence:
-
-\[
-DARA\text{-}DT \rightarrow ALLOW
-\]
-
-while a global uncertainty mechanism may produce:
-
-\[
-GlobalUncertainty \rightarrow DEFER
-\]
-
-For a physically valid decision with relevant uncertain evidence:
-
-\[
-DARA\text{-}DT \rightarrow DEFER
-\]
-
-may remain appropriate.
-
-For a physically invalid decision:
-
-\[
-DARA\text{-}DT \rightarrow INTERVENTION
-\]
-
-should remain required when the available runtime information justifies that
-authority reduction.
-
-These are diagnostic expectations, not experimental results.
-
----
-
-## 19. Falsification Criteria
-
-EXP-009 is explicitly falsification-oriented.
+EXP-009 was explicitly falsification-oriented.
 
 ### Kill Test A — No Autonomy Advantage
 
@@ -654,22 +524,16 @@ If DARA-DT and the strongest uncertainty-aware comparator have equivalent
 autonomy availability while maintaining equivalent safety, the claim that
 decision conditioning improves autonomy preservation is not supported.
 
----
-
 ### Kill Test B — Safety Degradation
 
 If DARA-DT preserves additional autonomy but increases missed interventions,
 the additional autonomy cannot be interpreted as an assurance improvement.
 
----
-
 ### Kill Test C — Runtime Contract Equivalence
 
-If an ordinary uncertainty-aware runtime contract can ignore irrelevant
-evidence and achieve the same safety/autonomy trade-off using less mechanism
-complexity, the stronger DARA-DT contribution claim is weakened.
-
----
+If an ordinary uncertainty-aware runtime contract can achieve the same
+safety/autonomy trade-off using less mechanism complexity, the stronger
+DARA-DT contribution claim is weakened.
 
 ### Kill Test D — Capacity-Only Effect
 
@@ -677,136 +541,576 @@ If the proposed benefit occurs only for capacity and does not reproduce for
 status or location / availability, the framework-level generalisation claim
 must be narrowed.
 
----
-
 ### Kill Test E — Evidence Privilege
 
 If DARA-DT requires evidence unavailable to the comparator in order to achieve
-better results, the comparison is not valid.
-
-The experiment must therefore ensure evidence parity.
-
----
+better results, the comparison is invalid.
 
 ### Kill Test F — Trivial Entity Filtering
 
-If the apparent benefit of DARA-DT can be reproduced simply by filtering
-runtime evidence by selected entity identifier without requiring meaningful
-decision-dependency reasoning, the contribution must be described as a simpler
-filtering mechanism rather than a general decision-conditioned assurance
-framework.
+If the apparent benefit can be reproduced simply by filtering evidence by
+selected entity identifier, the contribution must be described as simple
+filtering rather than general decision-conditioned assurance.
 
-This kill test is particularly important.
+These criteria were fixed before the final results were interpreted.
 
 ---
 
-## 20. Critical Novelty Test
+# 19. Experimental Results
 
-EXP-009 is not intended merely to show that irrelevant data can be ignored.
-
-The stronger question is:
-
-> Does dependency-aware conditioning provide useful assurance information that
-> cannot be reduced to trivial entity filtering or an ordinary
-> uncertainty-aware runtime contract?
-
-This distinction is necessary for evaluating the candidate DARA-DT
-contribution.
-
----
-
-## 21. Required Ablation
-
-The experiment should include or enable comparison between:
+EXP-009 executed all:
 
 \[
-Global\ Uncertainty
+N=42
+\]
+
+frozen conditions.
+
+The complete automated test suite passed following implementation and metric
+integration.
+
+---
+
+## 19.1 Aggregate Assurance Results
+
+| Policy | N | TI | FI | MI | CNI | Accuracy | Precision | Recall | FI Rate | MI Rate | Autonomy |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| No Assurance | 42 | 0 | 0 | 21 | 21 | 0.500 | 0.000 | 0.000 | 0.000 | 1.000 | 1.000 |
+| Global Uncertainty | 42 | 18 | 18 | 3 | 3 | 0.500 | 0.500 | 0.857 | 0.857 | 0.143 | 0.143 |
+| Entity Filtered | 42 | 9 | 9 | 12 | 12 | 0.500 | 0.500 | 0.429 | 0.429 | 0.571 | 0.571 |
+| Uncertainty Contract | 42 | 21 | 9 | 0 | 12 | 0.786 | 0.700 | 1.000 | 0.429 | 0.000 | 0.286 |
+| DARA-DT | 42 | 21 | 9 | 0 | 12 | 0.786 | 0.700 | 1.000 | 0.429 | 0.000 | 0.286 |
+
+The principal aggregate result is:
+
+\[
+DARA\text{-}DT =
+UncertaintyAwareRuntimeContract
+\]
+
+at the binary assurance-outcome level.
+
+Both produced:
+
+\[
+TI=21,\quad FI=9,\quad MI=0,\quad CNI=12
+\]
+
+with:
+
+\[
+Accuracy=0.786
 \]
 
 \[
-Entity\text{-}Filtered\ Uncertainty
+Recall=1.000
+\]
+
+and:
+
+\[
+AutonomyAvailability=0.286
+\]
+
+Therefore EXP-009 does **not** establish superior binary assurance performance
+for DARA-DT over the uncertainty-aware runtime contract.
+
+---
+
+## 19.2 Authority-State Distribution
+
+| Policy | ALLOW | RESTRICT | DEFER | FALLBACK |
+|---|---:|---:|---:|---:|
+| No Assurance | 42 | 0 | 0 | 0 |
+| Global Uncertainty | 6 | 0 | 36 | 0 |
+| Entity Filtered | 24 | 0 | 18 | 0 |
+| Uncertainty Contract | 12 | 12 | 18 | 0 |
+| DARA-DT | 12 | 0 | 30 | 0 |
+
+Although DARA-DT and the uncertainty-aware contract have identical binary
+intervention outcomes, their authority semantics are not identical.
+
+The runtime contract uses:
+
+\[
+RESTRICT=12,\quad DEFER=18
+\]
+
+whereas DARA-DT uses:
+
+\[
+RESTRICT=0,\quad DEFER=30
+\]
+
+Both permit autonomous execution in 12 conditions.
+
+This distinction is descriptive rather than evidence of superiority.
+
+The present experiment does not establish that one authority decomposition is
+preferable to the other.
+
+---
+
+# 20. Results by Evidence Quality
+
+## 20.1 Reliable Evidence
+
+For the six reliable controls:
+
+| Policy | TI | FI | MI | CNI | Accuracy | Recall | Autonomy |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| No Assurance | 0 | 0 | 3 | 3 | 0.500 | 0.000 | 1.000 |
+| Global Uncertainty | 0 | 0 | 3 | 3 | 0.500 | 0.000 | 1.000 |
+| Entity Filtered | 0 | 0 | 3 | 3 | 0.500 | 0.000 | 1.000 |
+| Uncertainty Contract | 3 | 0 | 0 | 3 | 1.000 | 1.000 | 0.500 |
+| DARA-DT | 3 | 0 | 0 | 3 | 1.000 | 1.000 | 0.500 |
+
+The runtime contract and DARA-DT both perfectly classify the six reliable
+control conditions.
+
+---
+
+## 20.2 Stale Evidence
+
+For the 12 stale-evidence conditions:
+
+| Policy | TI | FI | MI | CNI | Accuracy | Recall | Autonomy |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| No Assurance | 0 | 0 | 6 | 6 | 0.500 | 0.000 | 1.000 |
+| Global Uncertainty | 6 | 6 | 0 | 0 | 0.500 | 1.000 | 0.000 |
+| Entity Filtered | 3 | 3 | 3 | 3 | 0.500 | 0.500 | 0.500 |
+| Uncertainty Contract | 6 | 3 | 0 | 3 | 0.750 | 1.000 | 0.250 |
+| DARA-DT | 6 | 3 | 0 | 3 | 0.750 | 1.000 | 0.250 |
+
+---
+
+## 20.3 Missing Evidence
+
+For the 12 missing-evidence conditions:
+
+| Policy | TI | FI | MI | CNI | Accuracy | Recall | Autonomy |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| No Assurance | 0 | 0 | 6 | 6 | 0.500 | 0.000 | 1.000 |
+| Global Uncertainty | 6 | 6 | 0 | 0 | 0.500 | 1.000 | 0.000 |
+| Entity Filtered | 3 | 3 | 3 | 3 | 0.500 | 0.500 | 0.500 |
+| Uncertainty Contract | 6 | 3 | 0 | 3 | 0.750 | 1.000 | 0.250 |
+| DARA-DT | 6 | 3 | 0 | 3 | 0.750 | 1.000 | 0.250 |
+
+---
+
+## 20.4 Conflicting Evidence
+
+For the 12 conflicting-evidence conditions:
+
+| Policy | TI | FI | MI | CNI | Accuracy | Recall | Autonomy |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| No Assurance | 0 | 0 | 6 | 6 | 0.500 | 0.000 | 1.000 |
+| Global Uncertainty | 6 | 6 | 0 | 0 | 0.500 | 1.000 | 0.000 |
+| Entity Filtered | 3 | 3 | 3 | 3 | 0.500 | 0.500 | 0.500 |
+| Uncertainty Contract | 6 | 3 | 0 | 3 | 0.750 | 1.000 | 0.250 |
+| DARA-DT | 6 | 3 | 0 | 3 | 0.750 | 1.000 | 0.250 |
+
+The same pattern is observed for stale, missing, and conflicting evidence.
+
+This controlled symmetry indicates that the result is not attributable to one
+specific imperfect-evidence category within the frozen matrix.
+
+---
+
+# 21. Results by Dependency Family
+
+Each dependency family contains 14 conditions.
+
+The DARA-DT results are identical across all three families:
+
+| Dependency | TI | FI | MI | CNI | Accuracy | Recall | Autonomy |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Capacity | 7 | 3 | 0 | 4 | 0.786 | 1.000 | 0.286 |
+| Status | 7 | 3 | 0 | 4 | 0.786 | 1.000 | 0.286 |
+| Location / Availability | 7 | 3 | 0 | 4 | 0.786 | 1.000 | 0.286 |
+
+The uncertainty-aware runtime contract produces the same binary results for
+each dependency family.
+
+Therefore:
+
+1. the observed behaviour is not capacity-specific;
+2. the result reproduces across the three controlled dependency families;
+3. this cross-family consistency does not resolve runtime-contract
+   equivalence.
+
+---
+
+# 22. Decision-Relevant vs Decision-Irrelevant Uncertainty
+
+This is the central EXP-009 comparison.
+
+## 22.1 Decision-Relevant Imperfect Evidence
+
+Across the 18 relevant imperfect-evidence conditions:
+
+| Policy | TI | FI | MI | CNI | Accuracy | Recall | Autonomy |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| No Assurance | 0 | 0 | 9 | 9 | 0.500 | 0.000 | 1.000 |
+| Global Uncertainty | 9 | 9 | 0 | 0 | 0.500 | 1.000 | 0.000 |
+| Entity Filtered | 9 | 9 | 0 | 0 | 0.500 | 1.000 | 0.000 |
+| Uncertainty Contract | 9 | 9 | 0 | 0 | 0.500 | 1.000 | 0.000 |
+| DARA-DT | 9 | 9 | 0 | 0 | 0.500 | 1.000 | 0.000 |
+
+All conservative assurance mechanisms intervene on all 18 relevant uncertain
+conditions.
+
+Because half of these decisions are physically valid, this produces nine false
+interventions as the cost of conservative uncertainty handling.
+
+---
+
+## 22.2 Decision-Irrelevant Imperfect Evidence
+
+Across the 18 irrelevant imperfect-evidence conditions:
+
+| Policy | TI | FI | MI | CNI | Accuracy | Recall | Autonomy |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| No Assurance | 0 | 0 | 9 | 9 | 0.500 | 0.000 | 1.000 |
+| Global Uncertainty | 9 | 9 | 0 | 0 | 0.500 | 1.000 | 0.000 |
+| Entity Filtered | 0 | 0 | 9 | 9 | 0.500 | 0.000 | 1.000 |
+| Uncertainty Contract | 9 | 0 | 0 | 9 | 1.000 | 1.000 | 0.500 |
+| DARA-DT | 9 | 0 | 0 | 9 | 1.000 | 1.000 | 0.500 |
+
+This is the strongest positive finding from EXP-009.
+
+Under decision-irrelevant uncertainty:
+
+\[
+DARA\text{-}DT:
+TI=9,\ FI=0,\ MI=0,\ CNI=9
+\]
+
+and:
+
+\[
+Accuracy=1.000
 \]
 
 \[
-Decision\text{-}Dependency\text{-}Conditioned\ Uncertainty
+Recall=1.000
 \]
-
-This ablation is important because:
 
 \[
-SelectedEntity \neq CompleteDecisionDependency
+AutonomyAvailability=0.500
 \]
 
-A logistics decision may depend on multiple entities and variables.
+Global uncertainty removes autonomy from every condition.
 
-For example:
+Entity filtering preserves autonomy but misses all nine invalid decisions.
 
-> Assign Vehicle 2 to Order 7
+DARA-DT therefore demonstrates that selective treatment of irrelevant
+uncertainty can preserve autonomous execution for valid decisions without
+missing the invalid decisions in this controlled subset.
 
-depends not only on Vehicle 2 identity but potentially on:
+However, the uncertainty-aware runtime contract achieves the **same result**.
 
-- vehicle capacity;
-- vehicle status;
-- vehicle availability;
-- vehicle location;
-- order demand;
-- order state;
-- operational constraints.
-
-Therefore a meaningful decision-conditioned mechanism should reason about
-dependencies rather than merely the selected vehicle identifier.
+Therefore the result supports the usefulness of decision-sensitive assurance
+logic but does not establish DARA-DT-specific superiority.
 
 ---
 
-## 22. Success Criterion
+# 23. Falsification Results
 
-EXP-009 would provide evidence supporting the usefulness of decision
-conditioning only if DARA-DT demonstrates a better safety–autonomy trade-off
-under the controlled matrix.
+The six pre-registered kill tests produced the following outcomes.
 
-A particularly informative pattern would be:
-
-1. zero or no additional missed interventions relative to the strongest
-   comparator;
-
-2. fewer false interventions under decision-irrelevant uncertainty;
-
-3. greater autonomy availability;
-
-4. preservation of conservative behaviour when uncertainty affects a required
-   decision dependency;
-
-5. replication across more than one dependency family.
-
-Even if these conditions occur, the result would constitute controlled
-experimental evidence rather than proof of general superiority.
+| Kill Test | Result |
+|---|---|
+| A — No Autonomy Advantage | **TRIGGERED** |
+| B — Safety Degradation | **NOT TRIGGERED** |
+| C — Runtime Contract Equivalence | **TRIGGERED** |
+| D — Capacity-Only Effect | **NOT TRIGGERED** |
+| E — Evidence Privilege | **NOT TRIGGERED** |
+| F — Trivial Entity Filtering | **NOT TRIGGERED** |
 
 ---
 
-## 23. Negative Result Interpretation
+## 23.1 Kill Test A — No Autonomy Advantage
 
-A negative result is scientifically acceptable.
+**Result: TRIGGERED**
 
-If the uncertainty-aware contract or entity-filtered baseline matches DARA-DT,
-the project should report that result directly.
+DARA-DT does not provide greater aggregate autonomy availability than the
+uncertainty-aware runtime contract while maintaining equivalent
+missed-intervention safety.
 
-Possible resulting conclusions could include:
+Both produce:
 
-- decision conditioning provides no measurable advantage in the tested matrix;
-- simple entity filtering explains the apparent benefit;
-- ordinary runtime contracts are sufficient for the tested logistics
-  decisions;
-- DARA-DT requires a narrower contribution claim;
-- additional complexity is not justified by the observed assurance benefit.
+\[
+AutonomyAvailability=0.286
+\]
 
-The experiment must not be modified retrospectively to force a favourable
-DARA-DT result.
+and:
+
+\[
+MI=0
+\]
+
+Therefore the pre-registered claim that DARA-DT improves autonomy preservation
+relative to the strongest uncertainty-aware comparator is not supported by
+EXP-009.
 
 ---
 
-## 24. Relationship to Previous Experiments
+## 23.2 Kill Test B — Safety Degradation
 
-The experimental progression is:
+**Result: NOT TRIGGERED**
+
+DARA-DT does not obtain an autonomy advantage by accepting additional missed
+unsafe interventions.
+
+The policy records:
+
+\[
+MI=0
+\]
+
+Therefore the observed behaviour is not explained by sacrificing the
+missed-intervention safety criterion.
+
+---
+
+## 23.3 Kill Test C — Runtime Contract Equivalence
+
+**Result: TRIGGERED**
+
+This is the most important falsification result.
+
+The uncertainty-aware runtime contract and DARA-DT have identical aggregate
+binary assurance outcomes:
+
+\[
+TI=21,\ FI=9,\ MI=0,\ CNI=12
+\]
+
+They also have identical:
+
+- accuracy;
+- precision;
+- recall;
+- false-intervention rate;
+- missed-intervention rate;
+- autonomy availability.
+
+The equivalence also reproduces:
+
+- across stale, missing, and conflicting evidence;
+- across capacity, status, and location / availability;
+- across relevant and irrelevant uncertainty subsets.
+
+Therefore EXP-009 does not demonstrate that the additional DARA-DT mechanism
+improves binary intervention performance beyond the uncertainty-aware runtime
+contract for the tested decision structure.
+
+The stronger superiority claim must be rejected for this experiment.
+
+---
+
+## 23.4 Kill Test D — Capacity-Only Effect
+
+**Result: NOT TRIGGERED**
+
+The result is not confined to capacity.
+
+The same DARA-DT binary metrics occur for:
+
+- capacity;
+- status;
+- location / availability.
+
+However, DARA-DT also fails to outperform the runtime contract in each of those
+families.
+
+The appropriate interpretation is therefore cross-family consistency, not
+cross-family superiority.
+
+---
+
+## 23.5 Kill Test E — Evidence Privilege
+
+**Result: NOT TRIGGERED**
+
+All 42 conditions expose a shared runtime-evidence collection.
+
+DARA-DT does not receive:
+
+- physical ground truth;
+- evaluator validity labels;
+- future information;
+- a separate privileged evidence source.
+
+Physical validity is used only after authority selection by the evaluator.
+
+The comparison therefore satisfies the evidence-parity constraint implemented
+for EXP-009.
+
+---
+
+## 23.6 Kill Test F — Trivial Entity Filtering
+
+**Result: NOT TRIGGERED**
+
+Entity filtering does not reproduce the complete DARA-DT safety/autonomy
+trade-off.
+
+The entity-filtered policy obtains:
+
+\[
+TI=9,\ FI=9,\ MI=12,\ CNI=12
+\]
+
+whereas DARA-DT obtains:
+
+\[
+TI=21,\ FI=9,\ MI=0,\ CNI=12
+\]
+
+Entity filtering therefore preserves more autonomous execution:
+
+\[
+0.571
+\]
+
+versus:
+
+\[
+0.286
+\]
+
+but does so while missing 12 required interventions.
+
+Consequently, the complete DARA-DT behaviour cannot be reduced to entity
+filtering alone in this matrix.
+
+This does not establish DARA-DT superiority over the stronger runtime-contract
+baseline.
+
+---
+
+# 24. Interpretation
+
+EXP-009 produces a mixed but informative result.
+
+## 24.1 What the Experiment Supports
+
+The experiment supports the controlled observation that treating all uncertain
+system evidence as equally relevant can be unnecessarily conservative.
+
+Global uncertainty obtains only:
+
+\[
+AutonomyAvailability=0.143
+\]
+
+across the complete matrix.
+
+Decision-sensitive mechanisms can distinguish uncertainty that affects the
+pending decision from uncertainty that does not.
+
+Within the decision-irrelevant imperfect-evidence subset, both DARA-DT and the
+uncertainty-aware runtime contract achieve:
+
+\[
+Accuracy=1.000
+\]
+
+\[
+Recall=1.000
+\]
+
+\[
+FI=0
+\]
+
+\[
+MI=0
+\]
+
+while retaining:
+
+\[
+AutonomyAvailability=0.500
+\]
+
+This demonstrates the value of conditioning assurance on information relevant
+to the pending decision rather than treating all system uncertainty globally.
+
+---
+
+## 24.2 What the Experiment Does Not Support
+
+EXP-009 does **not** support the claim that DARA-DT provides a superior
+safety-autonomy trade-off to a properly designed uncertainty-aware runtime
+contract.
+
+The two mechanisms are equivalent on all primary binary outcome metrics in the
+frozen matrix.
+
+Therefore the following claim is not justified:
+
+> DARA-DT outperforms uncertainty-aware runtime contracts.
+
+The experimental evidence instead supports the narrower conclusion:
+
+> Decision-sensitive runtime assurance can reduce unnecessary conservatism
+> relative to global uncertainty monitoring, but the tested DARA-DT mechanism
+> does not provide additional binary assurance performance beyond an
+> uncertainty-aware runtime contract for the decision structures evaluated in
+> EXP-009.
+
+---
+
+# 25. Authority Semantics
+
+EXP-009 reveals one unresolved difference that is not visible in the binary
+outcome metrics.
+
+The uncertainty-aware contract uses:
+
+- ALLOW;
+- RESTRICT;
+- DEFER.
+
+DARA-DT uses:
+
+- ALLOW;
+- DEFER.
+
+This results in:
+
+\[
+Contract:
+ALLOW=12,\ RESTRICT=12,\ DEFER=18
+\]
+
+versus:
+
+\[
+DARA:
+ALLOW=12,\ RESTRICT=0,\ DEFER=30
+\]
+
+The binary evaluator treats every non-ALLOW authority state as an intervention.
+
+Consequently, EXP-009 cannot determine whether the semantic distinction between
+RESTRICT and DEFER has operational value.
+
+This is an identified limitation of the current evaluation framework rather
+than evidence that either mechanism is better.
+
+A future experiment should evaluate authority states through their downstream
+operational consequences rather than collapsing them into a single binary
+intervention category.
+
+---
+
+# 26. Relationship to Previous Experiments
+
+The experimental progression is now:
 
 ### EXP-004
 
@@ -823,102 +1127,253 @@ Introduced imperfect runtime evidence.
 ### EXP-007
 
 Generalised impact reasoning across capacity, status, and
-location / availability, while exposing equivalence with a simpler runtime
-contract under reliable evidence.
+location / availability and exposed equivalence with a simpler runtime contract
+under reliable evidence.
 
 ### EXP-008
 
-Compared assurance under stale, missing, and conflicting evidence.
+Tested stale, missing, and conflicting evidence.
 
 DARA-DT and the uncertainty-aware runtime contract achieved identical binary
-performance:
-
-\[
-TI=12,\ FI=9,\ MI=0,\ CNI=3
-\]
-
-with:
-
-\[
-Autonomy=0.125
-\]
+performance.
 
 ### EXP-009
 
-Tests whether decision conditioning can reduce unnecessary intervention when
-uncertain evidence exists outside the dependencies of the pending AI decision.
+Separated decision-relevant from decision-irrelevant evidence uncertainty.
+
+The experiment demonstrated that decision-sensitive assurance avoids some
+unnecessary conservatism associated with global uncertainty monitoring.
+
+However, runtime-contract equivalence persisted.
+
+This repeated equivalence is now an important empirical result rather than an
+isolated observation.
 
 ---
 
-## 25. Contribution Decision After EXP-009
+# 27. Contribution Reassessment
 
-After EXP-009, the candidate contribution must be reassessed.
+EXP-009 requires the candidate DARA-DT contribution to be narrowed.
 
-Possible outcomes include:
+The current evidence supports:
 
-### Outcome A — Decision Conditioning Adds Value
+1. explicit modelling of physical–digital divergence;
+2. decision-specific dependency reasoning;
+3. decision-validity reasoning;
+4. explicit runtime evidence quality;
+5. selective handling of decision-irrelevant uncertainty;
+6. cross-dependency evaluation across capacity, status, and
+   location / availability.
 
-If DARA-DT preserves autonomy without reducing safety and survives the entity
-filter and runtime-contract baselines, the experimental evidence for
-decision-conditioned runtime assurance becomes stronger.
+The current evidence does **not** establish:
 
-### Outcome B — Simple Filtering Is Sufficient
+1. general superiority of DARA-DT over runtime contracts;
+2. improved aggregate autonomy relative to the strongest comparator;
+3. a unique binary intervention capability unavailable to simpler
+   uncertainty-aware contracts.
 
-If entity filtering reproduces the result, the contribution must be narrowed.
+The safe contribution statement after EXP-009 is therefore:
 
-### Outcome C — Runtime Contracts Are Sufficient
+> **DARA-DT provides an experimental framework for studying how
+> physical–digital divergence, runtime evidence quality, and decision
+> dependencies interact in runtime assurance for AI-driven logistics Digital
+> Twins. Controlled experiments show that decision-sensitive assurance can
+> avoid unnecessary intervention caused by globally irrelevant uncertainty,
+> while also revealing that a strong uncertainty-aware runtime contract can
+> reproduce the same binary safety–autonomy trade-off in the tested decision
+> structures.**
 
-If an uncertainty-aware contract matches DARA-DT, superiority claims must be
-rejected.
-
-### Outcome D — Safety–Autonomy Trade-Off Remains Unresolved
-
-If autonomy improvements introduce missed interventions, additional mechanism
-development may be required before making a contribution claim.
+This statement is deliberately narrower than a superiority claim.
 
 ---
 
-## 26. Implementation Freeze Rule
+# 28. Novelty Implication
 
-Before implementation begins, the following must be frozen:
+The remaining novelty question becomes sharper:
 
-- condition matrix;
-- dependency families;
-- evidence-quality states;
-- relevance labels;
-- physical-validity labels;
-- comparator definitions;
-- ground-truth mechanism;
-- metrics;
-- falsification criteria.
+> **Under what runtime decision structures, if any, does explicit
+> decision-conditioned physical–digital divergence provide assurance
+> information that cannot be represented adequately by ordinary runtime
+> contracts?**
 
-Once experimental execution begins, these elements must not be changed in
-response to observed results.
+EXP-009 does not answer this question positively.
 
-Any additional hypothesis arising after execution must be tested in a separate
+Instead, it provides evidence that simple single-decision dependency structures
+may be representable adequately through strong runtime contracts.
+
+This result should constrain the design of any subsequent experiment.
+
+A further experiment is justified only if it tests a genuinely different
+mechanism or decision structure rather than expanding the matrix until DARA-DT
+appears superior.
+
+---
+
+# 29. Candidate Next Research Test
+
+A scientifically justified next stage would investigate whether the equivalence
+persists when assurance must reason over dependencies that cannot be represented
+as a single local state check.
+
+Candidate structures include:
+
+- compound dependencies across multiple entities;
+- cascading decisions where one autonomous decision changes the validity of a
+  later decision;
+- divergence propagation across a decision chain;
+- interacting physical–digital mismatches;
+- authority-state consequences where RESTRICT, DEFER, and FALLBACK produce
+  different operational outcomes.
+
+The purpose of such an experiment would not be to force a DARA-DT advantage.
+
+The question would be:
+
+> Does runtime-contract equivalence continue under richer, interacting
+> decision dependencies?
+
+If equivalence persists, the contribution claim must be narrowed further.
+
+If equivalence breaks under a pre-registered design, the specific mechanism
+responsible must be isolated and tested independently.
+
+---
+
+# 30. Threats to Validity
+
+EXP-009 remains a controlled research prototype.
+
+Important limitations include:
+
+### Controlled Matrix
+
+The 42 conditions are deliberately structured rather than sampled from
+real-world fleet operations.
+
+### Symmetric Factor Design
+
+The balanced matrix creates intentionally symmetric results across several
+evidence-quality and dependency groups.
+
+### Simplified Decisions
+
+The current assignment decisions use relatively local and explicit
+dependencies.
+
+### Binary Outcome Evaluation
+
+TI, FI, MI, and CNI collapse RESTRICT, DEFER, and FALLBACK into intervention.
+
+This prevents the experiment from evaluating the operational value of different
+authority states.
+
+### Limited Operational Consequences
+
+The experiment evaluates immediate decision validity rather than downstream
+effects such as:
+
+- lateness;
+- service failure;
+- recovery cost;
+- route disruption;
+- cascading assignment effects.
+
+### No Claim of External Generalisation
+
+The results demonstrate behaviour within the implemented controlled matrix.
+
+They do not establish general superiority across logistics systems or Digital
+Twin architectures.
+
+---
+
+# 31. Reproducibility
+
+The experiment is implemented through:
+
+- frozen condition definitions;
+- explicit policy implementations;
+- independent physical ground truth;
+- automated outcome classification;
+- aggregate metrics;
+- evidence-status breakdowns;
+- dependency-family breakdowns;
+- relevance breakdowns;
+- authority-state distributions;
+- pre-registered kill-test evaluation;
+- automated regression tests;
+- continuous integration execution.
+
+The experiment can be reproduced using the repository's automated research
+workflow.
+
+---
+
+# 32. Final EXP-009 Conclusion
+
+EXP-009 successfully tests the pre-registered decision-relevance hypothesis
+without assuming a favourable DARA-DT outcome.
+
+Three conclusions are supported by the controlled experiment.
+
+First:
+
+> Global treatment of runtime evidence uncertainty is unnecessarily
+> conservative when uncertainty is unrelated to the pending decision.
+
+Second:
+
+> Simple entity filtering preserves autonomy but is insufficient to maintain
+> safety across the frozen valid/invalid conditions.
+
+Third, and most importantly:
+
+> DARA-DT and the uncertainty-aware runtime contract achieve the same binary
+> safety–autonomy trade-off across all 42 EXP-009 conditions.
+
+Accordingly:
+
+\[
+KillTestA = TRIGGERED
+\]
+
+and:
+
+\[
+KillTestC = TRIGGERED
+\]
+
+while:
+
+\[
+KillTestsB,D,E,F = NOT\ TRIGGERED
+\]
+
+The candidate DARA-DT contribution therefore survives neither as a demonstrated
+aggregate autonomy improvement nor as a demonstrated binary-performance
+advantage over the strongest runtime-contract comparator.
+
+The experiment instead sharpens the research problem.
+
+The next scientifically defensible question is no longer:
+
+> Does DARA-DT outperform a runtime contract in this matrix?
+
+It is:
+
+> **Does explicit decision-conditioned physical–digital divergence provide
+> additional assurance value when autonomous decisions involve interacting,
+> compound, or temporally propagating dependencies that cannot be reduced to
+> the local runtime contracts evaluated so far?**
+
+That question should be addressed only through a separately pre-registered
 experiment.
 
 ---
 
-## 27. Current Status
+## 33. Final Research Question Record
 
-EXP-009 is currently:
-
-**PRE-REGISTERED — NOT EXECUTED**
-
-No experimental results are claimed in this document.
-
-No performance advantage is assumed.
-
-The experiment exists specifically to test whether the candidate
-decision-conditioning contribution survives stronger comparison and
-falsification.
-
----
-
-## 28. Pre-Registered Research Question
-
-The final pre-registered question is:
+The pre-registered EXP-009 question was:
 
 > **Can decision-conditioned runtime assurance distinguish
 > decision-relevant from decision-irrelevant evidence uncertainty in dynamic
@@ -926,4 +1381,16 @@ The final pre-registered question is:
 > missed unsafe interventions relative to simpler uncertainty-aware assurance
 > mechanisms?**
 
-This question will remain fixed for EXP-009.
+### Answer from EXP-009
+
+**Partially.**
+
+Decision-sensitive assurance successfully distinguishes relevant from
+irrelevant uncertainty relative to global uncertainty monitoring.
+
+However, DARA-DT does not preserve more autonomy than the strongest
+uncertainty-aware runtime-contract comparator and does not improve its binary
+assurance performance.
+
+The strongest pre-registered comparator therefore remains sufficient for the
+decision structures represented in EXP-009.
