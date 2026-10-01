@@ -1,36 +1,76 @@
----
+# EXP-010 — Propagation-Aware Physical–Digital Divergence
 
-# 61. Post-Experiment Results Record
-
-**Execution Status:** COMPLETE  
-**Experimental Matrix:** Frozen before execution  
-**Conditions Executed:** 30 / 30  
-**Primary Comparator:** P3 — Dependency-Aware Composed Runtime Contract  
-**Proposed Mechanism:** P4 — Propagation-Aware DARA-DT  
-**Evidence Parity:** Preserved  
-**Post-Hoc Condition Changes:** None  
-**Novelty Outcome:** Strong DARA-DT decision-level differentiation not established
-
-This section records the confirmatory results obtained after implementation and
-execution of the frozen EXP-010 protocol.
-
-The preceding pre-registration is retained as the prospective experimental
-record. The results below do not retrospectively alter the hypotheses,
-comparators, condition matrix, success criteria or kill tests.
+**Project:** DARA-DT — Divergence-Aware Runtime Assurance for Digital Twins  
+**Experiment:** EXP-010  
+**Stage:** Pre-Registration  
+**Status:** DESIGN FROZEN BEFORE IMPLEMENTATION  
+**Domain:** Multi-Stage Autonomous Logistics  
+**Primary Threat:** Dependency-Aware Composed Runtime Contract  
+**Previous Evidence:** EXP-001 to EXP-009  
+**Novelty Status:** Not Established
 
 ---
 
-# 62. Executed Policy Set
+# 1. Purpose
 
-The frozen experiment evaluated:
+EXP-010 is designed to test the strongest unresolved differentiation question
+remaining after EXP-007, EXP-008 and EXP-009.
+
+Those experiments repeatedly demonstrated that a strong runtime-contract
+mechanism can reproduce the primary binary assurance behaviour of DARA-DT for
+the decision structures tested so far.
+
+Therefore EXP-010 does not ask whether DARA-DT can outperform:
+
+- no assurance;
+- global divergence monitoring;
+- global uncertainty monitoring;
+- a simple local threshold;
+- a single-variable runtime contract.
+
+Those comparisons have already been explored.
+
+Instead, EXP-010 asks whether explicit physical–digital divergence propagation
+provides runtime-assurance information that remains unavailable to a strong
+dependency-aware composed runtime contract operating on the same observable
+evidence.
+
+The central scientific question is:
+
+> **Does propagation-aware physical–digital divergence provide additional
+> runtime-assurance information beyond a dependency-aware composed runtime
+> contract when an upstream physical–digital mismatch propagates through a
+> multi-stage autonomous logistics decision chain?**
+
+---
+
+# 2. Motivation
+
+The experimental programme has progressively narrowed the research problem.
+
+Earlier experiments established that:
 
 ```text
-P0 — No Assurance
+Global Divergence
+        ↓
+too coarse
 
-P1 — Local Runtime Contract
+Decision Relevance
+        ↓
+necessary but insufficient
 
-P2 — Global Divergence / Uncertainty Assurance
+Decision Impact
+        ↓
+more selective
 
-P3 — Dependency-Aware Composed Runtime Contract
+Evidence Reliability
+        ↓
+must be represented
 
-P4 — Propagation-Aware DARA-DT
+Decision-Conditioned Evidence
+        ↓
+important
+
+Strong Runtime Contracts
+        ↓
+remain competitive
