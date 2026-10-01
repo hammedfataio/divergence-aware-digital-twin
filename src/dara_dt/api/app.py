@@ -1,20 +1,32 @@
 """FastAPI application for the DARA-DT research demonstrator.
 
-The API exposes the completed DARA-DT research programme through a small,
-read-only application interface.
+The API exposes the completed DARA-DT research programme and provides
+application access to individual frozen EXP-010 scenarios.
 
-Interactive scenario execution will be added separately so that frozen
-experimental evidence remains distinct from live demonstration runs.
+Historical experimental results and live scenario execution are deliberately
+kept separate:
+
+- experiment endpoints expose frozen verified research results;
+- scenario endpoints execute existing frozen conditions through the research
+  engine for interactive demonstration.
+
+The API layer does not redefine experimental logic or modify the frozen
+research programme.
 """
 
 from __future__ import annotations
 
 from fastapi import FastAPI, HTTPException
 
+from dara_dt.api.scenario_service import (
+    ScenarioNotFoundError,
+    scenario_service,
+)
 from dara_dt.api.schemas import (
     ExperimentSummary,
     HealthResponse,
     ProjectStatusResponse,
+    ScenarioResponse,
 )
 from dara_dt.api.service import research_service
 
@@ -35,6 +47,7 @@ app = FastAPI(
 )
 def root() -> dict[str, str]:
     """Return basic information about the research API."""
+
     return {
         "project": "DARA-DT",
         "service": "Research API",
@@ -49,6 +62,7 @@ def root() -> dict[str, str]:
 )
 def health() -> HealthResponse:
     """Return service health information."""
+
     return HealthResponse()
 
 
@@ -59,6 +73,7 @@ def health() -> HealthResponse:
 )
 def project_status() -> ProjectStatusResponse:
     """Return the current DARA-DT research status."""
+
     return research_service.project_status()
 
 
@@ -69,6 +84,7 @@ def project_status() -> ProjectStatusResponse:
 )
 def experiments() -> list[str]:
     """Return the completed DARA-DT experimental programme."""
+
     return research_service.completed_experiments()
 
 
@@ -79,6 +95,7 @@ def experiments() -> list[str]:
 )
 def experiment_010_results() -> ExperimentSummary:
     """Return the frozen verified EXP-010 aggregate results."""
+
     return research_service.experiment_010_summary()
 
 
@@ -110,3 +127,34 @@ def experiment_results(
             "has not yet been implemented."
         ),
     )
+
+
+@app.get(
+    "/api/scenarios",
+    response_model=list[str],
+    tags=["Scenarios"],
+)
+def scenarios() -> list[str]:
+    """Return the frozen EXP-010 scenarios available for demonstration."""
+
+    return scenario_service.available_scenarios()
+
+
+@app.post(
+    "/api/scenarios/{scenario_id}/run",
+    response_model=ScenarioResponse,
+    tags=["Scenarios"],
+)
+def run_scenario(
+    scenario_id: str,
+) -> ScenarioResponse:
+    """Execute one frozen scenario through the DARA-DT research engine."""
+
+    try:
+        return scenario_service.run_scenario(scenario_id)
+
+    except ScenarioNotFoundError as exc:
+        raise HTTPException(
+            status_code=404,
+            detail=str(exc),
+        ) from exc
