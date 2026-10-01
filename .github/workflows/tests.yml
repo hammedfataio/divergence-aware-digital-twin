@@ -1,4 +1,4 @@
-name: Tests
+name: Tests and Research Experiments
 
 "on":
   push:
@@ -6,7 +6,7 @@ name: Tests
   workflow_dispatch:
 
 jobs:
-  test:
+  test-and-experiments:
     runs-on: ubuntu-latest
 
     steps:
@@ -24,8 +24,16 @@ jobs:
       - name: Install dependencies
         run: uv sync --dev
 
-      - name: Run test suite
+      # ------------------------------------------------------------
+      # TEST SUITE
+      # ------------------------------------------------------------
+
+      - name: Run complete test suite
         run: uv run pytest -v
+
+      # ------------------------------------------------------------
+      # EXPERIMENTS 001-009
+      # ------------------------------------------------------------
 
       - name: Run B-vs-C pilot experiment
         run: uv run python -m dara_dt.experiments.run_pilot
@@ -53,3 +61,398 @@ jobs:
 
       - name: Run EXP-009 decision-relevance metrics
         run: uv run python -m dara_dt.experiments.decision_relevance_metrics
+
+      # ------------------------------------------------------------
+      # EXPERIMENT 010
+      # Divergence Propagation
+      # ------------------------------------------------------------
+
+      - name: Run EXP-010 divergence-propagation experiment
+        run: |
+          uv run python - <<'PY'
+          from dara_dt.experiments.divergence_propagation_experiment import (
+              run_exp010,
+          )
+
+          results = run_exp010()
+
+          print()
+          print("=" * 72)
+          print("EXP-010 — DIVERGENCE PROPAGATION EXPERIMENT")
+          print("=" * 72)
+          print(f"Conditions executed: {len(results)}")
+          print()
+
+          for result in results:
+              print(
+                  f"{result.condition.condition_id}: "
+                  f"family={result.condition.family.value} | "
+                  f"ground_truth={result.ground_truth.label.value} | "
+                  f"P0={result.no_assurance_authority.value} | "
+                  f"P1={result.local_contract_authority.value} | "
+                  f"P2={result.global_authority.value} | "
+                  f"P3={result.composed_contract_authority.value} | "
+                  f"P4={result.dara_dt_authority.value}"
+              )
+
+          print()
+          print("=" * 72)
+          print("EXP-010 MATRIX COMPLETE")
+          print("=" * 72)
+          PY
+
+      - name: Run EXP-010 aggregate policy metrics
+        run: |
+          uv run python - <<'PY'
+          from dara_dt.experiments.divergence_propagation_experiment import (
+              run_exp010,
+          )
+          from dara_dt.experiments.divergence_propagation_metrics import (
+              calculate_exp010_metrics,
+          )
+
+          results = run_exp010()
+          metrics = calculate_exp010_metrics(results)
+
+          print()
+          print("=" * 100)
+          print("EXP-010 — AGGREGATE POLICY METRICS")
+          print("=" * 100)
+
+          header = (
+              f"{'Policy':<22}"
+              f"{'N':>5}"
+              f"{'TI':>6}"
+              f"{'FI':>6}"
+              f"{'MI':>6}"
+              f"{'CNI':>6}"
+              f"{'Accuracy':>12}"
+              f"{'Precision':>12}"
+              f"{'Recall':>12}"
+              f"{'FI Rate':>12}"
+              f"{'MI Rate':>12}"
+              f"{'Autonomy':>12}"
+          )
+
+          print(header)
+          print("-" * len(header))
+
+          for metric in metrics:
+              print(
+                  f"{metric.policy:<22}"
+                  f"{metric.conditions:>5}"
+                  f"{metric.true_interventions:>6}"
+                  f"{metric.false_interventions:>6}"
+                  f"{metric.missed_interventions:>6}"
+                  f"{metric.correct_non_interventions:>6}"
+                  f"{metric.accuracy:>12.3f}"
+                  f"{metric.precision:>12.3f}"
+                  f"{metric.recall:>12.3f}"
+                  f"{metric.false_intervention_rate:>12.3f}"
+                  f"{metric.missed_intervention_rate:>12.3f}"
+                  f"{metric.autonomy_availability:>12.3f}"
+              )
+
+          print("=" * 100)
+          PY
+
+      - name: Run EXP-010 authority distribution
+        run: |
+          uv run python - <<'PY'
+          from dara_dt.experiments.divergence_propagation_experiment import (
+              run_exp010,
+          )
+          from dara_dt.experiments.divergence_propagation_metrics import (
+              calculate_exp010_authority_distributions,
+          )
+
+          results = run_exp010()
+          distributions = calculate_exp010_authority_distributions(
+              results
+          )
+
+          print()
+          print("=" * 80)
+          print("EXP-010 — AUTHORITY DISTRIBUTIONS")
+          print("=" * 80)
+
+          for distribution in distributions:
+              print()
+              print(f"Policy: {distribution.policy}")
+              print(f"  Conditions : {distribution.conditions}")
+              print(f"  ALLOW      : {distribution.allow}")
+              print(f"  RESTRICT   : {distribution.restrict}")
+              print(f"  DEFER      : {distribution.defer}")
+              print(f"  FALLBACK   : {distribution.fallback}")
+              print(
+                  "  Autonomy/ALLOW rate: "
+                  f"{distribution.allow_rate:.3f}"
+              )
+
+          print()
+          print("=" * 80)
+          PY
+
+      - name: Run EXP-010 propagation analysis
+        run: |
+          uv run python - <<'PY'
+          from dara_dt.experiments.divergence_propagation_experiment import (
+              run_exp010,
+          )
+          from dara_dt.experiments.divergence_propagation_metrics import (
+              calculate_propagation_summary,
+          )
+
+          results = run_exp010()
+          summary = calculate_propagation_summary(results)
+
+          print()
+          print("=" * 80)
+          print("EXP-010 — PROPAGATION SUMMARY")
+          print("=" * 80)
+
+          print(f"Total conditions: {summary.conditions}")
+          print(
+              "Divergent conditions: "
+              f"{summary.divergent_conditions}"
+          )
+          print(
+              "Propagating conditions: "
+              f"{summary.propagating_conditions}"
+          )
+          print(
+              "Non-propagating divergent conditions: "
+              f"{summary.non_propagating_divergence_conditions}"
+          )
+          print(
+              "Compound propagation conditions: "
+              f"{summary.compound_propagation_conditions}"
+          )
+          print(
+              "Propagating cases requiring intervention: "
+              f"{summary.propagating_interventions_required}"
+          )
+          print(
+              "Non-propagating divergent cases requiring intervention: "
+              f"{summary.non_propagating_interventions_required}"
+          )
+
+          print("=" * 80)
+          PY
+
+      - name: Run EXP-010 P3-vs-P4 equivalence analysis
+        run: |
+          uv run python - <<'PY'
+          from dara_dt.experiments.divergence_propagation_experiment import (
+              run_exp010,
+          )
+          from dara_dt.experiments.divergence_propagation_metrics import (
+              calculate_p3_p4_equivalence,
+          )
+
+          results = run_exp010()
+          result = calculate_p3_p4_equivalence(results)
+
+          print()
+          print("=" * 80)
+          print("EXP-010 — P3 vs P4 EQUIVALENCE")
+          print("=" * 80)
+
+          print(f"Conditions: {result.conditions}")
+          print(
+              "Authority matches: "
+              f"{result.authority_matches}/{result.conditions}"
+          )
+          print(
+              "Authority match rate: "
+              f"{result.authority_match_rate:.3f}"
+          )
+          print(
+              "Outcome matches: "
+              f"{result.outcome_matches}/{result.conditions}"
+          )
+          print(
+              "Outcome match rate: "
+              f"{result.outcome_match_rate:.3f}"
+          )
+          print(
+              "Fully authority equivalent: "
+              f"{result.fully_authority_equivalent}"
+          )
+          print(
+              "Fully outcome equivalent: "
+              f"{result.fully_outcome_equivalent}"
+          )
+
+          print("=" * 80)
+          PY
+
+      - name: Run EXP-010 kill tests A-J
+        run: |
+          uv run python - <<'PY'
+          from dara_dt.experiments.divergence_propagation_experiment import (
+              run_exp010,
+          )
+          from dara_dt.experiments.divergence_propagation_metrics import (
+              calculate_exp010_kill_tests,
+          )
+
+          results = run_exp010()
+          kill_tests = calculate_exp010_kill_tests(results)
+
+          print()
+          print("=" * 100)
+          print("EXP-010 — PREREGISTERED KILL TESTS A-J")
+          print("=" * 100)
+
+          for test in kill_tests:
+              print()
+              print(
+                  f"Kill Test {test.kill_test}: "
+                  f"{test.name}"
+              )
+              print(f"Status   : {test.status.value}")
+              print(f"Evidence : {test.evidence}")
+
+          print()
+          print("=" * 100)
+          PY
+
+      - name: Generate EXP-010 results artifact
+        run: |
+          mkdir -p artifacts
+
+          uv run python - <<'PY' > artifacts/exp010_results.txt
+          from dara_dt.experiments.divergence_propagation_experiment import (
+              run_exp010,
+          )
+          from dara_dt.experiments.divergence_propagation_metrics import (
+              build_exp010_report,
+          )
+
+          results = run_exp010()
+          report = build_exp010_report(results)
+
+          print("EXP-010 — DIVERGENCE PROPAGATION")
+          print("=" * 80)
+          print(f"Conditions executed: {len(results)}")
+
+          print()
+          print("AGGREGATE POLICY METRICS")
+          print("-" * 80)
+
+          for metric in report.policy_metrics:
+              print(
+                  f"{metric.policy}: "
+                  f"N={metric.conditions}, "
+                  f"TI={metric.true_interventions}, "
+                  f"FI={metric.false_interventions}, "
+                  f"MI={metric.missed_interventions}, "
+                  f"CNI={metric.correct_non_interventions}, "
+                  f"accuracy={metric.accuracy:.6f}, "
+                  f"precision={metric.precision:.6f}, "
+                  f"recall={metric.recall:.6f}, "
+                  f"FI_rate={metric.false_intervention_rate:.6f}, "
+                  f"MI_rate={metric.missed_intervention_rate:.6f}, "
+                  f"autonomy={metric.autonomy_availability:.6f}"
+              )
+
+          print()
+          print("AUTHORITY DISTRIBUTIONS")
+          print("-" * 80)
+
+          for distribution in report.authority_distributions:
+              print(
+                  f"{distribution.policy}: "
+                  f"ALLOW={distribution.allow}, "
+                  f"RESTRICT={distribution.restrict}, "
+                  f"DEFER={distribution.defer}, "
+                  f"FALLBACK={distribution.fallback}"
+              )
+
+          summary = report.propagation_summary
+
+          print()
+          print("PROPAGATION SUMMARY")
+          print("-" * 80)
+          print(f"conditions={summary.conditions}")
+          print(
+              f"divergent_conditions="
+              f"{summary.divergent_conditions}"
+          )
+          print(
+              f"propagating_conditions="
+              f"{summary.propagating_conditions}"
+          )
+          print(
+              "non_propagating_divergence_conditions="
+              f"{summary.non_propagating_divergence_conditions}"
+          )
+          print(
+              "compound_propagation_conditions="
+              f"{summary.compound_propagation_conditions}"
+          )
+          print(
+              "propagating_interventions_required="
+              f"{summary.propagating_interventions_required}"
+          )
+          print(
+              "non_propagating_interventions_required="
+              f"{summary.non_propagating_interventions_required}"
+          )
+
+          equivalence = report.p3_p4_equivalence
+
+          print()
+          print("P3 VS P4 EQUIVALENCE")
+          print("-" * 80)
+          print(
+              f"authority_matches="
+              f"{equivalence.authority_matches}/"
+              f"{equivalence.conditions}"
+          )
+          print(
+              f"authority_match_rate="
+              f"{equivalence.authority_match_rate:.6f}"
+          )
+          print(
+              f"outcome_matches="
+              f"{equivalence.outcome_matches}/"
+              f"{equivalence.conditions}"
+          )
+          print(
+              f"outcome_match_rate="
+              f"{equivalence.outcome_match_rate:.6f}"
+          )
+          print(
+              "fully_authority_equivalent="
+              f"{equivalence.fully_authority_equivalent}"
+          )
+          print(
+              "fully_outcome_equivalent="
+              f"{equivalence.fully_outcome_equivalent}"
+          )
+
+          print()
+          print("KILL TESTS")
+          print("-" * 80)
+
+          for test in report.kill_tests:
+              print(
+                  f"{test.kill_test} | "
+                  f"{test.name} | "
+                  f"{test.status.value}"
+              )
+              print(f"  {test.evidence}")
+
+          print()
+          print("=" * 80)
+          print("END EXP-010 REPORT")
+          PY
+
+      - name: Upload EXP-010 results artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: exp010-divergence-propagation-results
+          path: artifacts/exp010_results.txt
+          if-no-files-found: error
