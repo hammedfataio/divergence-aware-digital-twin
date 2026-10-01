@@ -1,979 +1,959 @@
 # DARA-DT
 
-## Divergence-Aware Runtime Assurance for AI-Driven Digital Twins in Autonomous Logistics
+## Divergence-Aware Runtime Assurance for AI-Driven Digital Twins
 
-[![Tests](https://github.com/hammedfataio/divergence-aware-digital-twin/actions/workflows/tests.yml/badge.svg)](https://github.com/hammedfataio/divergence-aware-digital-twin/actions/workflows/tests.yml)
-
-> **Research prototype investigating whether physical–digital divergence should influence autonomous decision-making according to its relevance to the specific decision being executed.**
-
-**Research Stage:** Controlled proof-of-concept evaluation  
-**Framework:** DARA-DT — Divergence-Aware Runtime Assurance for Digital Twins  
-**Research Domain:** Digital Twins · Artificial Intelligence · Runtime Assurance · Autonomous Logistics  
-**Implementation Status:** Active research prototype
+> A research prototype investigating how physical–digital divergence affects
+> autonomous AI decision-making in dynamic logistics Digital Twins.
 
 ---
 
-## 1. Research Overview
+## Research Overview
 
-Digital Twins are increasingly being considered as operational representations
-of physical systems that can support monitoring, prediction, optimisation, and
-autonomous decision-making.
+AI-driven Digital Twins increasingly support autonomous operational
+decision-making.
 
-In dynamic logistics environments, however, the Digital Twin may not always
-perfectly represent physical reality.
+But what happens when the Digital Twin is wrong?
 
-Vehicle breakdowns, stale telemetry, delayed communication, incorrect
-availability information, capacity changes, and unexpected operational events
-can create **physical–digital divergence**.
+A physical system can change before its Digital Twin receives the update.
 
-This creates an important assurance problem:
-
-> An autonomous decision may be valid according to the Digital Twin while
-> being inappropriate for the physical system that actually exists.
-
-A simple response would be to restrict autonomy whenever *any* divergence is
-detected.
-
-However, not every mismatch necessarily affects the decision currently being
-made.
-
-DARA-DT investigates a more selective question:
-
-> **Does the detected physical–digital divergence actually matter to the
-> specific decision that is about to be executed?**
-
----
-
-## 2. Core Research Proposition
-
-The project investigates **decision-relevant divergence**.
-
-Instead of treating every Digital Twin mismatch as equally important, DARA-DT
-examines whether the divergent state variable is part of the information upon
-which the current decision depends.
-
-The conceptual research chain is:
+For example:
 
 ```text
-Physical–Digital Divergence
-            │
-            ▼
-     Decision Dependency
-            │
-            ▼
-      Decision Relevance
-            │
-            ▼
-   Operational Consequence
-            │
-            ▼
-      Runtime Assurance
-            │
-            ▼
-    Autonomous Authority
+PHYSICAL SYSTEM                    DIGITAL TWIN
+
+Vehicle A                          Vehicle A
+status = FAILED                    status = OPERATIONAL
+        │                                  │
+        └──────── divergence ──────────────┘
+                           │
+                           ▼
+                    AI Decision
+                           │
+                           ▼
+             "Assign order to Vehicle A"
 ```
 
-The working hypothesis is:
+The AI may be behaving correctly relative to the information it receives while
+still making an inappropriate decision relative to physical reality.
 
-> **Decision-relevant physical–digital divergence may provide a more selective
-> basis for runtime intervention than divergence detection alone.**
-
-This hypothesis remains subject to broader experimental evaluation.
+DARA-DT investigates the runtime-assurance problem created by this gap.
 
 ---
 
-## 3. Motivating Example
-
-Consider a logistics system containing autonomous delivery vehicles.
-
-A Digital Twin reports:
-
-```text
-Vehicle 02
-Status: operational
-Available: yes
-Capacity: sufficient
-```
-
-The physical vehicle has actually broken down, but the update has not yet
-reached the Digital Twin.
-
-The decision controller assigns an urgent delivery to Vehicle 02.
-
-From the controller's perspective, the decision is reasonable because the
-Digital Twin reports that the vehicle is available.
-
-From the physical system's perspective, the decision cannot be executed.
-
-The problem is therefore not necessarily that the decision algorithm itself
-has failed.
-
-The information upon which the decision depended was inconsistent with
-physical reality.
-
-DARA-DT investigates whether this relationship can be detected before the
-decision is executed.
-
----
-
-## 4. Central Research Question
+## Central Research Question
 
 > **How can physical–digital divergence be quantified at runtime and used to
 > regulate autonomous AI decision-making in dynamic logistics Digital Twins?**
 
-The supporting research questions investigate:
-
-1. **Detection** — Which runtime signals can identify decision-relevant
-   divergence between a logistics system and its Digital Twin?
-
-2. **Quantification** — How do different forms and combinations of
-   physical–digital divergence affect the reliability of generated logistics
-   decisions?
-
-3. **Assurance** — Can divergence-aware runtime assurance reduce inappropriate
-   autonomous actions while maintaining acceptable autonomy availability and
-   logistics performance?
-
 ---
 
-## 5. What Is DARA-DT?
+## Core Idea
 
-**DARA-DT** stands for:
+DARA-DT does not assume that every mismatch requires intervention.
 
-> **Divergence-Aware Runtime Assurance for Digital Twins**
-
-It is currently a **working research framework**, not a validated assurance
-standard.
-
-The framework investigates the following process:
+Instead, the research progressively asks:
 
 ```text
-┌──────────────────────────┐
-│ Physical Logistics       │
-│ System                   │
-└─────────────┬────────────┘
-              │
-              │ telemetry / state
-              ▼
-┌──────────────────────────┐
-│ Digital Twin             │
-└─────────────┬────────────┘
-              │
-              ▼
-┌──────────────────────────┐
-│ Decision Controller      │
-└─────────────┬────────────┘
-              │
-              ▼
-┌──────────────────────────┐
-│ Decision Dependencies    │
-└─────────────┬────────────┘
-              │
-              │
-       ┌──────┴──────┐
-       │             │
-       ▼             ▼
-┌───────────────┐  ┌────────────────┐
-│ Physical–     │  │ Decision       │
-│ Digital       │  │ Dependency     │
-│ Divergence    │  │ Information    │
-└───────┬───────┘  └───────┬────────┘
-        │                  │
-        └─────────┬────────┘
-                  ▼
-       ┌──────────────────────┐
-       │ Decision-Relevance   │
-       │ Analysis             │
-       └──────────┬───────────┘
-                  │
-                  ▼
-       ┌──────────────────────┐
-       │ DARA-DT Runtime      │
-       │ Assurance            │
-       └──────────┬───────────┘
-                  │
-                  ▼
-       ┌──────────────────────┐
-       │ Autonomous Authority │
-       └──────────────────────┘
-```
-
-The key change is from asking:
-
-> **Is the Digital Twin different from reality?**
-
-to asking:
-
-> **Does the difference affect information required by this particular
-> decision?**
-
----
-
-## 6. Decision-Relevant Divergence
-
-The current prototype explicitly represents the dependencies of a decision.
-
-For example, a vehicle-assignment decision may depend on:
-
-```text
-vehicle.status
-vehicle.available
-vehicle.capacity
-order.status
-order.demand
-```
-
-Suppose divergence is detected in:
-
-```text
-vehicle_00.status
-warehouse_temperature
-traffic_sensor_17
-```
-
-If the current decision depends on `vehicle_00.status` but does not depend on
-the other two variables, only the first divergence is considered relevant to
-that decision.
-
-This distinction enables the assurance mechanism to reason about:
-
-```text
-Divergence exists
-        ↓
-Which state is divergent?
-        ↓
-What does this decision depend on?
-        ↓
-Do the two intersect?
-        ↓
-Should autonomous execution continue?
-```
-
----
-
-# 7. Experimental Strategy
-
-The research begins with deliberately controlled experiments.
-
-This is intentional.
-
-Before adding realistic traffic networks, stochastic demand, complex AI
-controllers, and large logistics fleets, the core mechanism must first be
-tested under conditions where the source and relevance of divergence are
-known.
-
-The current proof-of-concept therefore controls:
-
-- physical system state;
-- Digital Twin state;
-- injected divergence;
-- decision dependencies;
-- required intervention;
-- assurance policy; and
-- experimental outcome.
-
-Ground-truth intervention requirements are determined independently from the
-physical system state.
-
----
-
-## 8. Assurance Strategies
-
-Three strategies are currently compared.
-
-### 8.1 No Assurance
-
-The generated decision is allowed to proceed regardless of detected
-physical–digital divergence.
-
-```text
-Decision
-   ↓
-ALLOW
-```
-
-This represents the absence of runtime intervention.
-
----
-
-### 8.2 Global Divergence Assurance
-
-Any detected divergence triggers intervention.
-
-```text
-Any divergence?
-      │
-   YES│
-      ▼
-    DEFER
-```
-
-This represents a conservative approach in which all physical–digital
-mismatches are treated as potentially important.
-
----
-
-### 8.3 DARA-DT
-
-DARA-DT evaluates whether detected divergence affects the dependencies of the
-current decision.
-
-```text
-Divergence detected
-        ↓
-Decision dependencies
-        ↓
-Relevance analysis
-        ↓
-Relevant?
-   │          │
-  NO         YES
-   │          │
-   ▼          ▼
- ALLOW      DEFER
-```
-
-The current prototype deliberately uses a simple **ALLOW / DEFER** policy so
-that the effect of decision relevance can be isolated.
-
-Richer adaptive-authority states are part of the future research direction.
-
----
-
-# 9. Controlled Experimental Matrix
-
-The current experimental matrix contains **seven deliberately constructed
-conditions**.
-
-Four conditions contain divergence that is irrelevant to the current decision.
-
-Three conditions contain divergence that directly affects decision
-dependencies.
-
-### Decision-Irrelevant Conditions
-
-| Condition | Total Divergences | Decision-Relevant Divergences |
-|---|---:|---:|
-| `irrelevant_1` | 1 | 0 |
-| `irrelevant_5` | 5 | 0 |
-| `irrelevant_10` | 10 | 0 |
-| `irrelevant_25` | 25 | 0 |
-
-### Decision-Relevant Conditions
-
-| Condition | Total Divergences | Decision-Relevant Divergences |
-|---|---:|---:|
-| `relevant_vehicle_status` | 2 | 2 |
-| `relevant_vehicle_capacity` | 1 | 1 |
-| `relevant_vehicle_availability` | 1 | 1 |
-
----
-
-# 10. Critical Same-Count Comparison
-
-One of the most informative comparisons holds **divergence count constant**.
-
-| Condition | Divergence Count | Relevant Count | Required Response |
-|---|---:|---:|---|
-| `irrelevant_1` | 1 | 0 | Allow |
-| `relevant_vehicle_capacity` | 1 | 1 | Intervene |
-
-Both conditions contain exactly:
-
-```text
-1 physical–digital divergence
-```
-
-However:
-
-```text
-                 SAME DIVERGENCE COUNT
-                          │
-                ┌─────────┴─────────┐
-                │                   │
-                ▼                   ▼
-         IRRELEVANT             RELEVANT
-        TO DECISION            TO DECISION
-                │                   │
-                ▼                   ▼
-              ALLOW             INTERVENE
-```
-
-The difference is not the **number** of divergences.
-
-The difference is whether the divergent state affects information required by
-the current decision.
-
-This controlled comparison motivates the project's central proposition:
-
-> **Divergence quantity alone may be insufficient for deciding whether
-> autonomous authority should be restricted.**
-
----
-
-# 11. Preliminary Results
-
-The current machine-generated aggregate results are:
-
-| Assurance Strategy | True Interventions | False Interventions | Missed Interventions | Correct Non-Interventions | Accuracy |
-|---|---:|---:|---:|---:|---:|
-| No Assurance | 0 | 0 | 3 | 4 | 57.1% |
-| Global Divergence | 3 | 4 | 0 | 0 | 42.9% |
-| **DARA-DT** | **3** | **0** | **0** | **4** | **100.0%** |
-
-Additional intervention metrics:
-
-| Assurance Strategy | Precision | Recall | False Intervention Rate | Missed Intervention Rate |
-|---|---:|---:|---:|---:|
-| No Assurance | 0.0% | 0.0% | 0.0% | 100.0% |
-| Global Divergence | 42.9% | 100.0% | 100.0% | 0.0% |
-| **DARA-DT** | **100.0%** | **100.0%** | **0.0%** | **0.0%** |
-
----
-
-## 12. Interpretation of Preliminary Evidence
-
-Within the seven deliberately controlled conditions:
-
-### No Assurance
-
-No Assurance allowed all decisions to proceed.
-
-This preserved autonomy but missed all three cases in which physical state
-required intervention.
-
-### Global Divergence Assurance
-
-The global-divergence strategy successfully intervened in all three
-intervention-required conditions.
-
-However, it also intervened in all four conditions where divergence existed
-but was irrelevant to the current decision.
-
-### DARA-DT
-
-DARA-DT distinguished all seven currently tested decision-relevant and
-decision-irrelevant conditions.
-
-The strongest observation is therefore **not simply the 100% accuracy value**.
-
-The more important result is that the prototype operationalised the chain:
-
-```text
+Physical System
+        │
+        ▼
+Digital Twin
+        │
+        ▼
 Physical–Digital Divergence
-            ↓
-Decision Dependency
-            ↓
+        │
+        ▼
+Does the pending decision depend on it?
+        │
+        ▼
 Decision Relevance
-            ↓
-Assurance Response
+        │
+        ▼
+Does it invalidate the decision?
+        │
+        ▼
+Decision Impact / Validity
+        │
+        ▼
+Can the runtime evidence be trusted?
+        │
+        ▼
+Evidence Reliability
+        │
+        ▼
+Does the effect propagate across decisions?
+        │
+        ▼
+Cross-Decision Dependencies
+        │
+        ▼
+Runtime Assurance
+        │
+        ▼
+ALLOW · RESTRICT · DEFER · FALLBACK
 ```
 
-and behaved differently when divergence count was held constant but decision
-relevance changed.
-
-This provides preliminary evidence supporting broader investigation of
-decision relevance as a runtime assurance signal.
-
-> **Important limitation:** DARA-DT achieved 100% classification accuracy only
-> across these seven deliberately controlled proof-of-concept conditions.
-> These results do not establish general superiority, statistical
-> generalisation, or equivalent performance in realistic logistics systems.
-
-Full experimental evidence is documented in:
-
-**[Preliminary Results](docs/results.md)**
-
 ---
 
-# 13. What Has Actually Been Implemented
+## Why This Matters
 
-The current prototype includes:
+Consider an autonomous delivery system.
 
-### Physical System
-
-- logistics vehicle representation;
-- order representation;
-- physical environment state;
-- vehicle availability;
-- vehicle operational status; and
-- vehicle capacity.
-
-### Digital Twin
-
-- independent Digital Twin state;
-- physical-to-digital synchronisation;
-- controlled stale state; and
-- state updates.
-
-### Divergence
-
-- physical–digital state comparison;
-- divergence detection;
-- controlled divergence injection; and
-- decision-relevance analysis.
-
-### Decision Layer
-
-- logistics decision representation;
-- decision controller;
-- explicit decision dependencies; and
-- dependency mapping.
-
-### Runtime Assurance
-
-- no-assurance baseline;
-- global-divergence baseline;
-- DARA-DT relevance policy; and
-- ALLOW / DEFER authority decisions.
-
-### Evaluation
-
-- independent physical-state validation;
-- ground-truth intervention labels;
-- outcome classification;
-- assurance metrics;
-- controlled experimental matrix; and
-- machine-readable experiment output.
-
-### Engineering
-
-- modular Python package;
-- automated tests;
-- reproducible experimental runners; and
-- GitHub Actions continuous integration.
-
----
-
-# 14. Current Controller Scope
-
-The current decision controller is deliberately **heuristic rather than a
-trained AI model**.
-
-This is an important methodological choice at the present stage.
-
-The purpose of the proof-of-concept is to isolate and test the runtime
-assurance mechanism without confounding the experiment with the behaviour of a
-complex learning algorithm.
-
-The wider doctoral research direction concerns **AI-driven Digital Twins**.
-
-Future experimental stages are intended to introduce stronger controllers,
-including classical optimisation and AI-based decision-making, once the core
-assurance mechanism has been validated under controlled conditions.
-
----
-
-# 15. Candidate Research Contribution
-
-The proposed doctoral research investigates whether:
-
-> **Decision-specific dependency matching between physical–digital divergence
-> and AI-generated logistics decisions can provide a rigorous basis for
-> runtime assurance and adaptive autonomous authority.**
-
-The candidate contribution is therefore not simply another Digital Twin
-divergence detector.
-
-The research investigates the relationship:
+A vehicle physically breaks down, but communication delay prevents the
+Digital Twin from receiving the update.
 
 ```text
-What differs between reality and the Digital Twin?
-                      ↓
-Does that difference matter to this decision?
-                      ↓
-What operational consequence could result?
-                      ↓
-Should autonomous authority change?
+Physical Vehicle
+FAILED
+        │
+        │ delayed update
+        ▼
+Digital Twin
+OPERATIONAL
+        │
+        ▼
+AI Controller
+        │
+        ▼
+Assign urgent delivery
+        │
+        ▼
+Potentially invalid action
 ```
 
-This remains a **candidate research contribution**.
+Traditional model confidence alone may not identify this problem.
 
-Its scientific novelty must be established through systematic comparison with
-the closest prior research and through broader empirical evaluation.
+The AI can be highly confident while reasoning from stale state.
+
+DARA-DT therefore investigates assurance at the boundary between:
+
+- physical reality;
+- Digital Twin state;
+- runtime evidence;
+- AI decisions; and
+- autonomous authority.
 
 ---
 
-# 16. Research Evaluation Roadmap
+# System Architecture
 
-The controlled prototype is the starting point rather than the final
-evaluation environment.
+```mermaid
+flowchart TD
+    P[Physical Logistics System]
+    T[Digital Twin]
+    AI[AI Decision Controller]
+    DIV[Divergence Detection]
+    DEP[Decision Dependencies]
+    IMP[Decision Impact / Validity]
+    EV[Runtime Evidence]
+    PROP[Propagation Analysis]
+    ASSURE[Runtime Assurance]
+    AUTH[Autonomous Authority]
+    OUT[Outcome Evaluation]
 
-The next research stages will investigate:
+    P --> T
+    P --> DIV
+    T --> DIV
 
-### More Realistic Logistics Dynamics
+    T --> AI
+    AI --> DEP
 
-- vehicle movement;
-- road-network representation;
-- travel time;
-- dynamic orders;
-- resource utilisation;
-- delivery deadlines;
-- congestion;
-- vehicle failures; and
-- stochastic operational events.
+    DIV --> DEP
+    DEP --> IMP
+    EV --> IMP
 
-### Expanded Divergence
+    IMP --> PROP
+    PROP --> ASSURE
+    EV --> ASSURE
 
-The broader benchmark is intended to investigate:
+    ASSURE --> AUTH
+    AUTH --> OUT
+    P --> OUT
+```
+
+The architecture deliberately separates physical ground truth from information
+available to the runtime assurance mechanism.
+
+---
+
+# Research Model
+
+The framework distinguishes:
 
 ```text
-D0 — Synchronized operation
-D1 — Temporal divergence
-D2 — State divergence
-D3 — Operational divergence
-D4 — Distributional divergence
-D5 — Compound divergence
+Physical Ground Truth
+        ≠
+Digital Twin State
+        ≠
+Runtime Evidence
+        ≠
+AI Decision
+        ≠
+Assurance Decision
 ```
 
-Not all of these categories are currently implemented.
+This separation is important.
 
-### Stronger Decision Controllers
+Physical ground truth is used for experimental evaluation.
 
-Future evaluation will introduce:
-
-- heuristic baselines;
-- classical optimisation;
-- OR-Tools-based logistics optimisation; and
-- AI-based decision controllers.
-
-### Stronger Assurance Baselines
-
-Future comparisons are intended to include:
-
-- no assurance;
-- global divergence;
-- fixed thresholds;
-- operational envelopes;
-- model-confidence approaches;
-- runtime assumption monitoring;
-- combined fidelity/uncertainty approaches; and
-- DARA-DT.
-
-### Statistical Evaluation
-
-Later experiments will include:
-
-- multiple controlled random seeds;
-- repeated trials;
-- confidence intervals;
-- effect sizes;
-- paired comparisons;
-- sensitivity analysis; and
-- ablation studies.
+It is not provided to runtime policies as privileged information.
 
 ---
 
-# 17. Evaluation Dimensions
+# Physical–Digital Divergence
 
-The wider research will move beyond intervention classification.
+Let:
 
-### Logistics Performance
+\[
+P_t
+\]
 
-Potential measures include:
+represent physical state and:
 
-- delivery cost;
-- route distance;
-- lateness;
-- service rate;
-- resource utilisation; and
-- disruption recovery.
+\[
+T_t
+\]
 
-### Digital Twin Quality
+represent Digital Twin state.
 
-Potential measures include:
+Physical–digital divergence is represented conceptually as:
 
-- state estimation error;
-- synchronisation error;
-- divergence magnitude; and
-- divergence detection latency.
+\[
+\delta_t = P_t - T_t
+\]
 
-### Runtime Assurance
+The research does not assume that:
 
-Measures include:
+\[
+\delta_t \neq 0
+\]
 
-- true interventions;
-- false interventions;
-- missed interventions;
-- correct non-interventions;
-- intervention precision;
-- intervention recall; and
-- time to intervention.
-
-### Autonomous Authority
-
-Future experiments will evaluate:
-
-- autonomy availability;
-- defer frequency;
-- restriction frequency;
-- fallback frequency; and
-- unnecessary autonomy loss.
-
-### Computational Performance
-
-The system will also be evaluated for:
-
-- assurance overhead;
-- decision latency; and
-- runtime scalability.
-
-The broader research therefore examines the trade-off:
+automatically means:
 
 ```text
-               ASSURANCE
-                   ▲
-                  / \
-                 /   \
-                /     \
-               /       \
-              ▼         ▼
-AUTONOMY AVAILABILITY ↔ LOGISTICS PERFORMANCE
+INTERVENE
+```
+
+The significance of divergence depends on the pending decision.
+
+---
+
+# Decision-Relevant Divergence
+
+For autonomous decision \(d_t\), let:
+
+\[
+Dep(d_t)
+\]
+
+represent its dependencies.
+
+If:
+
+\[
+D_t
+\]
+
+is the set of detected divergences, decision-relevant divergence is:
+
+\[
+D_t^{rel}(d_t)
+=
+Dep(d_t) \cap D_t
+\]
+
+This separates:
+
+```text
+Everything wrong with the Digital Twin
+```
+
+from:
+
+```text
+What is wrong with the Digital Twin
+that matters to this decision
 ```
 
 ---
 
-# 18. Falsification Principle
+# From Relevance to Validity
 
-The project is designed so that the central proposition can fail.
+The experiments demonstrate that:
 
-The research would be weakened if broader experiments demonstrate that
-decision relevance:
+```text
+Divergence
+        ≠
+Decision Relevance
+        ≠
+Decision Invalidity
+```
 
-- does not improve intervention selectivity;
-- introduces unacceptable missed interventions;
-- substantially reduces logistics performance;
-- creates excessive runtime overhead;
-- provides no meaningful improvement over simpler assurance mechanisms; or
-- duplicates an already established assurance method without a substantive
-  distinction.
+A mismatched variable may be relevant without invalidating the decision.
 
-Negative results will therefore be treated as research evidence rather than
-hidden or reinterpreted as success.
+DARA-DT therefore evaluates the operational impact of divergence on the
+decision's requirements.
 
 ---
 
-# 19. Research Documentation
+# Runtime Evidence
 
-For a concise overview of the research direction:
+The framework represents runtime evidence as:
 
-### [Supervisor Research Summary](docs/supervisor_research_summary.md)
+```text
+AVAILABLE
 
-For the current experimental evidence:
+STALE
 
-### [Preliminary Results](docs/results.md)
+MISSING
 
-Additional technical documentation:
+CONFLICTING
+```
 
-| Document | Purpose |
+This enables experiments to distinguish:
+
+```text
+What is physically true?
+```
+
+from:
+
+```text
+What does the Twin believe?
+```
+
+and:
+
+```text
+What can the assurance mechanism reliably observe?
+```
+
+---
+
+# Multi-Stage Divergence Propagation
+
+The final experiment investigates whether divergence can affect downstream
+decisions.
+
+```text
+Physical Divergence
+        │
+        ▼
+Upstream Decision D1
+        │
+        ▼
+Shared Dependency / Resource
+        │
+        ▼
+Downstream Decision D2
+        │
+        ▼
+Recovery Decision D3
+```
+
+The framework distinguishes:
+
+```text
+upstream divergence that propagates
+```
+
+from:
+
+```text
+upstream divergence that does not affect
+the pending downstream decision
+```
+
+---
+
+# Runtime Authority
+
+The assurance layer can regulate autonomous authority using:
+
+| Authority | Meaning |
 |---|---|
-| [Methodology](docs/methodology.md) | Experimental design and evaluation methodology |
-| [System Architecture](docs/system_architecture.md) | DARA-DT components and system interfaces |
-| [Benchmark Protocol](docs/benchmark_protocol.md) | Controlled evaluation and falsification protocol |
-| [Experiment 001](docs/experiment_001_bc_pilot.md) | Initial controlled B-vs-C pilot |
-| [Experiment 003](docs/experiment_003_decision_relevance.md) | Decision-relevance experiment |
+| `ALLOW` | Permit autonomous execution |
+| `RESTRICT` | Limit autonomous authority |
+| `DEFER` | Delay execution until sufficient evidence is available |
+| `FALLBACK` | Transfer control to an alternative safe mechanism |
+
+Authority is evaluated separately from the underlying AI decision.
 
 ---
 
-# 20. Repository Structure
+# Experimental Programme
+
+The research programme contains **10 completed experiments**.
+
+| Experiment | Research Question |
+|---|---|
+| EXP-001 | Can assurance distinguish relevant from irrelevant divergence? |
+| EXP-002 | How do assurance policies behave as divergence varies? |
+| EXP-003 | How should divergence be conditioned on decision dependencies? |
+| EXP-004 | Is decision relevance sufficient when divergence severity changes? |
+| EXP-005 | Does decision-impact reasoning improve intervention selectivity? |
+| EXP-006 | What happens when runtime evidence is imperfect? |
+| EXP-007 | Do findings generalise across dependency types? |
+| EXP-008 | How does DARA-DT compare with uncertainty-aware runtime contracts? |
+| EXP-009 | Does decision-relevant evidence uncertainty improve authority regulation? |
+| EXP-010 | Does divergence propagation add information beyond a strong composed runtime contract? |
+
+```text
+Experimental Programme
+=
+10 / 10 COMPLETE
+```
+
+---
+
+# Key Experimental Findings
+
+The experimental progression produced several important findings.
+
+### 1. Divergence alone is insufficient
+
+A Digital Twin can contain mismatch unrelated to the pending decision.
+
+Global intervention can therefore be unnecessarily conservative.
+
+### 2. Decision relevance matters
+
+Divergence becomes more meaningful when conditioned on the dependencies of the
+pending decision.
+
+### 3. Relevance is not validity
+
+EXP-004 demonstrated that relevant divergence does not necessarily invalidate
+the decision.
+
+### 4. Decision impact improves selectivity
+
+EXP-005 showed that reasoning about whether divergence changes decision
+validity can reduce unnecessary intervention.
+
+### 5. Evidence reliability matters
+
+EXP-006–EXP-009 demonstrated the importance of separating physical truth,
+Digital Twin state and runtime evidence.
+
+### 6. Local-only assurance can be insufficient
+
+EXP-010 demonstrated that cross-decision and cross-entity dependencies can
+matter to downstream decision validity.
+
+### 7. Strong runtime contracts remain a critical comparator
+
+EXP-007–EXP-010 repeatedly showed that increasingly expressive runtime
+contracts can reproduce important DARA-DT decision behaviour.
+
+---
+
+# EXP-010 — Strongest Test
+
+EXP-010 evaluated 30 frozen conditions across:
+
+```text
+F0 — Synchronized Controls
+
+F1 — Direct Divergence
+
+F2 — Upstream Non-Propagating Divergence
+
+F3 — Upstream Propagating Divergence
+
+F4 — Compound / Cross-Entity Propagation
+```
+
+The strongest comparison was:
+
+```text
+P3
+Dependency-Aware Composed Runtime Contract
+
+            vs
+
+P4
+Propagation-Aware DARA-DT
+```
+
+Both mechanisms received equivalent observable evidence and dependency
+knowledge.
+
+---
+
+# EXP-010 Results
+
+| Metric | Composed Contract | DARA-DT |
+|---|---:|---:|
+| Conditions | 30 | 30 |
+| True Interventions | 19 | 19 |
+| False Interventions | 3 | 3 |
+| Missed Interventions | 0 | 0 |
+| Correct Non-Interventions | 8 | 8 |
+| Accuracy | 0.900 | 0.900 |
+| Precision | 0.864 | 0.864 |
+| Recall | 1.000 | 1.000 |
+| False-Intervention Rate | 0.273 | 0.273 |
+| Missed-Intervention Rate | 0.000 | 0.000 |
+| Autonomy Availability | 0.267 | 0.267 |
+
+Additionally:
+
+```text
+Authority Matches
+=
+30 / 30
+
+Outcome Matches
+=
+30 / 30
+```
+
+---
+
+# What EXP-010 Means
+
+The strongest differentiation hypothesis was **not supported**.
+
+Within the frozen EXP-010 matrix:
+
+> **Explicit divergence-propagation provenance did not provide additional
+> binary intervention or authority-selection performance beyond a strong
+> dependency-aware composed runtime contract receiving equivalent evidence.**
+
+This negative result is retained as part of the research contribution.
+
+The project does not redesign the completed experiment to manufacture a
+preferred result.
+
+---
+
+# What the Evidence Supports
+
+The experimental programme supports:
+
+```text
+Physical–digital divergence matters as runtime context.
+
+Decision relevance matters.
+
+Decision relevance alone is insufficient.
+
+Decision validity matters.
+
+Runtime evidence reliability matters.
+
+Global assurance can be excessively conservative.
+
+Local-only assurance can miss cross-dependency invalidation.
+
+Cross-decision dependency reasoning matters.
+
+Divergence propagation can be explicitly represented.
+```
+
+---
+
+# What the Evidence Does Not Support
+
+The project does **not** claim:
+
+```text
+DARA-DT universally outperforms runtime contracts.
+
+DARA-DT outperforms the strong composed runtime contract.
+
+DARA-DT uniquely detects divergence propagation.
+
+DARA-DT provides universally superior authority regulation.
+
+The prototype provides operational safety certification.
+
+The experimental results automatically generalise to real logistics systems.
+```
+
+---
+
+# Evidence-Supported Contribution
+
+> **DARA-DT provides a controlled experimental framework for investigating how
+> physical–digital divergence, decision dependencies, decision validity,
+> runtime evidence quality and multi-stage propagation interact in runtime
+> assurance for AI-driven logistics Digital Twins. Across the evaluated
+> experiments, decision-sensitive dependency reasoning improves assurance
+> relative to coarse global monitoring and limited local checking. However,
+> when a strong dependency-aware composed runtime contract receives equivalent
+> observable evidence and dependency knowledge, explicit
+> divergence-propagation provenance does not provide additional binary
+> intervention or authority-selection performance in the tested multi-stage
+> decision structures.**
+
+---
+
+# Research Contribution
+
+The project contributes an integrated experimental framework connecting:
+
+```text
+Physical Reality
+        +
+Digital Twin State
+        +
+Physical–Digital Divergence
+        +
+Decision Dependencies
+        +
+Decision Validity
+        +
+Runtime Evidence
+        +
+Cross-Decision Propagation
+        +
+Runtime Authority
+        +
+Controlled Evaluation
+```
+
+A key methodological principle is that physical ground truth remains
+evaluator-only.
+
+This avoids giving runtime assurance mechanisms information they would not
+possess during real operation.
+
+---
+
+# Strong Comparators
+
+DARA-DT is evaluated against progressively stronger alternatives rather than
+only weak baselines.
+
+These include:
+
+```text
+No Assurance
+
+Global Divergence Assurance
+
+Fixed Magnitude Assurance
+
+Decision Relevance
+
+Decision Impact
+
+Runtime Contracts
+
+Evidence-Aware Policies
+
+Global Evidence Uncertainty
+
+Entity-Filtered Evidence
+
+Uncertainty-Aware Runtime Contracts
+
+Dependency-Aware Composed Runtime Contracts
+```
+
+This comparison strategy is designed to expose rather than conceal competing
+explanations.
+
+---
+
+# Research Integrity
+
+The project follows a falsification-oriented workflow:
+
+```text
+Research Question
+        ↓
+Hypothesis
+        ↓
+Frozen Experimental Design
+        ↓
+Implementation
+        ↓
+Strong Comparator
+        ↓
+Kill Tests
+        ↓
+Result
+        ↓
+Claim Revision
+```
+
+Negative and equivalence results are preserved.
+
+---
+
+# Current Research Boundary
+
+The completed experiments leave a narrower unresolved question:
+
+> **What measurable assurance value, if any, does explicit physical–digital
+> divergence provenance provide once a strong dependency-aware runtime
+> contract already captures the decision-relevant operational constraints?**
+
+Potential future dimensions include:
+
+- root-cause localisation;
+- explanation quality;
+- diagnostic accuracy;
+- recovery reasoning;
+- auditability;
+- operator understanding; and
+- assurance-case evidence.
+
+These are research opportunities, not established results.
+
+---
+
+# Repository Structure
 
 ```text
 divergence-aware-digital-twin/
 │
-├── .github/
-│   └── workflows/          # automated validation
-│
-├── docs/                   # research documentation and results
+├── docs/
+│   ├── benchmark_protocol.md
+│   ├── closest_prior_work.md
+│   ├── contribution_statement.md
+│   ├── literature_matrix.md
+│   ├── methodology.md
+│   ├── novelty_evidence_matrix.md
+│   ├── research_questions.md
+│   ├── results.md
+│   ├── system_architecture.md
+│   └── experiment_*.md
 │
 ├── src/
 │   └── dara_dt/
-│       ├── assurance/      # runtime assurance policies
-│       ├── decision/       # decisions and dependencies
-│       ├── divergence/     # divergence detection and relevance
-│       ├── evaluation/     # outcomes and metrics
-│       ├── experiments/    # controlled experiments
-│       ├── simulation/     # physical logistics representation
-│       └── twin/           # Digital Twin representation
+│       ├── assurance/
+│       ├── decision/
+│       ├── divergence/
+│       ├── evaluation/
+│       ├── evidence/
+│       ├── experiments/
+│       ├── impact/
+│       ├── propagation/
+│       ├── simulation/
+│       └── twin/
 │
-├── tests/                  # automated validation
-├── README.md               # research overview
-└── pyproject.toml          # project configuration
+├── tests/
+│
+├── .github/
+│   └── workflows/
+│
+├── pyproject.toml
+│
+└── README.md
 ```
 
 ---
 
-# 21. Reproducibility
+# Core Implementation
 
-The project currently uses:
+The research prototype contains modules for:
 
-- **Python 3.12+**
-- **uv** for Python dependency management
-- **pytest** for automated testing
-- **GitHub Actions** for continuous integration
+| Component | Purpose |
+|---|---|
+| Simulation | Controlled physical logistics environment |
+| Digital Twin | Computational representation of physical state |
+| Decision Controller | Autonomous logistics decision generation |
+| Dependency Mapping | Maps decisions to required state variables |
+| Divergence Detection | Detects physical–Twin disagreement |
+| Decision Relevance | Determines whether divergence affects decision dependencies |
+| Decision Impact | Evaluates whether divergence affects validity |
+| Runtime Evidence | Represents available, stale, missing and conflicting evidence |
+| Runtime Assurance | Regulates autonomous authority |
+| Propagation Analysis | Represents multi-stage divergence propagation |
+| Evaluation | Compares assurance decisions against physical ground truth |
 
-The experimental pipeline produces machine-readable outputs so that reported
-results can be traced back to executable experiments.
+---
 
-Typical development workflow:
+# Reproducibility
 
-```bash
-uv sync --dev
-uv run pytest -v
+The project is structured so that:
+
+```text
+scenario
+        ↓
+physical state
+        ↓
+Digital Twin state
+        ↓
+AI decision
+        ↓
+divergence
+        ↓
+runtime evidence
+        ↓
+assurance policy
+        ↓
+authority decision
+        ↓
+ground-truth evaluation
+        ↓
+metrics
 ```
 
-Run the controlled experimental matrix:
+can be reproduced under controlled conditions.
 
-```bash
-uv run python -m dara_dt.experiments.run_matrix
+Automated tests validate the implementation and frozen experimental
+assumptions.
+
+---
+
+# Documentation
+
+Detailed research documentation is available in:
+
+- `docs/research_questions.md`
+- `docs/methodology.md`
+- `docs/system_architecture.md`
+- `docs/benchmark_protocol.md`
+- `docs/results.md`
+- `docs/novelty_evidence_matrix.md`
+- `docs/closest_prior_work.md`
+- `docs/contribution_statement.md`
+
+Individual experiment designs and condition matrices are also retained under
+`docs/`.
+
+---
+
+# Current Project Status
+
+```text
+Research Question
+✓
+
+System Architecture
+✓
+
+Simulation Environment
+✓
+
+Digital Twin
+✓
+
+AI Decision Layer
+✓
+
+Divergence Detection
+✓
+
+Decision Dependency Model
+✓
+
+Decision Impact Analysis
+✓
+
+Runtime Evidence Model
+✓
+
+Runtime Assurance Policies
+✓
+
+Propagation Model
+✓
+
+EXP-001 → EXP-010
+✓
+
+Results Consolidation
+✓
+
+Novelty Audit
+✓
+
+Closest-Prior-Work Audit
+✓
+
+Contribution Freeze
+✓
+
+Research API
+NEXT
+
+Interactive Demonstrator
+PLANNED
+
+Deployment
+PLANNED
 ```
 
-Generate aggregate assurance metrics:
+---
 
-```bash
-uv run python -m dara_dt.experiments.run_metrics
+# Next Stage
+
+The next engineering stage converts the completed research prototype into an
+interactive research demonstrator:
+
+```text
+Research Engine
+        ↓
+FastAPI Research API
+        ↓
+Scenario Interface
+        ↓
+Physical / Twin State Visualisation
+        ↓
+Divergence Visualisation
+        ↓
+AI Decision
+        ↓
+Assurance Comparison
+        ↓
+Authority Explanation
+        ↓
+Experimental Metrics
 ```
 
----
-
-# 22. Current Research Status
-
-## Completed in the Current Prototype
-
-- [x] research problem formulation
-- [x] initial literature and gap investigation
-- [x] central research question
-- [x] experimental methodology
-- [x] system architecture
-- [x] benchmark protocol
-- [x] physical logistics representation
-- [x] independent Digital Twin state
-- [x] controlled divergence injection
-- [x] divergence detection
-- [x] decision-dependency mapping
-- [x] decision-relevance analysis
-- [x] independent physical-state ground truth
-- [x] baseline assurance strategies
-- [x] DARA-DT assurance policy
-- [x] controlled experimental matrix
-- [x] aggregate assurance metrics
-- [x] automated testing
-- [x] continuous integration
-- [x] preliminary proof-of-concept results
-
-## Next Research Stage
-
-- [ ] dynamic logistics simulation
-- [ ] temporal divergence
-- [ ] distributional divergence
-- [ ] compound divergence
-- [ ] divergence severity modelling
-- [ ] stronger assurance baselines
-- [ ] optimisation controller
-- [ ] AI-based decision controller
-- [ ] repeated stochastic experiments
-- [ ] statistical analysis
-- [ ] autonomy-availability measurement
-- [ ] logistics-performance evaluation
-- [ ] runtime-overhead evaluation
-- [ ] sensitivity analysis
-- [ ] ablation studies
-- [ ] high-fidelity Digital Twin visual demonstrator
+The demonstrator will expose the research process rather than hide the
+negative or equivalence results.
 
 ---
 
-# 23. Current Limitations
+# Research Direction
 
-The current prototype deliberately has a narrow scope.
+DARA-DT forms part of a broader research interest in:
 
-Key limitations include:
+> **Trustworthy Intelligent Systems**
 
-1. The current logistics environment is simplified and does not yet represent
-   a realistic road network.
+with emphasis on:
 
-2. The current decision controller is heuristic rather than a trained AI
-   controller.
+```text
+Artificial Intelligence
 
-3. The seven experimental conditions are deliberately constructed rather than
-   sampled from a stochastic logistics environment.
+Digital Twins
 
-4. The current DARA-DT policy primarily evaluates **ALLOW / DEFER** behaviour.
+Runtime Assurance
 
-5. The current results are deterministic proof-of-concept evidence rather than
-   statistically generalisable findings.
+Autonomous Decision-Making
 
-6. Broader temporal, distributional, and compound divergence scenarios remain
-   to be implemented.
+Uncertainty and Reliability
 
-7. Logistics performance, autonomy availability, intervention latency, and
-   computational overhead require broader evaluation.
+Decision Dependencies
 
-These limitations define the next experimental stages rather than being
-presented as resolved problems.
+Reinforcement Learning
+```
+
+Autonomous logistics provides the current experimental environment for
+investigating these questions.
 
 ---
 
-# 24. Research Integrity
+# Project Status
 
-DARA-DT is currently a **working research framework name**.
-
-The repository documents an active research investigation and should not be
-interpreted as a completed or validated runtime assurance standard.
-
-The current experimental results establish preliminary proof-of-concept
-behaviour only.
-
-No claim is currently made that:
-
-- DARA-DT is the first framework of its kind;
-- scientific novelty has been conclusively established;
-- DARA-DT is generally superior to existing assurance approaches;
-- the current results generalise to realistic logistics environments; or
-- the current 100% controlled-condition result represents expected real-world
-  performance.
-
-Those questions require systematic literature comparison, stronger baselines,
-broader experimentation, and statistical evaluation.
+**Research prototype:** Active  
+**Experimental programme:** 10 / 10 complete  
+**Strongest experiment:** EXP-010  
+**Strong DARA-DT superiority claim:** Not supported  
+**Evidence-supported contribution:** Frozen  
+**Current stage:** Research demonstrator engineering
 
 ---
 
-# 25. Research Direction
+## Research Principle
 
-The long-term objective is to investigate whether an AI-driven Digital Twin
-can reason not only about:
-
-> **how different its representation is from physical reality**
-
-but also:
-
-> **whether that difference is consequential to the autonomous decision being
-> considered.**
-
-If supported by broader evidence, this could provide a foundation for
-runtime mechanisms that dynamically regulate autonomous authority according to
-the relationship between:
-
-**physical reality, Digital Twin fidelity, decision dependencies, operational
-risk, and autonomous action.**
-
----
-
-## Author
-
-**Fatai Hammed**
-
-MSc Computer Science & Artificial Intelligence
-
-Research interests:
-
-**Trustworthy AI · Digital Twins · Runtime Assurance · Autonomous Systems ·
-Intelligent Logistics**
-
----
-
-## Project Status
-
-**Active Research Prototype — Preliminary Controlled Evaluation Completed**
-
-The repository will continue to evolve as additional divergence scenarios,
-decision controllers, assurance baselines, and realistic logistics experiments
-are implemented.
+> **The objective is not to make an autonomous system act whenever the AI is
+> confident. The objective is to determine when the evidence supporting the
+> AI's view of the world is sufficient to justify autonomous authority.**
