@@ -4,6 +4,7 @@ import {
   ApiError,
   getHealth,
   getProjectStatus,
+  getScenarios,
 } from "./api/client";
 
 import type {
@@ -14,23 +15,34 @@ import type {
 
 function App() {
   const [health, setHealth] = useState<HealthResponse | null>(null);
+
   const [project, setProject] =
     useState<ProjectStatusResponse | null>(null);
 
+  const [scenarios, setScenarios] = useState<string[]>([]);
+
+  const [selectedScenario, setSelectedScenario] =
+    useState<string>("");
+
   const [loading, setLoading] = useState(true);
+
   const [error, setError] = useState<string | null>(null);
 
 
   useEffect(() => {
     let active = true;
 
-    async function loadSystemStatus() {
+    async function initialiseApplication() {
       try {
-        const [healthResponse, projectResponse] =
-          await Promise.all([
-            getHealth(),
-            getProjectStatus(),
-          ]);
+        const [
+          healthResponse,
+          projectResponse,
+          scenarioResponse,
+        ] = await Promise.all([
+          getHealth(),
+          getProjectStatus(),
+          getScenarios(),
+        ]);
 
         if (!active) {
           return;
@@ -38,6 +50,11 @@ function App() {
 
         setHealth(healthResponse);
         setProject(projectResponse);
+        setScenarios(scenarioResponse);
+
+        if (scenarioResponse.length > 0) {
+          setSelectedScenario(scenarioResponse[0]);
+        }
       } catch (caughtError: unknown) {
         if (!active) {
           return;
@@ -59,7 +76,7 @@ function App() {
       }
     }
 
-    void loadSystemStatus();
+    void initialiseApplication();
 
     return () => {
       active = false;
@@ -132,6 +149,44 @@ function App() {
           </>
         )}
       </section>
+
+      {!loading && !error && (
+        <section>
+          <h2>Scenario Control</h2>
+
+          {scenarios.length === 0 ? (
+            <p>No demonstration scenarios are available.</p>
+          ) : (
+            <>
+              <label htmlFor="scenario-select">
+                Frozen EXP-010 Scenario
+              </label>
+
+              <select
+                id="scenario-select"
+                value={selectedScenario}
+                onChange={(event) =>
+                  setSelectedScenario(event.target.value)
+                }
+              >
+                {scenarios.map((scenarioId) => (
+                  <option
+                    key={scenarioId}
+                    value={scenarioId}
+                  >
+                    {scenarioId}
+                  </option>
+                ))}
+              </select>
+
+              <p>
+                Selected scenario:{" "}
+                <strong>{selectedScenario}</strong>
+              </p>
+            </>
+          )}
+        </section>
+      )}
     </main>
   );
 }
