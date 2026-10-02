@@ -3,7 +3,6 @@ import type {
   ProjectStatusResponse,
 } from "../../types/api";
 
-
 interface SystemStatusProps {
   health: HealthResponse | null;
   project: ProjectStatusResponse | null;
@@ -11,6 +10,11 @@ interface SystemStatusProps {
   error: string | null;
 }
 
+function formatStatus(value: string): string {
+  return value
+    .replaceAll("_", " ")
+    .replace(/\b\w/g, (character) => character.toUpperCase());
+}
 
 function SystemStatus({
   health,
@@ -18,75 +22,125 @@ function SystemStatus({
   loading,
   error,
 }: SystemStatusProps) {
+  if (loading) {
+    return (
+      <section className="system-status">
+        <h2>System Status</h2>
+
+        <div className="system-status-message">
+          <span className="status-chip status-chip--twin">
+            Connecting
+          </span>
+
+          <p>Connecting to the DARA-DT Research API...</p>
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className="system-status">
+        <h2>System Status</h2>
+
+        <div className="system-status-message">
+          <span className="status-chip status-chip--critical">
+            Offline
+          </span>
+
+          <p role="alert">{error}</p>
+        </div>
+      </section>
+    );
+  }
+
+  if (!health || !project) {
+    return (
+      <section className="system-status">
+        <h2>System Status</h2>
+
+        <div className="system-status-message">
+          <span className="status-chip status-chip--warning">
+            Unavailable
+          </span>
+
+          <p>Research system status is currently unavailable.</p>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="system-status">
       <h2>System Status</h2>
 
-      {loading && (
-        <p>
-          Connecting to the DARA-DT Research API...
-        </p>
-      )}
-
-      {error && (
-        <p role="alert">
-          {error}
-        </p>
-      )}
-
-      {!loading && !error && health && project && (
-        <div className="system-status-grid">
+      <div>
+        <div className="system-status-overview">
           <div>
-            <span>API Status</span>
-            <strong>{health.status}</strong>
+            <span className="status-chip status-chip--healthy">
+              API Online
+            </span>
+
+            <p>
+              Frozen research programme connected to the interactive
+              demonstrator.
+            </p>
           </div>
 
-          <div>
-            <span>Service</span>
-            <strong>{health.service}</strong>
-          </div>
-
-          <div>
-            <span>API Version</span>
-            <strong>{health.version}</strong>
-          </div>
-
-          <div>
-            <span>Research Domain</span>
-            <strong>{project.research_domain}</strong>
-          </div>
-
-          <div>
-            <span>Experimental Domain</span>
-            <strong>{project.experimental_domain}</strong>
-          </div>
-
-          <div>
-            <span>Experiments</span>
+          <div className="system-status-experiment">
+            <span>Research Programme</span>
             <strong>
-              {project.experiments_completed}/
-              {project.experiments_total}
-            </strong>
-          </div>
-
-          <div>
-            <span>Contribution Status</span>
-            <strong>
-              {project.contribution_status}
-            </strong>
-          </div>
-
-          <div>
-            <span>Current Stage</span>
-            <strong>
-              {project.current_stage}
+              {project.experiments_completed}/{project.experiments_total}
             </strong>
           </div>
         </div>
-      )}
+
+        <dl>
+          <div>
+            <dt>API Status</dt>
+            <dd>{formatStatus(health.status)}</dd>
+          </div>
+
+          <div>
+            <dt>Service</dt>
+            <dd>{health.service}</dd>
+          </div>
+
+          <div>
+            <dt>API Version</dt>
+            <dd>{health.version}</dd>
+          </div>
+
+          <div>
+            <dt>Research Domain</dt>
+            <dd>{project.research_domain}</dd>
+          </div>
+
+          <div>
+            <dt>Experimental Domain</dt>
+            <dd>{project.experimental_domain}</dd>
+          </div>
+
+          <div>
+            <dt>Experiments</dt>
+            <dd>
+              {project.experiments_completed}/{project.experiments_total}
+            </dd>
+          </div>
+
+          <div>
+            <dt>Contribution Status</dt>
+            <dd>{formatStatus(project.contribution_status)}</dd>
+          </div>
+
+          <div>
+            <dt>Current Stage</dt>
+            <dd>{formatStatus(project.current_stage)}</dd>
+          </div>
+        </dl>
+      </div>
     </section>
   );
 }
-
 
 export default SystemStatus;
