@@ -8,6 +8,9 @@ import {
   runScenario,
 } from "./api/client";
 
+import ApplicationShell from "./components/layout/ApplicationShell";
+import SystemStatus from "./components/status/SystemStatus";
+
 import type {
   HealthResponse,
   ProjectStatusResponse,
@@ -25,12 +28,14 @@ function getErrorMessage(error: unknown): string {
 
 
 function App() {
-  const [health, setHealth] = useState<HealthResponse | null>(null);
+  const [health, setHealth] =
+    useState<HealthResponse | null>(null);
 
   const [project, setProject] =
     useState<ProjectStatusResponse | null>(null);
 
-  const [scenarios, setScenarios] = useState<string[]>([]);
+  const [scenarios, setScenarios] =
+    useState<string[]>([]);
 
   const [selectedScenario, setSelectedScenario] =
     useState<string>("");
@@ -38,12 +43,14 @@ function App() {
   const [scenarioResult, setScenarioResult] =
     useState<ScenarioResponse | null>(null);
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] =
+    useState(true);
 
   const [runningScenario, setRunningScenario] =
     useState(false);
 
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] =
+    useState<string | null>(null);
 
   const [scenarioError, setScenarioError] =
     useState<string | null>(null);
@@ -73,7 +80,9 @@ function App() {
         setScenarios(scenarioResponse);
 
         if (scenarioResponse.length > 0) {
-          setSelectedScenario(scenarioResponse[0]);
+          setSelectedScenario(
+            scenarioResponse[0],
+          );
         }
       } catch (caughtError: unknown) {
         if (!active) {
@@ -110,11 +119,14 @@ function App() {
     setScenarioResult(null);
 
     try {
-      const result = await runScenario(selectedScenario);
+      const result =
+        await runScenario(selectedScenario);
 
       setScenarioResult(result);
     } catch (caughtError: unknown) {
-      setScenarioError(getErrorMessage(caughtError));
+      setScenarioError(
+        getErrorMessage(caughtError),
+      );
     } finally {
       setRunningScenario(false);
     }
@@ -122,80 +134,24 @@ function App() {
 
 
   return (
-    <main>
-      <header>
-        <p>DARA-DT</p>
-
-        <h1>
-          Divergence-Aware Runtime Assurance
-          for AI-Driven Digital Twins
-        </h1>
-
-        <p>Research Control Centre</p>
-      </header>
-
-
-      <section>
-        <h2>System Status</h2>
-
-        {loading && (
-          <p>Connecting to the DARA-DT Research API...</p>
-        )}
-
-        {error && (
-          <p role="alert">
-            {error}
-          </p>
-        )}
-
-        {!loading && !error && health && project && (
-          <>
-            <p>
-              API Status: <strong>{health.status}</strong>
-            </p>
-
-            <p>
-              Service: {health.service}
-            </p>
-
-            <p>
-              API Version: {health.version}
-            </p>
-
-            <p>
-              Research Domain: {project.research_domain}
-            </p>
-
-            <p>
-              Experimental Domain:{" "}
-              {project.experimental_domain}
-            </p>
-
-            <p>
-              Experiments:{" "}
-              {project.experiments_completed}/
-              {project.experiments_total}
-            </p>
-
-            <p>
-              Contribution Status:{" "}
-              {project.contribution_status}
-            </p>
-
-            <p>
-              Current Stage: {project.current_stage}
-            </p>
-          </>
-        )}
-      </section>
+    <ApplicationShell>
+      <SystemStatus
+        health={health}
+        project={project}
+        loading={loading}
+        error={error}
+      />
 
 
       {!loading && !error && (
-        <section>
+        <section className="scenario-control">
           <h2>Scenario Control</h2>
 
           {scenarios.length === 0 ? (
-            <p>No demonstration scenarios are available.</p>
+            <p>
+              No demonstration scenarios are
+              available.
+            </p>
           ) : (
             <>
               <label htmlFor="scenario-select">
@@ -207,25 +163,31 @@ function App() {
                 value={selectedScenario}
                 disabled={runningScenario}
                 onChange={(event) => {
-                  setSelectedScenario(event.target.value);
+                  setSelectedScenario(
+                    event.target.value,
+                  );
+
                   setScenarioResult(null);
                   setScenarioError(null);
                 }}
               >
-                {scenarios.map((scenarioId) => (
-                  <option
-                    key={scenarioId}
-                    value={scenarioId}
-                  >
-                    {scenarioId}
-                  </option>
-                ))}
+                {scenarios.map(
+                  (scenarioId) => (
+                    <option
+                      key={scenarioId}
+                      value={scenarioId}
+                    >
+                      {scenarioId}
+                    </option>
+                  ),
+                )}
               </select>
 
               <button
                 type="button"
                 disabled={
-                  !selectedScenario || runningScenario
+                  !selectedScenario ||
+                  runningScenario
                 }
                 onClick={() => {
                   void handleRunScenario();
@@ -248,22 +210,29 @@ function App() {
 
 
       {scenarioResult && (
-        <section>
+        <section className="scenario-result">
           <h2>Scenario Result</h2>
 
           <p>
             Scenario:{" "}
-            <strong>{scenarioResult.scenario_id}</strong>
+            <strong>
+              {scenarioResult.scenario_id}
+            </strong>
           </p>
 
-          <p>{scenarioResult.description}</p>
+          <p>
+            {scenarioResult.description}
+          </p>
 
 
           <h3>Physical System</h3>
 
           <p>
             Entities:{" "}
-            {scenarioResult.physical_state.entities.length}
+            {
+              scenarioResult.physical_state
+                .entities.length
+            }
           </p>
 
 
@@ -271,7 +240,10 @@ function App() {
 
           <p>
             Entities:{" "}
-            {scenarioResult.twin_state.entities.length}
+            {
+              scenarioResult.twin_state
+                .entities.length
+            }
           </p>
 
 
@@ -287,16 +259,23 @@ function App() {
 
           <p>
             Decision ID:{" "}
-            {scenarioResult.ai_decision.decision_id}
+            {
+              scenarioResult.ai_decision
+                .decision_id
+            }
           </p>
 
           <p>
-            Action: {scenarioResult.ai_decision.action}
+            Action:{" "}
+            {scenarioResult.ai_decision.action}
           </p>
 
           <p>
             Dependencies:{" "}
-            {scenarioResult.ai_decision.dependencies.length}
+            {
+              scenarioResult.ai_decision
+                .dependencies.length
+            }
           </p>
 
 
@@ -304,7 +283,10 @@ function App() {
 
           <p>
             Evidence records:{" "}
-            {scenarioResult.runtime_evidence.length}
+            {
+              scenarioResult.runtime_evidence
+                .length
+            }
           </p>
 
 
@@ -312,7 +294,9 @@ function App() {
 
           <p>
             Propagation records:{" "}
-            {scenarioResult.propagation.length}
+            {
+              scenarioResult.propagation.length
+            }
           </p>
 
 
@@ -322,7 +306,9 @@ function App() {
             {scenarioResult.assurance_results.map(
               (result) => (
                 <li key={result.policy}>
-                  <strong>{result.policy}</strong>
+                  <strong>
+                    {result.policy}
+                  </strong>
                   {" — "}
                   {result.authority}
                   {" — "}
@@ -349,43 +335,57 @@ function App() {
                 </strong>
               </p>
 
-              {scenarioResult.ground_truth.reason && (
+              {scenarioResult.ground_truth
+                .reason && (
                 <p>
                   Reason:{" "}
-                  {scenarioResult.ground_truth.reason}
+                  {
+                    scenarioResult.ground_truth
+                      .reason
+                  }
                 </p>
               )}
             </>
           ) : (
-            <p>Ground truth unavailable.</p>
+            <p>
+              Ground truth unavailable.
+            </p>
           )}
 
 
           <h3>Evaluation</h3>
 
-          {Object.keys(scenarioResult.evaluations).length ===
-          0 ? (
-            <p>No policy evaluations are available.</p>
+          {Object.keys(
+            scenarioResult.evaluations,
+          ).length === 0 ? (
+            <p>
+              No policy evaluations are
+              available.
+            </p>
           ) : (
             <ul>
               {Object.entries(
                 scenarioResult.evaluations,
-              ).map(([policy, evaluation]) => (
-                <li key={policy}>
-                  <strong>{policy}</strong>
-                  {" — "}
-                  {evaluation.outcome}
-                  {" — "}
-                  {evaluation.correct
-                    ? "correct"
-                    : "incorrect"}
-                </li>
-              ))}
+              ).map(
+                ([policy, evaluation]) => (
+                  <li key={policy}>
+                    <strong>
+                      {policy}
+                    </strong>
+                    {" — "}
+                    {evaluation.outcome}
+                    {" — "}
+                    {evaluation.correct
+                      ? "correct"
+                      : "incorrect"}
+                  </li>
+                ),
+              )}
             </ul>
           )}
         </section>
       )}
-    </main>
+    </ApplicationShell>
   );
 }
 
