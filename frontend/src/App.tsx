@@ -9,7 +9,9 @@ import {
 } from "./api/client";
 
 import ApplicationShell from "./components/layout/ApplicationShell";
+import ScenarioControl from "./components/scenario/ScenarioControl";
 import SystemStatus from "./components/status/SystemStatus";
+import ScenarioWorkspace from "./components/workspace/ScenarioWorkspace";
 
 import type {
   HealthResponse,
@@ -109,6 +111,15 @@ function App() {
   }, []);
 
 
+  function handleScenarioChange(
+    scenarioId: string,
+  ) {
+    setSelectedScenario(scenarioId);
+    setScenarioResult(null);
+    setScenarioError(null);
+  }
+
+
   async function handleRunScenario() {
     if (!selectedScenario || runningScenario) {
       return;
@@ -142,248 +153,25 @@ function App() {
         error={error}
       />
 
-
       {!loading && !error && (
-        <section className="scenario-control">
-          <h2>Scenario Control</h2>
-
-          {scenarios.length === 0 ? (
-            <p>
-              No demonstration scenarios are
-              available.
-            </p>
-          ) : (
-            <>
-              <label htmlFor="scenario-select">
-                Frozen EXP-010 Scenario
-              </label>
-
-              <select
-                id="scenario-select"
-                value={selectedScenario}
-                disabled={runningScenario}
-                onChange={(event) => {
-                  setSelectedScenario(
-                    event.target.value,
-                  );
-
-                  setScenarioResult(null);
-                  setScenarioError(null);
-                }}
-              >
-                {scenarios.map(
-                  (scenarioId) => (
-                    <option
-                      key={scenarioId}
-                      value={scenarioId}
-                    >
-                      {scenarioId}
-                    </option>
-                  ),
-                )}
-              </select>
-
-              <button
-                type="button"
-                disabled={
-                  !selectedScenario ||
-                  runningScenario
-                }
-                onClick={() => {
-                  void handleRunScenario();
-                }}
-              >
-                {runningScenario
-                  ? "Running scenario..."
-                  : "Run Scenario"}
-              </button>
-
-              {scenarioError && (
-                <p role="alert">
-                  {scenarioError}
-                </p>
-              )}
-            </>
-          )}
-        </section>
+        <ScenarioControl
+          scenarios={scenarios}
+          selectedScenario={selectedScenario}
+          runningScenario={runningScenario}
+          error={scenarioError}
+          onScenarioChange={
+            handleScenarioChange
+          }
+          onRunScenario={() => {
+            void handleRunScenario();
+          }}
+        />
       )}
 
-
       {scenarioResult && (
-        <section className="scenario-result">
-          <h2>Scenario Result</h2>
-
-          <p>
-            Scenario:{" "}
-            <strong>
-              {scenarioResult.scenario_id}
-            </strong>
-          </p>
-
-          <p>
-            {scenarioResult.description}
-          </p>
-
-
-          <h3>Physical System</h3>
-
-          <p>
-            Entities:{" "}
-            {
-              scenarioResult.physical_state
-                .entities.length
-            }
-          </p>
-
-
-          <h3>Digital Twin</h3>
-
-          <p>
-            Entities:{" "}
-            {
-              scenarioResult.twin_state
-                .entities.length
-            }
-          </p>
-
-
-          <h3>Divergence</h3>
-
-          <p>
-            Detected divergences:{" "}
-            {scenarioResult.divergences.length}
-          </p>
-
-
-          <h3>AI Decision</h3>
-
-          <p>
-            Decision ID:{" "}
-            {
-              scenarioResult.ai_decision
-                .decision_id
-            }
-          </p>
-
-          <p>
-            Action:{" "}
-            {scenarioResult.ai_decision.action}
-          </p>
-
-          <p>
-            Dependencies:{" "}
-            {
-              scenarioResult.ai_decision
-                .dependencies.length
-            }
-          </p>
-
-
-          <h3>Runtime Evidence</h3>
-
-          <p>
-            Evidence records:{" "}
-            {
-              scenarioResult.runtime_evidence
-                .length
-            }
-          </p>
-
-
-          <h3>Propagation</h3>
-
-          <p>
-            Propagation records:{" "}
-            {
-              scenarioResult.propagation.length
-            }
-          </p>
-
-
-          <h3>Runtime Assurance</h3>
-
-          <ul>
-            {scenarioResult.assurance_results.map(
-              (result) => (
-                <li key={result.policy}>
-                  <strong>
-                    {result.policy}
-                  </strong>
-                  {" — "}
-                  {result.authority}
-                  {" — "}
-                  {result.intervene
-                    ? "intervention"
-                    : "no intervention"}
-                </li>
-              ),
-            )}
-          </ul>
-
-
-          <h3>Ground Truth</h3>
-
-          {scenarioResult.ground_truth ? (
-            <>
-              <p>
-                Intervention required:{" "}
-                <strong>
-                  {scenarioResult.ground_truth
-                    .intervention_required
-                    ? "yes"
-                    : "no"}
-                </strong>
-              </p>
-
-              {scenarioResult.ground_truth
-                .reason && (
-                <p>
-                  Reason:{" "}
-                  {
-                    scenarioResult.ground_truth
-                      .reason
-                  }
-                </p>
-              )}
-            </>
-          ) : (
-            <p>
-              Ground truth unavailable.
-            </p>
-          )}
-
-
-          <h3>Evaluation</h3>
-
-          {Object.keys(
-            scenarioResult.evaluations,
-          ).length === 0 ? (
-            <p>
-              No policy evaluations are
-              available.
-            </p>
-          ) : (
-            <ul>
-              {Object.entries(
-                scenarioResult.evaluations,
-              ).map(
-                ([policy, evaluation]) => (
-                  <li key={policy}>
-                    <strong>
-                      {policy}
-                    </strong>
-                    {" — "}
-                    {evaluation.outcome}
-                    {" — "}
-                    {evaluation.correct
-                      ? "correct"
-                      : "incorrect"}
-                  </li>
-                ),
-              )}
-            </ul>
-          )}
-        </section>
+        <ScenarioWorkspace
+          scenario={scenarioResult}
+        />
       )}
     </ApplicationShell>
   );
