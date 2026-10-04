@@ -4,7 +4,13 @@ interface ApplicationShellProps {
   children: ReactNode;
 }
 
-const navigationItems = [
+interface NavigationItem {
+  label: string;
+  shortLabel: string;
+  active: boolean;
+}
+
+const navigationItems: NavigationItem[] = [
   {
     label: "Control Centre",
     shortLabel: "C",
@@ -84,7 +90,10 @@ function ApplicationShell({
                 DARA-DT
               </span>
 
-              <span className="dara-product-separator">
+              <span
+                className="dara-product-separator"
+                aria-hidden="true"
+              >
                 /
               </span>
 
