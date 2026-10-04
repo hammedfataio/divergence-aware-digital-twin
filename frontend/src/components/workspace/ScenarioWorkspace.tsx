@@ -1,6 +1,6 @@
 import type {
   AssuranceResult,
-  EvidenceStatusValue,
+  EvidenceStatus,
   ScenarioResponse,
 } from "../../types/api";
 
@@ -30,7 +30,7 @@ function formatLabel(value: string): string {
     .replace(/\b\w/g, (character) => character.toUpperCase());
 }
 
-function evidenceClass(status: EvidenceStatusValue): string {
+function evidenceClass(status: EvidenceStatus): string {
   return `evidence-${status}`;
 }
 
