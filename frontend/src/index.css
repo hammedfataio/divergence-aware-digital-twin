@@ -1,318 +1,1132 @@
-/* ==========================================================================
-   DARA-DT
-   Divergence-Aware Runtime Assurance for AI-Driven Digital Twins
-
-   Enterprise Spatial Control Centre — Visual Foundation
-   ========================================================================== */
-
-:root {
-  font-family:
-    Inter,
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-
-  /* ------------------------------------------------------------------------
-     Core environment
-     ------------------------------------------------------------------------ */
-
-  --bg-void: #020711;
-  --bg-app: #050c16;
-  --bg-map: #07111d;
-
-  --surface-01: rgba(8, 18, 31, 0.94);
-  --surface-02: rgba(12, 25, 42, 0.92);
-  --surface-03: rgba(17, 34, 55, 0.9);
-  --surface-hover: rgba(25, 47, 73, 0.94);
-
-  --glass: rgba(8, 20, 34, 0.78);
-  --glass-strong: rgba(6, 16, 28, 0.92);
-
-  /* ------------------------------------------------------------------------
-     Borders
-     ------------------------------------------------------------------------ */
-
-  --border-soft: rgba(139, 170, 205, 0.1);
-  --border: rgba(139, 170, 205, 0.18);
-  --border-strong: rgba(139, 170, 205, 0.3);
-
-  /* ------------------------------------------------------------------------
-     Typography
-     ------------------------------------------------------------------------ */
-
-  --text-primary: #f5f8fc;
-  --text-secondary: #a9b9cc;
-  --text-muted: #71849a;
-  --text-faint: #53677e;
-
-  /* ------------------------------------------------------------------------
-     Research semantics
-     ------------------------------------------------------------------------ */
-
-  --digital-twin: #4da3ff;
-  --digital-twin-soft: rgba(77, 163, 255, 0.13);
-  --digital-twin-glow: rgba(77, 163, 255, 0.3);
-
-  --physical: #31d6a0;
-  --physical-soft: rgba(49, 214, 160, 0.12);
-
-  --ai: #a88cff;
-  --ai-soft: rgba(168, 140, 255, 0.12);
-
-  --warning: #f2b84b;
-  --warning-soft: rgba(242, 184, 75, 0.13);
-
-  --critical: #ff6767;
-  --critical-soft: rgba(255, 103, 103, 0.13);
-
-  --inactive: #738397;
-
-  /* ------------------------------------------------------------------------
-     Geometry
-     ------------------------------------------------------------------------ */
-
-  --radius-xs: 5px;
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 22px;
-
-  /* ------------------------------------------------------------------------
-     Depth
-     ------------------------------------------------------------------------ */
-
-  --shadow-small:
-    0 6px 18px rgba(0, 0, 0, 0.2);
-
-  --shadow-panel:
-    0 16px 42px rgba(0, 0, 0, 0.34);
-
-  --shadow-floating:
-    0 24px 70px rgba(0, 0, 0, 0.48);
-
-  color: var(--text-primary);
-  background: var(--bg-app);
-}
+cat >> frontend/src/index.css <<'EOF'
 
 /* ==========================================================================
-   Reset
+   M5.2C — DARA-DT Operational Control Centre
    ========================================================================== */
 
-* {
-  box-sizing: border-box;
-}
+/* --------------------------------------------------------------------------
+   Scenario command header
+   -------------------------------------------------------------------------- */
 
-html {
-  min-width: 320px;
-  min-height: 100%;
-  background: var(--bg-void);
-}
+.scenario-command-header {
+  grid-column: 1 / -1;
 
-body {
-  margin: 0;
-  min-width: 320px;
-  min-height: 100vh;
-  overflow-x: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
 
-  color: var(--text-primary);
+  margin: 0 !important;
+  padding: 18px 20px;
+
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
 
   background:
-    radial-gradient(
-      circle at 70% -10%,
-      rgba(77, 163, 255, 0.11),
-      transparent 34rem
-    ),
-    radial-gradient(
-      circle at -10% 80%,
-      rgba(168, 140, 255, 0.055),
-      transparent 30rem
-    ),
     linear-gradient(
-      180deg,
-      #07101c 0%,
-      var(--bg-app) 42%,
-      #030811 100%
+      120deg,
+      rgba(12, 29, 48, 0.97),
+      rgba(6, 17, 30, 0.97)
+    );
+
+  box-shadow: var(--shadow-panel);
+}
+
+.scenario-command-header > div {
+  min-width: 0;
+}
+
+.scenario-command-header h2 {
+  margin: 3px 0 5px;
+
+  color: var(--text-primary);
+
+  font-size: clamp(1.35rem, 2vw, 2rem);
+  font-weight: 720;
+  letter-spacing: -0.035em;
+}
+
+.scenario-command-header p {
+  margin: 0;
+
+  max-width: 900px;
+
+  color: var(--text-secondary);
+
+  font-size: 0.82rem;
+}
+
+.workspace-eyebrow,
+.panel-kicker {
+  display: block;
+
+  margin: 0;
+
+  color: var(--digital-twin) !important;
+
+  font-size: 0.61rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.scenario-command-indicators {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 7px;
+
+  flex: 0 0 auto;
+}
+
+
+/* --------------------------------------------------------------------------
+   Scenario telemetry summary
+   -------------------------------------------------------------------------- */
+
+.scenario-workspace-summary {
+  grid-column: 1 / -1;
+
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 1px;
+
+  margin: 0 !important;
+
+  overflow: hidden;
+
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+
+  background: var(--border-soft);
+
+  box-shadow: var(--shadow-panel);
+}
+
+.scenario-workspace-summary article {
+  min-width: 0;
+
+  padding: 13px 15px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(9, 22, 38, 0.98),
+      rgba(6, 16, 28, 0.98)
     );
 }
 
-body::before {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
+.scenario-workspace-summary article > span {
+  display: block;
+
+  margin-bottom: 6px;
+
+  color: var(--text-muted);
+
+  font-size: 0.58rem;
+  font-weight: 750;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.scenario-workspace-summary article > strong {
+  display: block;
+
+  color: var(--text-primary);
+
+  font-size: 1.3rem;
+  font-weight: 720;
+  line-height: 1;
+}
+
+
+/* --------------------------------------------------------------------------
+   Main control centre
+   -------------------------------------------------------------------------- */
+
+.scenario-workspace > .control-centre {
+  grid-column: 1 / -1;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(235px, 0.78fr)
+    minmax(520px, 2.3fr)
+    minmax(275px, 0.9fr);
+
+  gap: 12px;
+
+  min-height: 650px;
+
+  margin: 0 !important;
+}
+
+.control-rail,
+.assurance-inspector {
+  min-width: 0;
+
+  overflow: hidden;
+
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(8, 21, 36, 0.97),
+      rgba(5, 14, 25, 0.98)
+    );
+
+  box-shadow: var(--shadow-panel);
+}
+
+.control-rail {
+  display: flex;
+  flex-direction: column;
+}
+
+.assurance-inspector {
+  display: flex;
+  flex-direction: column;
+}
+
+
+/* --------------------------------------------------------------------------
+   Reusable control headings
+   -------------------------------------------------------------------------- */
+
+.control-panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  padding: 14px 15px;
+
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.control-panel-heading h3 {
+  margin: 3px 0 0;
+
+  color: var(--text-primary);
+
+  font-size: 0.83rem;
+  font-weight: 700;
+}
+
+.panel-count {
+  display: grid;
+  place-items: center;
+
+  min-width: 28px;
+  height: 28px;
+
+  padding: 0 7px;
+
+  border: 1px solid var(--border);
+  border-radius: 999px;
+
+  color: var(--text-primary);
+
+  background: rgba(18, 39, 62, 0.8);
+
+  font-size: 0.7rem;
+}
+
+
+/* --------------------------------------------------------------------------
+   Physical / Twin state cards
+   -------------------------------------------------------------------------- */
+
+.state-comparison {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+
+  padding: 12px;
+}
+
+.state-card {
+  position: relative;
+
+  overflow: hidden;
+
+  padding: 13px;
+
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+
+  background: rgba(10, 25, 42, 0.8);
+}
+
+.state-card::after {
+  position: absolute;
+  top: 0;
+  right: 0;
+
+  width: 60px;
+  height: 60px;
+
+  border-radius: 50%;
+
+  content: "";
+
+  filter: blur(28px);
+  opacity: 0.22;
+}
+
+.state-card--physical::after {
+  background: var(--physical);
+}
+
+.state-card--twin::after {
+  background: var(--digital-twin);
+}
+
+.state-card-heading {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+
+  margin-bottom: 13px;
+}
+
+.state-card-heading > div > span {
+  display: block;
+
+  margin-bottom: 2px;
+
+  color: var(--text-muted);
+
+  font-size: 0.56rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.state-card-heading h4 {
+  margin: 0;
+
+  color: var(--text-primary);
+
+  font-size: 0.76rem;
+}
+
+.state-indicator {
+  flex: 0 0 auto;
+
+  width: 9px;
+  height: 9px;
+
+  border-radius: 50%;
+}
+
+.state-indicator--physical {
+  background: var(--physical);
+
+  box-shadow:
+    0 0 12px rgba(49, 214, 160, 0.6);
+}
+
+.state-indicator--twin {
+  background: var(--digital-twin);
+
+  box-shadow:
+    0 0 12px rgba(77, 163, 255, 0.65);
+}
+
+.state-card > strong {
+  display: inline-block;
+
+  margin-right: 5px;
+
+  color: var(--text-primary);
+
+  font-size: 1.4rem;
+}
+
+.state-card > span {
+  color: var(--text-muted);
+
+  font-size: 0.68rem;
+}
+
+.state-card > small {
+  display: block;
+
+  margin-top: 8px;
+
+  color: var(--text-faint);
+
+  font-size: 0.6rem;
+}
+
+
+/* --------------------------------------------------------------------------
+   Control rail sections
+   -------------------------------------------------------------------------- */
+
+.control-panel-section,
+.inspector-section {
+  border-top: 1px solid var(--border-soft);
+}
+
+.compact-data-list {
+  margin: 0 !important;
+  padding: 8px 14px 14px;
+
+  display: grid;
+  gap: 0;
+}
+
+.compact-data-list > div {
+  display: grid;
+  grid-template-columns: minmax(75px, 0.75fr) minmax(0, 1.25fr);
+  gap: 8px;
+
+  padding: 8px 0;
+
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.compact-data-list > div:last-child {
+  border-bottom: 0;
+}
+
+.compact-data-list dt {
+  color: var(--text-muted);
+
+  font-size: 0.63rem;
+}
+
+.compact-data-list dd {
+  margin: 0;
+
+  overflow-wrap: anywhere;
+
+  color: var(--text-primary);
+
+  font-size: 0.68rem;
+  font-weight: 650;
+  text-align: right;
+}
+
+
+/* --------------------------------------------------------------------------
+   Dependencies
+   -------------------------------------------------------------------------- */
+
+.dependency-list {
+  padding: 5px 13px 14px;
+}
+
+.dependency-item {
+  position: relative;
+
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+
+  padding: 9px 0;
+}
+
+.dependency-item:not(:last-child) {
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.dependency-node {
+  flex: 0 0 auto;
+
+  width: 8px;
+  height: 8px;
+
+  margin-top: 5px;
+
+  border: 2px solid var(--ai);
+  border-radius: 50%;
+
+  background: rgba(168, 140, 255, 0.13);
+
+  box-shadow:
+    0 0 10px rgba(168, 140, 255, 0.34);
+}
+
+.dependency-item strong {
+  display: block;
+
+  overflow-wrap: anywhere;
+
+  color: var(--text-primary);
+
+  font-size: 0.67rem;
+}
+
+.dependency-item div > span {
+  display: block;
+
+  margin-top: 3px;
+
+  color: var(--text-muted);
+
+  font-size: 0.57rem;
+}
+
+
+/* --------------------------------------------------------------------------
+   Digital Twin operational stage
+   -------------------------------------------------------------------------- */
+
+.scenario-workspace .digital-twin-stage {
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+
+  min-width: 0;
+  min-height: 650px;
+
+  overflow: hidden;
+
+  border: 1px solid rgba(77, 163, 255, 0.2);
+  border-radius: var(--radius-md);
+
+  background:
+    radial-gradient(
+      circle at 50% 43%,
+      rgba(41, 112, 174, 0.18),
+      transparent 29%
+    ),
+    radial-gradient(
+      circle at 50% 50%,
+      rgba(49, 214, 160, 0.045),
+      transparent 44%
+    ),
+    linear-gradient(
+      180deg,
+      #091827 0%,
+      #06121f 55%,
+      #040c16 100%
+    );
+
+  box-shadow:
+    inset 0 0 80px rgba(0, 0, 0, 0.28),
+    0 18px 48px rgba(0, 0, 0, 0.3);
+}
+
+.scenario-workspace .digital-twin-stage::before {
+  position: absolute;
+
+  right: -18%;
+  bottom: -40%;
+  left: -18%;
+
+  height: 75%;
+
   pointer-events: none;
+
   content: "";
 
   background-image:
     linear-gradient(
-      rgba(120, 160, 200, 0.025) 1px,
+      rgba(77, 163, 255, 0.1) 1px,
       transparent 1px
     ),
     linear-gradient(
       90deg,
-      rgba(120, 160, 200, 0.025) 1px,
+      rgba(77, 163, 255, 0.1) 1px,
       transparent 1px
     );
 
-  background-size: 48px 48px;
-  mask-image: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0.65),
-    transparent 80%
-  );
+  background-size: 44px 44px;
+
+  transform:
+    perspective(520px)
+    rotateX(58deg)
+    scale(1.22);
+
+  transform-origin: center bottom;
+
+  opacity: 0.58;
 }
 
-button,
-select,
-input,
-textarea {
-  font: inherit;
-}
-
-button {
-  cursor: pointer;
-}
-
-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.48;
-}
-
-::selection {
-  color: #ffffff;
-  background: rgba(77, 163, 255, 0.38);
-}
-
-/* ==========================================================================
-   Application shell
-   ========================================================================== */
-
-.application-shell {
+.stage-topbar {
   position: relative;
-  min-height: 100vh;
-}
+  z-index: 10;
 
-.application-header {
-  position: sticky;
-  top: 0;
-  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+
+  min-height: 64px;
+
+  padding: 12px 15px;
 
   border-bottom: 1px solid var(--border);
 
-  background:
-    linear-gradient(
-      90deg,
-      rgba(5, 13, 23, 0.97),
-      rgba(8, 21, 37, 0.94)
-    );
+  background: rgba(5, 17, 30, 0.72);
 
-  backdrop-filter: blur(22px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(12px);
 }
 
-.application-header::after {
-  position: absolute;
-  right: 0;
-  bottom: -1px;
-  left: 0;
-  height: 1px;
+.stage-topbar h3 {
+  margin: 3px 0 0;
 
-  content: "";
+  color: var(--text-primary);
 
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(77, 163, 255, 0.7),
-    transparent
-  );
-
-  opacity: 0.45;
+  font-size: 0.9rem;
 }
 
-.application-header > div {
-  display: grid;
-  grid-template-columns: 1fr;
-  width: min(1800px, calc(100% - 48px));
-  margin: 0 auto;
-  padding: 17px 0;
+.stage-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px;
+
+  color: var(--text-muted);
+
+  font-size: 0.58rem;
 }
 
-.application-header p {
-  margin: 0;
-}
-
-.application-header p:first-child {
+.stage-legend > span {
   display: flex;
   align-items: center;
-  gap: 8px;
-
-  margin-bottom: 5px;
-
-  color: var(--digital-twin);
-
-  font-size: 0.69rem;
-  font-weight: 800;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
+  gap: 5px;
 }
 
-.application-header p:first-child::before {
+.legend-dot {
+  display: inline-block;
+
   width: 7px;
   height: 7px;
 
   border-radius: 50%;
+}
 
+.legend-dot--physical {
   background: var(--physical);
 
   box-shadow:
-    0 0 0 4px rgba(49, 214, 160, 0.09),
-    0 0 15px rgba(49, 214, 160, 0.6);
-
-  content: "";
+    0 0 8px rgba(49, 214, 160, 0.55);
 }
 
-.application-header h1 {
-  max-width: 1150px;
-  margin: 0;
+.legend-dot--twin {
+  background: var(--digital-twin);
+
+  box-shadow:
+    0 0 8px rgba(77, 163, 255, 0.55);
+}
+
+.legend-dot--divergence {
+  background: var(--warning);
+
+  box-shadow:
+    0 0 8px rgba(242, 184, 75, 0.55);
+}
+
+
+/* --------------------------------------------------------------------------
+   Stage visualisation
+   -------------------------------------------------------------------------- */
+
+.stage-content {
+  position: relative;
+  z-index: 5;
+
+  flex: 1;
+
+  min-height: 500px;
+}
+
+.stage-centre-marker {
+  position: absolute;
+
+  top: 43%;
+  left: 50%;
+
+  width: 250px;
+  height: 250px;
+
+  transform:
+    translate(-50%, -50%);
+}
+
+.twin-orbit {
+  position: absolute;
+
+  top: 50%;
+  left: 50%;
+
+  border: 1px solid rgba(77, 163, 255, 0.2);
+  border-radius: 50%;
+
+  transform:
+    translate(-50%, -50%);
+}
+
+.twin-orbit--outer {
+  width: 230px;
+  height: 230px;
+
+  border-style: dashed;
+
+  animation:
+    dara-orbit-spin
+    24s
+    linear
+    infinite;
+}
+
+.twin-orbit--inner {
+  width: 155px;
+  height: 155px;
+
+  border-color: rgba(49, 214, 160, 0.15);
+
+  animation:
+    dara-orbit-spin-reverse
+    18s
+    linear
+    infinite;
+}
+
+.stage-physical-node,
+.stage-twin-node {
+  position: absolute;
+
+  z-index: 5;
+
+  display: grid;
+  place-items: center;
+
+  width: 58px;
+  height: 58px;
+
+  border-radius: 50%;
+
+  color: #ffffff;
+
+  font-size: 0.65rem;
+  font-weight: 800;
+}
+
+.stage-physical-node {
+  top: 50%;
+  left: 27%;
+
+  border: 1px solid rgba(49, 214, 160, 0.72);
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(49, 214, 160, 0.28),
+      rgba(5, 30, 29, 0.96)
+    );
+
+  box-shadow:
+    0 0 0 8px rgba(49, 214, 160, 0.04),
+    0 0 35px rgba(49, 214, 160, 0.3);
+
+  transform:
+    translate(-50%, -50%);
+}
+
+.stage-twin-node {
+  top: 50%;
+  left: 73%;
+
+  border: 1px solid rgba(77, 163, 255, 0.78);
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(77, 163, 255, 0.3),
+      rgba(7, 25, 44, 0.97)
+    );
+
+  box-shadow:
+    0 0 0 8px rgba(77, 163, 255, 0.04),
+    0 0 35px rgba(77, 163, 255, 0.32);
+
+  transform:
+    translate(-50%, -50%);
+}
+
+.stage-divergence-link {
+  position: absolute;
+
+  top: 50%;
+  left: 35%;
+
+  width: 30%;
+  height: 2px;
+
+  background:
+    linear-gradient(
+      90deg,
+      var(--physical),
+      var(--warning) 50%,
+      var(--digital-twin)
+    );
+
+  box-shadow:
+    0 0 13px rgba(242, 184, 75, 0.45);
+
+  transform:
+    translateY(-50%);
+
+  animation:
+    dara-divergence-glow
+    2s
+    ease-in-out
+    infinite;
+}
+
+.stage-divergence-link::after {
+  position: absolute;
+
+  top: 50%;
+  left: 50%;
+
+  width: 8px;
+  height: 8px;
+
+  border-radius: 50%;
+
+  background: var(--warning);
+
+  box-shadow:
+    0 0 14px rgba(242, 184, 75, 0.8);
+
+  content: "";
+
+  transform:
+    translate(-50%, -50%);
+}
+
+
+/* --------------------------------------------------------------------------
+   Stage message
+   -------------------------------------------------------------------------- */
+
+.stage-message {
+  position: absolute;
+
+  right: 50%;
+  bottom: 25px;
+
+  width: min(480px, calc(100% - 36px));
+
+  text-align: center;
+
+  transform:
+    translateX(50%);
+}
+
+.stage-message .status-chip {
+  margin-bottom: 8px;
+}
+
+.stage-message h4 {
+  margin: 0 0 5px;
 
   color: var(--text-primary);
 
-  font-size: clamp(1.05rem, 1.7vw, 1.55rem);
-  font-weight: 680;
-  line-height: 1.28;
-  letter-spacing: -0.025em;
+  font-size: 0.84rem;
 }
 
-.application-header h1 + p {
-  margin-top: 5px;
+.stage-message p {
+  margin: 0;
 
   color: var(--text-muted);
 
-  font-size: 0.78rem;
-  font-weight: 500;
-  letter-spacing: 0.04em;
+  font-size: 0.62rem;
+  line-height: 1.55;
 }
 
-.application-content {
-  width: min(1800px, calc(100% - 48px));
-  margin: 0 auto;
-  padding: 20px 0 50px;
+
+/* --------------------------------------------------------------------------
+   Stage floating statistics
+   -------------------------------------------------------------------------- */
+
+.stage-stat {
+  position: absolute;
+
+  z-index: 8;
+
+  min-width: 115px;
+
+  padding: 10px 11px;
+
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+
+  background: rgba(4, 15, 27, 0.8);
+
+  backdrop-filter: blur(12px);
+
+  box-shadow: var(--shadow-small);
 }
 
-/* ==========================================================================
-   Generic operational panel
-   ========================================================================== */
+.stage-stat > span {
+  display: block;
 
-.application-content section {
+  margin-bottom: 3px;
+
+  color: var(--text-muted);
+
+  font-size: 0.54rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.stage-stat > strong {
+  display: block;
+
+  color: var(--text-primary);
+
+  font-size: 1.05rem;
+}
+
+.stage-stat > small {
+  display: block;
+
+  margin-top: 2px;
+
+  color: var(--text-faint);
+
+  font-size: 0.52rem;
+}
+
+.stage-stat--physical {
+  top: 22px;
+  left: 20px;
+
+  border-color: rgba(49, 214, 160, 0.24);
+}
+
+.stage-stat--twin {
+  top: 22px;
+  right: 20px;
+
+  border-color: rgba(77, 163, 255, 0.26);
+}
+
+.stage-stat--divergence {
+  top: 108px;
+  right: 20px;
+
+  border-color: rgba(242, 184, 75, 0.28);
+}
+
+
+/* --------------------------------------------------------------------------
+   Stage footer
+   -------------------------------------------------------------------------- */
+
+.stage-footer {
   position: relative;
+  z-index: 10;
+
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+
+  border-top: 1px solid var(--border);
+
+  background: rgba(4, 14, 25, 0.84);
+}
+
+.stage-footer > span {
+  min-width: 0;
+
+  padding: 10px 11px;
+
   overflow: hidden;
 
-  margin-bottom: 16px;
+  border-right: 1px solid var(--border-soft);
+
+  color: var(--text-muted);
+
+  font-size: 0.56rem;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stage-footer > span:last-child {
+  border-right: 0;
+}
+
+.stage-footer strong {
+  margin-left: 3px;
+
+  color: var(--text-primary);
+
+  font-size: 0.6rem;
+}
+
+
+/* --------------------------------------------------------------------------
+   Authority inspector
+   -------------------------------------------------------------------------- */
+
+.authority-summary {
+  margin: 12px;
+  padding: 14px;
+
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(12, 29, 47, 0.9),
+      rgba(6, 18, 31, 0.94)
+    );
+}
+
+.authority-summary > span,
+.ground-truth-summary > span {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color: var(--text-muted);
+
+  font-size: 0.57rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.authority-summary > strong,
+.ground-truth-summary > strong {
+  display: block;
+
+  margin-bottom: 5px;
+
+  font-size: 1.15rem;
+}
+
+.authority-summary > small {
+  display: block;
+
+  color: var(--text-faint);
+
+  font-size: 0.56rem;
+}
+
+.authority-summary > p,
+.ground-truth-summary > p {
+  margin: 10px 0 0;
+
+  color: var(--text-secondary);
+
+  font-size: 0.62rem;
+  line-height: 1.5;
+}
+
+
+/* --------------------------------------------------------------------------
+   Evidence
+   -------------------------------------------------------------------------- */
+
+.evidence-list {
+  max-height: 245px;
+
+  padding: 4px 12px 12px;
+
+  overflow-y: auto;
+}
+
+.evidence-record {
+  padding: 9px 0;
+
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.evidence-record:last-child {
+  border-bottom: 0;
+}
+
+.evidence-record > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.evidence-record strong {
+  overflow-wrap: anywhere;
+
+  color: var(--text-primary);
+
+  font-size: 0.63rem;
+}
+
+.evidence-record div > span {
+  font-size: 0.55rem;
+  font-weight: 750;
+}
+
+.evidence-record p {
+  margin: 4px 0;
+
+  overflow-wrap: anywhere;
+
+  color: var(--text-secondary);
+
+  font-size: 0.59rem;
+}
+
+.evidence-record small {
+  color: var(--text-faint);
+
+  font-size: 0.53rem;
+}
+
+
+/* --------------------------------------------------------------------------
+   Ground truth
+   -------------------------------------------------------------------------- */
+
+.ground-truth-summary {
+  margin: 12px;
+  padding: 13px;
+
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+
+  background: rgba(8, 21, 35, 0.8);
+}
+
+
+/* --------------------------------------------------------------------------
+   Empty state
+   -------------------------------------------------------------------------- */
+
+.empty-state {
+  margin: 0 !important;
+  padding: 14px !important;
+
+  color: var(--text-muted) !important;
+
+  font-size: 0.65rem !important;
+}
+
+
+/* --------------------------------------------------------------------------
+   Operational detail panels
+   -------------------------------------------------------------------------- */
+
+.scenario-workspace > .operational-detail-panel {
+  grid-column: 1 / -1;
+
+  margin: 0 !important;
+
+  overflow: hidden;
 
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
@@ -320,111 +1134,37 @@ button:disabled {
   background:
     linear-gradient(
       145deg,
-      rgba(14, 29, 48, 0.93),
-      rgba(7, 17, 30, 0.96)
+      rgba(9, 22, 37, 0.96),
+      rgba(5, 15, 27, 0.98)
     );
 
   box-shadow: var(--shadow-panel);
 }
 
-.application-content section::before {
-  position: absolute;
-  top: 0;
-  right: 0;
-  left: 0;
-  height: 1px;
 
-  content: "";
+/* --------------------------------------------------------------------------
+   Divergence records
+   -------------------------------------------------------------------------- */
 
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(128, 177, 225, 0.28),
-    transparent
-  );
+.divergence-table {
+  padding: 10px;
 }
 
-.application-content section > h2 {
-  position: relative;
-
-  margin: 0;
-  padding: 14px 17px;
-
-  border-bottom: 1px solid var(--border-soft);
-
-  color: var(--text-primary);
-
-  font-size: 0.76rem;
-  font-weight: 750;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-
-  background: rgba(4, 13, 24, 0.28);
-}
-
-.application-content section > h2::before {
-  display: inline-block;
-
-  width: 5px;
-  height: 5px;
-  margin-right: 9px;
-  vertical-align: 2px;
-
-  border-radius: 50%;
-
-  background: var(--digital-twin);
-  box-shadow: 0 0 9px var(--digital-twin-glow);
-
-  content: "";
-}
-
-.application-content section > h3 {
-  margin: 0;
-  color: var(--text-primary);
-}
-
-.application-content p {
-  color: var(--text-secondary);
-  line-height: 1.55;
-}
-
-.application-content strong {
-  color: var(--text-primary);
-  font-weight: 650;
-}
-
-.application-content ul {
-  margin: 0;
-  padding-left: 19px;
-}
-
-.application-content li {
-  margin: 6px 0;
-
-  color: var(--text-secondary);
-
-  font-size: 0.87rem;
-  line-height: 1.48;
-}
-
-/* ==========================================================================
-   System status / telemetry strip
-   ========================================================================== */
-
-.system-status {
-  overflow: hidden;
-}
-
-.system-status > div {
-  padding: 14px;
-}
-
-.system-status dl {
+.divergence-record {
   display: grid;
-  grid-template-columns: repeat(4, minmax(150px, 1fr));
+
+  grid-template-columns:
+    minmax(100px, 1fr)
+    minmax(110px, 1fr)
+    minmax(100px, 1fr)
+    minmax(100px, 1fr)
+    minmax(80px, 0.65fr)
+    minmax(80px, 0.65fr);
+
   gap: 1px;
 
-  margin: 0;
+  margin-bottom: 6px;
+
   overflow: hidden;
 
   border: 1px solid var(--border-soft);
@@ -433,687 +1173,473 @@ button:disabled {
   background: var(--border-soft);
 }
 
-.system-status dl > div {
-  position: relative;
-
-  min-width: 0;
-  padding: 13px 14px;
-
-  background:
-    linear-gradient(
-      145deg,
-      rgba(8, 20, 34, 0.96),
-      rgba(10, 24, 40, 0.92)
-    );
-
-  transition:
-    background 160ms ease,
-    transform 160ms ease;
-}
-
-.system-status dl > div:hover {
-  z-index: 2;
-
-  background: var(--surface-hover);
-}
-
-.system-status dt {
-  margin-bottom: 5px;
-
-  color: var(--text-muted);
-
-  font-size: 0.62rem;
-  font-weight: 750;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.system-status dd {
-  margin: 0;
-  overflow-wrap: anywhere;
-
-  color: var(--text-primary);
-
-  font-size: 0.84rem;
-  font-weight: 620;
-}
-
-/* ==========================================================================
-   Scenario command control
-   ========================================================================== */
-
-.scenario-control {
-  overflow: visible !important;
-}
-
-.scenario-control > div,
-.scenario-control > form {
-  padding: 17px;
-}
-
-.scenario-control label {
-  display: block;
-
-  margin-bottom: 7px;
-
-  color: var(--text-muted);
-
-  font-size: 0.65rem;
-  font-weight: 750;
-  letter-spacing: 0.11em;
-  text-transform: uppercase;
-}
-
-.scenario-control select {
-  width: min(100%, 640px);
-  min-height: 42px;
-
-  padding: 0 40px 0 12px;
-
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-sm);
-
-  outline: none;
-
-  color: var(--text-primary);
-  background: rgba(3, 11, 21, 0.9);
-
-  transition:
-    border-color 150ms ease,
-    box-shadow 150ms ease,
-    background 150ms ease;
-}
-
-.scenario-control select:hover {
-  border-color: rgba(77, 163, 255, 0.48);
-}
-
-.scenario-control select:focus {
-  border-color: var(--digital-twin);
-
-  background: rgba(5, 16, 29, 0.98);
-
-  box-shadow:
-    0 0 0 3px var(--digital-twin-soft),
-    0 8px 30px rgba(0, 0, 0, 0.2);
-}
-
-.scenario-control button {
-  min-height: 42px;
-
-  margin-left: 8px;
-  padding: 0 20px;
-
-  border: 1px solid rgba(77, 163, 255, 0.72);
-  border-radius: var(--radius-sm);
-
-  color: #f7fbff;
-
-  background:
-    linear-gradient(
-      135deg,
-      #1677df,
-      #2c91ff
-    );
-
-  box-shadow:
-    0 6px 20px rgba(26, 119, 223, 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.18);
-
-  font-size: 0.78rem;
-  font-weight: 750;
-  letter-spacing: 0.035em;
-
-  transition:
-    transform 130ms ease,
-    box-shadow 130ms ease,
-    filter 130ms ease;
-}
-
-.scenario-control button:hover:not(:disabled) {
-  transform: translateY(-1px);
-
-  filter: brightness(1.08);
-
-  box-shadow:
-    0 10px 28px rgba(26, 119, 223, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-}
-
-.scenario-control button:active:not(:disabled) {
-  transform: translateY(0);
-}
-
-/* ==========================================================================
-   Current ScenarioWorkspace
-
-   This styles the existing research output safely.
-   M5.2 will replace its visual composition with the spatial control centre.
-   ========================================================================== */
-
-.scenario-workspace {
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.scenario-workspace > section {
-  grid-column: span 6;
-
-  min-width: 0;
+.divergence-record:last-child {
   margin-bottom: 0;
 }
 
-.scenario-workspace > section:first-child {
-  grid-column: 1 / -1;
+.divergence-record > div {
+  min-width: 0;
+
+  padding: 10px;
+
+  background: rgba(7, 19, 32, 0.96);
 }
 
-.scenario-workspace section > div,
-.scenario-workspace section > p,
-.scenario-workspace section > dl,
-.scenario-workspace section > ul {
-  margin-right: 17px;
-  margin-left: 17px;
-}
+.divergence-record span {
+  display: block;
 
-.scenario-workspace section > div:last-child,
-.scenario-workspace section > p:last-child,
-.scenario-workspace section > dl:last-child,
-.scenario-workspace section > ul:last-child {
-  margin-bottom: 17px;
-}
+  margin-bottom: 4px;
 
-.scenario-workspace dl {
-  display: grid;
-  grid-template-columns:
-    minmax(120px, 0.72fr)
-    minmax(0, 1.28fr);
-
-  gap: 7px 13px;
-}
-
-.scenario-workspace dt {
   color: var(--text-muted);
 
-  font-size: 0.72rem;
-  font-weight: 580;
+  font-size: 0.52rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
 }
 
-.scenario-workspace dd {
-  margin: 0;
+.divergence-record strong {
+  display: block;
+
   overflow-wrap: anywhere;
 
   color: var(--text-primary);
 
-  font-size: 0.8rem;
+  font-size: 0.62rem;
 }
 
-/* ==========================================================================
-   Spatial workspace foundation
 
-   These classes prepare M5.2/M5.3. They intentionally contain no fake
-   geographic data and do not alter research output.
-   ========================================================================== */
+/* --------------------------------------------------------------------------
+   Propagation
+   -------------------------------------------------------------------------- */
 
-.control-centre {
-  position: relative;
-
+.propagation-list {
   display: grid;
-  grid-template-columns:
-    minmax(220px, 0.72fr)
-    minmax(500px, 2.6fr)
-    minmax(260px, 0.9fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
 
-  gap: 12px;
-
-  min-height: 680px;
-
-  perspective: 1400px;
+  padding: 10px;
 }
 
-.control-rail,
-.assurance-inspector {
-  position: relative;
-  z-index: 5;
-
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-
-  background: var(--glass-strong);
-
-  backdrop-filter: blur(18px);
-
-  box-shadow: var(--shadow-floating);
-}
-
-.digital-twin-stage {
-  position: relative;
-  z-index: 1;
-
+.propagation-record {
   min-width: 0;
-  min-height: 680px;
-  overflow: hidden;
 
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  padding: 12px;
 
-  background:
-    radial-gradient(
-      circle at 50% 38%,
-      rgba(30, 91, 145, 0.18),
-      transparent 32%
-    ),
-    linear-gradient(
-      180deg,
-      #0a1725,
-      #06101b 62%,
-      #040b13
-    );
-
-  box-shadow:
-    inset 0 0 80px rgba(0, 0, 0, 0.34),
-    0 25px 65px rgba(0, 0, 0, 0.35);
-
-  transform-style: preserve-3d;
-}
-
-.digital-twin-stage::before {
-  position: absolute;
-  inset: -15% -10% -20%;
-
-  pointer-events: none;
-
-  content: "";
-
-  background-image:
-    linear-gradient(
-      rgba(81, 139, 188, 0.1) 1px,
-      transparent 1px
-    ),
-    linear-gradient(
-      90deg,
-      rgba(81, 139, 188, 0.1) 1px,
-      transparent 1px
-    );
-
-  background-size: 54px 54px;
-
-  transform:
-    perspective(700px)
-    rotateX(58deg)
-    translateY(120px)
-    scale(1.2);
-
-  transform-origin: center bottom;
-
-  opacity: 0.45;
-}
-
-.digital-twin-stage::after {
-  position: absolute;
-  inset: 0;
-
-  pointer-events: none;
-
-  content: "";
-
-  background:
-    linear-gradient(
-      180deg,
-      rgba(3, 9, 16, 0.06),
-      transparent 40%,
-      rgba(2, 7, 13, 0.42)
-    );
-}
-
-/* ==========================================================================
-   Future map overlays
-   ========================================================================== */
-
-.map-overlay {
-  position: absolute;
-  z-index: 10;
-
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-soft);
   border-radius: var(--radius-sm);
 
-  background: rgba(4, 14, 25, 0.78);
-
-  backdrop-filter: blur(16px);
-
-  box-shadow: var(--shadow-small);
+  background: rgba(7, 19, 32, 0.86);
 }
 
-.map-controls {
-  right: 14px;
-  bottom: 14px;
-
+.propagation-record > div:first-child {
   display: flex;
-  gap: 6px;
-
-  padding: 6px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 
-.map-control-button {
+.propagation-record strong {
+  overflow-wrap: anywhere;
+
+  color: var(--text-primary);
+
+  font-size: 0.65rem;
+}
+
+.propagation-record div:first-child > span {
+  font-size: 0.56rem;
+  font-weight: 750;
+}
+
+.propagation-record p {
+  margin: 7px 0;
+
+  color: var(--text-muted);
+
+  font-size: 0.58rem;
+}
+
+.propagation-path {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+
+  margin-top: 8px;
+}
+
+.propagation-path > span {
+  position: relative;
+
+  padding: 4px 7px;
+
+  border: 1px solid rgba(168, 140, 255, 0.2);
+  border-radius: 999px;
+
+  color: #c9bbff;
+
+  background: var(--ai-soft);
+
+  font-size: 0.52rem;
+}
+
+.propagation-path > span:not(:last-child)::after {
+  margin-left: 7px;
+
+  color: var(--text-faint);
+
+  content: "→";
+}
+
+
+/* --------------------------------------------------------------------------
+   Assurance policies
+   -------------------------------------------------------------------------- */
+
+.assurance-policy-grid {
   display: grid;
-  place-items: center;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
 
-  width: 36px;
-  height: 36px;
+  padding: 10px;
+}
 
-  border: 1px solid var(--border);
-  border-radius: var(--radius-xs);
+.assurance-policy-card {
+  min-width: 0;
+
+  padding: 12px;
+
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+
+  background: rgba(7, 19, 32, 0.88);
+}
+
+.assurance-policy-card > span,
+.evaluation-card > span {
+  display: block;
+
+  overflow-wrap: anywhere;
+
+  color: var(--text-muted);
+
+  font-size: 0.54rem;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.assurance-policy-card > strong {
+  display: block;
+
+  margin: 8px 0 4px;
+
+  font-size: 0.88rem;
+}
+
+.assurance-policy-card > small {
+  display: block;
 
   color: var(--text-secondary);
-  background: rgba(11, 27, 45, 0.9);
+
+  font-size: 0.56rem;
 }
 
-.map-control-button:hover {
-  color: #ffffff;
-  border-color: rgba(77, 163, 255, 0.5);
-  background: rgba(22, 53, 84, 0.96);
+.assurance-policy-card > p {
+  min-height: 50px;
+
+  margin: 9px 0;
+
+  color: var(--text-muted);
+
+  font-size: 0.56rem;
+  line-height: 1.45;
 }
 
-/* ==========================================================================
-   Vehicle visual foundation
-   ========================================================================== */
+.assurance-policy-card > footer {
+  padding-top: 8px;
 
-.vehicle-marker {
-  position: absolute;
-  z-index: 20;
+  border-top: 1px solid var(--border-soft);
 
+  color: var(--text-faint);
+
+  font-size: 0.52rem;
+}
+
+
+/* --------------------------------------------------------------------------
+   Evaluation
+   -------------------------------------------------------------------------- */
+
+.evaluation-grid {
   display: grid;
-  place-items: center;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
 
-  width: 38px;
-  height: 38px;
-
-  border: 1px solid rgba(49, 214, 160, 0.52);
-  border-radius: 50%;
-
-  color: #ffffff;
-  background: rgba(7, 28, 31, 0.94);
-
-  box-shadow:
-    0 0 0 6px rgba(49, 214, 160, 0.06),
-    0 0 26px rgba(49, 214, 160, 0.24),
-    0 8px 20px rgba(0, 0, 0, 0.34);
-
-  transform: translate(-50%, -50%);
-
-  transition:
-    left 800ms cubic-bezier(0.22, 1, 0.36, 1),
-    top 800ms cubic-bezier(0.22, 1, 0.36, 1),
-    transform 180ms ease,
-    box-shadow 180ms ease;
+  padding: 10px;
 }
 
-.vehicle-marker:hover {
-  transform:
-    translate(-50%, -50%)
-    scale(1.12);
+.evaluation-card {
+  min-width: 0;
 
-  box-shadow:
-    0 0 0 8px rgba(49, 214, 160, 0.07),
-    0 0 34px rgba(49, 214, 160, 0.36),
-    0 10px 25px rgba(0, 0, 0, 0.4);
-}
+  padding: 12px;
 
-.vehicle-marker--warning {
-  border-color: rgba(242, 184, 75, 0.7);
-
-  background: rgba(39, 29, 8, 0.95);
-
-  box-shadow:
-    0 0 0 6px rgba(242, 184, 75, 0.07),
-    0 0 28px rgba(242, 184, 75, 0.3);
-}
-
-.vehicle-marker--critical {
-  border-color: rgba(255, 103, 103, 0.75);
-
-  background: rgba(44, 12, 17, 0.95);
-
-  box-shadow:
-    0 0 0 7px rgba(255, 103, 103, 0.07),
-    0 0 32px rgba(255, 103, 103, 0.34);
-}
-
-/* ==========================================================================
-   Digital twin counterpart
-   ========================================================================== */
-
-.twin-marker {
-  position: absolute;
-  z-index: 18;
-
-  width: 32px;
-  height: 32px;
-
-  border: 2px solid var(--digital-twin);
-  border-radius: 50%;
-
-  background: rgba(77, 163, 255, 0.08);
-
-  box-shadow:
-    0 0 0 5px rgba(77, 163, 255, 0.05),
-    0 0 28px rgba(77, 163, 255, 0.26);
-
-  transform: translate(-50%, -50%);
-
-  transition:
-    left 800ms cubic-bezier(0.22, 1, 0.36, 1),
-    top 800ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-/* ==========================================================================
-   Runtime assurance states
-   ========================================================================== */
-
-.authority-allow {
-  color: var(--physical) !important;
-}
-
-.authority-restrict {
-  color: var(--warning) !important;
-}
-
-.authority-defer {
-  color: var(--ai) !important;
-}
-
-.authority-fallback {
-  color: var(--critical) !important;
-}
-
-.evidence-available {
-  color: var(--physical) !important;
-}
-
-.evidence-stale {
-  color: var(--warning) !important;
-}
-
-.evidence-missing {
-  color: var(--inactive) !important;
-}
-
-.evidence-conflicting {
-  color: var(--critical) !important;
-}
-
-/* ==========================================================================
-   Operational alerts
-   ========================================================================== */
-
-.error,
-[role="alert"] {
-  margin: 13px 17px;
-  padding: 10px 12px;
-
-  border: 1px solid rgba(255, 103, 103, 0.3);
+  border: 1px solid var(--border-soft);
   border-radius: var(--radius-sm);
 
-  color: #ffaaaa !important;
-  background: var(--critical-soft);
+  background: rgba(7, 19, 32, 0.88);
+}
+
+.evaluation-card > strong {
+  display: block;
+
+  margin: 8px 0 4px;
 
   font-size: 0.82rem;
 }
 
-/* ==========================================================================
-   Motion
-   ========================================================================== */
+.evaluation-card > small {
+  color: var(--text-secondary);
 
-@keyframes operational-pulse {
+  font-size: 0.55rem;
+}
+
+
+/* --------------------------------------------------------------------------
+   Timeline integration
+   -------------------------------------------------------------------------- */
+
+.scenario-workspace > .assurance-timeline {
+  grid-column: 1 / -1;
+
+  margin: 0 !important;
+
+  justify-content: center;
+}
+
+.timeline-stage > span {
+  display: grid;
+  place-items: center;
+
+  width: 22px;
+  height: 22px;
+
+  border: 1px solid currentColor;
+  border-radius: 50%;
+
+  font-size: 0.52rem;
+}
+
+
+/* --------------------------------------------------------------------------
+   M5.2 animations
+   -------------------------------------------------------------------------- */
+
+@keyframes dara-orbit-spin {
+  from {
+    transform:
+      translate(-50%, -50%)
+      rotate(0deg);
+  }
+
+  to {
+    transform:
+      translate(-50%, -50%)
+      rotate(360deg);
+  }
+}
+
+@keyframes dara-orbit-spin-reverse {
+  from {
+    transform:
+      translate(-50%, -50%)
+      rotate(360deg);
+  }
+
+  to {
+    transform:
+      translate(-50%, -50%)
+      rotate(0deg);
+  }
+}
+
+@keyframes dara-divergence-glow {
   0%,
   100% {
-    opacity: 1;
-    transform: scale(1);
+    opacity: 0.62;
   }
 
   50% {
-    opacity: 0.55;
-    transform: scale(0.82);
+    opacity: 1;
   }
 }
 
-@keyframes divergence-pulse {
-  0% {
-    box-shadow:
-      0 0 0 0 rgba(255, 103, 103, 0.34);
-  }
 
-  70% {
-    box-shadow:
-      0 0 0 14px rgba(255, 103, 103, 0);
-  }
+/* --------------------------------------------------------------------------
+   M5.2 responsive control centre
+   -------------------------------------------------------------------------- */
 
-  100% {
-    box-shadow:
-      0 0 0 0 rgba(255, 103, 103, 0);
-  }
-}
-
-.operational-pulse {
-  animation: operational-pulse 2.1s ease-in-out infinite;
-}
-
-.divergence-pulse {
-  animation: divergence-pulse 1.8s ease-out infinite;
-}
-
-/* ==========================================================================
-   Scrollbars
-   ========================================================================== */
-
-* {
-  scrollbar-width: thin;
-  scrollbar-color:
-    rgba(101, 132, 165, 0.42)
-    rgba(4, 11, 20, 0.4);
-}
-
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: rgba(4, 11, 20, 0.4);
-}
-
-::-webkit-scrollbar-thumb {
-  border-radius: 10px;
-  background: rgba(101, 132, 165, 0.42);
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(119, 153, 188, 0.58);
-}
-
-/* ==========================================================================
-   Responsive
-   ========================================================================== */
-
-@media (max-width: 1250px) {
-  .control-centre {
+@media (max-width: 1380px) {
+  .scenario-workspace > .control-centre {
     grid-template-columns:
-      minmax(210px, 0.75fr)
-      minmax(460px, 2fr);
+      minmax(215px, 0.72fr)
+      minmax(460px, 1.9fr)
+      minmax(245px, 0.82fr);
+  }
+
+  .assurance-policy-grid,
+  .evaluation-grid {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1100px) {
+  .scenario-workspace-summary {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+  }
+
+  .scenario-workspace > .control-centre {
+    grid-template-columns:
+      minmax(210px, 0.7fr)
+      minmax(0, 1.8fr);
   }
 
   .assurance-inspector {
     grid-column: 1 / -1;
+
+    display: grid;
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
   }
 
-  .system-status dl {
-    grid-template-columns: repeat(2, minmax(150px, 1fr));
-  }
-}
-
-@media (max-width: 950px) {
-  .scenario-workspace > section {
+  .assurance-inspector >
+  .control-panel-heading {
     grid-column: 1 / -1;
   }
 
-  .control-centre {
-    grid-template-columns: 1fr;
+  .inspector-section {
+    border-top: 0;
+    border-left: 1px solid var(--border-soft);
   }
 
-  .digital-twin-stage {
-    min-height: 560px;
+  .divergence-record {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 700px) {
-  .application-header > div,
-  .application-content {
-    width: min(100% - 24px, 1800px);
+@media (max-width: 800px) {
+  .scenario-command-header {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
-  .application-header > div {
-    padding: 14px 0;
+  .scenario-command-indicators {
+    justify-content: flex-start;
   }
 
-  .application-content {
-    padding-top: 12px;
+  .scenario-workspace-summary {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
   }
 
-  .system-status dl {
+  .scenario-workspace > .control-centre {
     grid-template-columns: 1fr;
   }
 
-  .scenario-control select {
-    width: 100%;
-  }
-
-  .scenario-control button {
-    width: 100%;
-    margin-top: 8px;
-    margin-left: 0;
-  }
-
-  .scenario-workspace {
-    grid-template-columns: 1fr;
-  }
-
-  .scenario-workspace > section {
+  .control-rail,
+  .digital-twin-stage,
+  .assurance-inspector {
     grid-column: 1;
   }
 
-  .digital-twin-stage {
-    min-height: 480px;
-    border-radius: var(--radius-md);
+  .scenario-workspace .digital-twin-stage {
+    min-height: 590px;
+  }
+
+  .assurance-inspector {
+    display: flex;
+  }
+
+  .inspector-section {
+    border-top: 1px solid var(--border-soft);
+    border-left: 0;
+  }
+
+  .propagation-list {
+    grid-template-columns: 1fr;
+  }
+
+  .assurance-policy-grid,
+  .evaluation-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .stage-footer {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    scroll-behavior: auto !important;
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+@media (max-width: 560px) {
+  .scenario-workspace-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .stage-legend {
+    display: none;
+  }
+
+  .stage-stat {
+    min-width: 96px;
+  }
+
+  .stage-stat--physical {
+    left: 10px;
+  }
+
+  .stage-stat--twin,
+  .stage-stat--divergence {
+    right: 10px;
+  }
+
+  .stage-centre-marker {
+    width: 210px;
+    height: 210px;
+  }
+
+  .twin-orbit--outer {
+    width: 195px;
+    height: 195px;
+  }
+
+  .twin-orbit--inner {
+    width: 130px;
+    height: 130px;
+  }
+
+  .stage-physical-node,
+  .stage-twin-node {
+    width: 50px;
+    height: 50px;
+  }
+
+  .divergence-record {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .assurance-policy-grid,
+  .evaluation-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .scenario-workspace >
+  .assurance-timeline {
+    justify-content: flex-start;
   }
 }
+EOF
