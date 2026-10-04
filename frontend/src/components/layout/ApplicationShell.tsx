@@ -4,28 +4,10 @@ interface ApplicationShellProps {
   children: ReactNode;
 }
 
-interface NavigationItem {
-  label: string;
-  shortLabel: string;
-  active: boolean;
-}
-
-const navigationItems: NavigationItem[] = [
-  {
-    label: "Control Centre",
-    shortLabel: "C",
-    active: true,
-  },
-  {
-    label: "AI Decisions",
-    shortLabel: "AI",
-    active: false,
-  },
-  {
-    label: "Research",
-    shortLabel: "R",
-    active: false,
-  },
+const navigationItems = [
+  { label: "Control Centre", shortLabel: "C", active: true },
+  { label: "AI Decisions", shortLabel: "AI", active: false },
+  { label: "Research", shortLabel: "R", active: false },
 ];
 
 function ApplicationShell({
@@ -54,12 +36,12 @@ function ApplicationShell({
           {navigationItems.map((item) => (
             <button
               key={item.label}
+              type="button"
               className={
                 item.active
                   ? "dara-nav-button dara-nav-button-active"
                   : "dara-nav-button"
               }
-              type="button"
               aria-label={item.label}
               title={item.label}
             >
@@ -72,8 +54,8 @@ function ApplicationShell({
 
         <div className="dara-sidebar-footer">
           <button
-            className="dara-nav-button"
             type="button"
+            className="dara-nav-button"
             aria-label="Settings"
             title="Settings"
           >
@@ -103,8 +85,8 @@ function ApplicationShell({
             </div>
 
             <p className="dara-product-subtitle">
-              Real-time supervision of AI decisions
-              and digital-twin reliability
+              Real-time supervision of AI decisions and
+              digital-twin reliability
             </p>
           </div>
 
