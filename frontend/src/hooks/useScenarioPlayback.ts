@@ -9,6 +9,10 @@ import {
 import type { ScenarioResponse } from "../types/api";
 
 
+/* -------------------------------------------------------------------------- */
+/* Types                                                                      */
+/* -------------------------------------------------------------------------- */
+
 export type PlaybackStageId =
   | "observe"
   | "event"
@@ -38,9 +42,10 @@ export interface PlaybackStage {
 
 export interface ScenarioPlaybackState {
   status: PlaybackStatus;
+
+  stages: PlaybackStage[];
   currentStage: PlaybackStage;
   currentStageIndex: number;
-  stages: PlaybackStage[];
 
   progress: number;
   stageProgress: number;
@@ -63,61 +68,81 @@ export interface ScenarioPlaybackState {
   showPropagation: boolean;
   showTrustResult: boolean;
 
+  hasDivergence: boolean;
+  hasDecisionEffect: boolean;
+  hasPropagation: boolean;
+
   play: () => void;
   pause: () => void;
   restart: () => void;
   togglePlayback: () => void;
+
   setSpeed: (speed: PlaybackSpeed) => void;
-  goToStage: (stageId: PlaybackStageId) => void;
+
+  goToStage: (
+    stageId: PlaybackStageId,
+  ) => void;
 }
 
 
-const STAGES: PlaybackStage[] = [
+/* -------------------------------------------------------------------------- */
+/* Playback configuration                                                     */
+/* -------------------------------------------------------------------------- */
+
+const PLAYBACK_STAGES: PlaybackStage[] = [
   {
     id: "observe",
-    label: "Observe",
+    label: "Observe Operation",
     shortLabel: "Observe",
     description:
-      "Observe the real-world operation and its Digital Twin.",
+      "Observe the real-world logistics operation and its Digital Twin representation.",
     durationMs: 1800,
   },
+
   {
     id: "event",
     label: "Operational Event",
     shortLabel: "Event",
     description:
-      "Reveal the operational condition represented by this scenario.",
+      "Reveal the operational condition represented by the selected research scenario.",
     durationMs: 1800,
   },
+
   {
     id: "compare",
     label: "Compare States",
     shortLabel: "Compare",
     description:
-      "Compare the real-world state with the Digital Twin.",
+      "Compare the real-world system state with the Digital Twin state.",
     durationMs: 2000,
   },
+
   {
     id: "trace",
     label: "Trace Decision Effect",
     shortLabel: "Trace",
     description:
-      "Trace whether the observed condition affects the AI recommendation.",
+      "Trace whether the observed condition affects the AI recommendation or propagates through connected decisions.",
     durationMs: 2400,
   },
+
   {
     id: "trust",
     label: "DARA-DT Trust Check",
     shortLabel: "Trust",
     description:
-      "Reveal the runtime-assurance authority for the AI recommendation.",
+      "Reveal the runtime-assurance authority returned for the AI recommendation.",
     durationMs: 2200,
   },
 ];
 
 
-const TICK_INTERVAL_MS = 50;
+const TICK_INTERVAL_MS = 40;
 
+
+/* -------------------------------------------------------------------------- */
+/* Utility functions                                                          */
+/* -------------------------------------------------------------------------- */
 
 function clamp(
   value: number,
@@ -134,16 +159,17 @@ function clamp(
 function getStageStartTimes(
   stages: PlaybackStage[],
 ): number[] {
-  const starts: number[] = [];
+  const startTimes: number[] = [];
 
   let elapsed = 0;
 
   for (const stage of stages) {
-    starts.push(elapsed);
+    startTimes.push(elapsed);
+
     elapsed += stage.durationMs;
   }
 
-  return starts;
+  return startTimes;
 }
 
 
@@ -161,14 +187,16 @@ function getTotalDuration(
 function getStageIndexForElapsedTime(
   elapsedMs: number,
   stages: PlaybackStage[],
-  stageStarts: number[],
+  stageStartTimes: number[],
 ): number {
   for (
     let index = stages.length - 1;
     index >= 0;
     index -= 1
   ) {
-    if (elapsedMs >= stageStarts[index]) {
+    if (
+      elapsedMs >= stageStartTimes[index]
+    ) {
       return index;
     }
   }
@@ -176,6 +204,10 @@ function getStageIndexForElapsedTime(
   return 0;
 }
 
+
+/* -------------------------------------------------------------------------- */
+/* Hook                                                                       */
+/* -------------------------------------------------------------------------- */
 
 export function useScenarioPlayback(
   scenario: ScenarioResponse,
@@ -190,14 +222,24 @@ export function useScenarioPlayback(
     useState<PlaybackSpeed>(1);
 
 
+  const animationFrameRef =
+    useRef<number | null>(null);
+
   const previousTimestampRef =
     useRef<number | null>(null);
 
+  const accumulatedSinceCommitRef =
+    useRef(0);
 
-  const stages = STAGES;
+
+  /* ------------------------------------------------------------------------ */
+  /* Static playback calculations                                             */
+  /* ------------------------------------------------------------------------ */
+
+  const stages = PLAYBACK_STAGES;
 
 
-  const stageStarts = useMemo(
+  const stageStartTimes = useMemo(
     () => getStageStartTimes(stages),
     [stages],
   );
@@ -209,61 +251,9 @@ export function useScenarioPlayback(
   );
 
 
-  const currentStageIndex =
-    getStageIndexForElapsedTime(
-      elapsedMs,
-      stages,
-      stageStarts,
-    );
-
-
-  const currentStage =
-    stages[currentStageIndex];
-
-
-  const currentStageStart =
-    stageStarts[currentStageIndex];
-
-
-  const currentStageElapsed =
-    elapsedMs - currentStageStart;
-
-
-  const stageProgress = clamp(
-    currentStageElapsed /
-      currentStage.durationMs,
-    0,
-    1,
-  );
-
-
-  const progress = clamp(
-    elapsedMs / totalDurationMs,
-    0,
-    1,
-  );
-
-
-  const isIdle = status === "idle";
-  const isPlaying = status === "playing";
-  const isPaused = status === "paused";
-  const isComplete = status === "complete";
-
-
-  const stageReached = useCallback(
-    (stageId: PlaybackStageId): boolean => {
-      const targetIndex = stages.findIndex(
-        (stage) => stage.id === stageId,
-      );
-
-      return (
-        targetIndex >= 0 &&
-        currentStageIndex >= targetIndex
-      );
-    },
-    [currentStageIndex, stages],
-  );
-
+  /* ------------------------------------------------------------------------ */
+  /* Scenario-derived research facts                                          */
+  /* ------------------------------------------------------------------------ */
 
   const hasDivergence =
     scenario.divergences.length > 0;
@@ -283,61 +273,174 @@ export function useScenarioPlayback(
     );
 
 
+  /* ------------------------------------------------------------------------ */
+  /* Current playback position                                                */
+  /* ------------------------------------------------------------------------ */
+
+  const currentStageIndex =
+    getStageIndexForElapsedTime(
+      elapsedMs,
+      stages,
+      stageStartTimes,
+    );
+
+
+  const currentStage =
+    stages[currentStageIndex];
+
+
+  const currentStageStartMs =
+    stageStartTimes[currentStageIndex];
+
+
+  const currentStageElapsedMs =
+    elapsedMs - currentStageStartMs;
+
+
+  const stageProgress = clamp(
+    currentStageElapsedMs /
+      currentStage.durationMs,
+    0,
+    1,
+  );
+
+
+  const progress = clamp(
+    elapsedMs / totalDurationMs,
+    0,
+    1,
+  );
+
+
+  /* ------------------------------------------------------------------------ */
+  /* Status helpers                                                           */
+  /* ------------------------------------------------------------------------ */
+
+  const isIdle =
+    status === "idle";
+
+  const isPlaying =
+    status === "playing";
+
+  const isPaused =
+    status === "paused";
+
+  const isComplete =
+    status === "complete";
+
+
+  /* ------------------------------------------------------------------------ */
+  /* Stage visibility                                                         */
+  /* ------------------------------------------------------------------------ */
+
+  const stageReached = useCallback(
+    (
+      stageId: PlaybackStageId,
+    ): boolean => {
+      const targetIndex =
+        stages.findIndex(
+          (stage) =>
+            stage.id === stageId,
+        );
+
+      if (targetIndex < 0) {
+        return false;
+      }
+
+      return (
+        currentStageIndex >= targetIndex
+      );
+    },
+    [
+      currentStageIndex,
+      stages,
+    ],
+  );
+
+
   /*
-   * Playback visibility is intentionally derived from
+   * These values control WHAT the visualisation
+   * is allowed to reveal at each playback stage.
+   *
+   * Scientific outcomes are always derived from
    * ScenarioResponse.
    *
-   * The animation layer does not invent scientific outcomes.
-   * It only controls when already-computed research evidence
-   * becomes visible to the user.
+   * The playback layer only controls WHEN those
+   * already-computed outcomes become visible.
    */
 
   const showOperationalWorld =
     stageReached("observe");
 
+
   const showScenarioEvent =
     stageReached("event");
+
 
   const showComparison =
     stageReached("compare");
 
+
   const showMismatch =
-    showComparison && hasDivergence;
+    showComparison &&
+    hasDivergence;
+
 
   const showDecisionTrace =
     stageReached("trace") &&
     hasDecisionEffect;
 
+
   const showPropagation =
     stageReached("trace") &&
     hasPropagation;
+
 
   const showTrustResult =
     stageReached("trust");
 
 
-  const play = useCallback(() => {
-    setStatus((currentStatus) => {
-      if (currentStatus === "complete") {
-        setElapsedMs(0);
-      }
+  /* ------------------------------------------------------------------------ */
+  /* Playback actions                                                         */
+  /* ------------------------------------------------------------------------ */
 
-      return "playing";
-    });
+  const play = useCallback(() => {
+    setStatus(
+      (currentStatus) => {
+        if (
+          currentStatus === "complete"
+        ) {
+          setElapsedMs(0);
+        }
+
+        return "playing";
+      },
+    );
   }, []);
 
 
   const pause = useCallback(() => {
-    setStatus((currentStatus) =>
-      currentStatus === "playing"
-        ? "paused"
-        : currentStatus,
+    setStatus(
+      (currentStatus) => {
+        if (
+          currentStatus !== "playing"
+        ) {
+          return currentStatus;
+        }
+
+        return "paused";
+      },
     );
   }, []);
 
 
   const restart = useCallback(() => {
-    previousTimestampRef.current = null;
+    previousTimestampRef.current =
+      null;
+
+    accumulatedSinceCommitRef.current =
+      0;
+
     setElapsedMs(0);
     setStatus("playing");
   }, []);
@@ -351,11 +454,17 @@ export function useScenarioPlayback(
       }
 
       play();
-    }, [pause, play, status]);
+    }, [
+      pause,
+      play,
+      status,
+    ]);
 
 
   const setSpeed = useCallback(
-    (nextSpeed: PlaybackSpeed) => {
+    (
+      nextSpeed: PlaybackSpeed,
+    ) => {
       setPlaybackSpeed(nextSpeed);
     },
     [],
@@ -363,130 +472,198 @@ export function useScenarioPlayback(
 
 
   const goToStage = useCallback(
-    (stageId: PlaybackStageId) => {
-      const stageIndex = stages.findIndex(
-        (stage) => stage.id === stageId,
-      );
+    (
+      stageId: PlaybackStageId,
+    ) => {
+      const stageIndex =
+        stages.findIndex(
+          (stage) =>
+            stage.id === stageId,
+        );
 
       if (stageIndex < 0) {
         return;
       }
 
-      previousTimestampRef.current = null;
+      previousTimestampRef.current =
+        null;
 
-      setElapsedMs(stageStarts[stageIndex]);
+      accumulatedSinceCommitRef.current =
+        0;
 
-      setStatus(
-        stageIndex === stages.length - 1
-          ? "paused"
-          : "paused",
+      setElapsedMs(
+        stageStartTimes[stageIndex],
       );
+
+      setStatus("paused");
     },
-    [stageStarts, stages],
+    [
+      stageStartTimes,
+      stages,
+    ],
   );
 
 
-  /*
-   * Reset playback whenever the backend returns a
-   * different research scenario.
-   */
+  /* ------------------------------------------------------------------------ */
+  /* Reset when scenario changes                                              */
+  /* ------------------------------------------------------------------------ */
+
   useEffect(() => {
-    previousTimestampRef.current = null;
+    previousTimestampRef.current =
+      null;
+
+    accumulatedSinceCommitRef.current =
+      0;
+
     setElapsedMs(0);
     setStatus("idle");
     setPlaybackSpeed(1);
   }, [scenario.scenario_id]);
 
 
-  /*
-   * Playback clock.
-   *
-   * requestAnimationFrame gives the UI smooth progression,
-   * while TICK_INTERVAL_MS prevents unnecessary React state
-   * updates on every browser frame.
-   */
+  /* ------------------------------------------------------------------------ */
+  /* Playback clock                                                           */
+  /* ------------------------------------------------------------------------ */
+
   useEffect(() => {
     if (status !== "playing") {
-      previousTimestampRef.current = null;
+      previousTimestampRef.current =
+        null;
+
+      accumulatedSinceCommitRef.current =
+        0;
+
+      if (
+        animationFrameRef.current !==
+        null
+      ) {
+        window.cancelAnimationFrame(
+          animationFrameRef.current,
+        );
+
+        animationFrameRef.current =
+          null;
+      }
+
       return;
     }
-
-    let animationFrameId = 0;
-    let lastCommittedElapsed = elapsedMs;
 
 
     function tick(timestamp: number) {
       if (
-        previousTimestampRef.current === null
+        previousTimestampRef.current ===
+        null
       ) {
         previousTimestampRef.current =
           timestamp;
       }
 
-      const delta =
+
+      const rawDelta =
         timestamp -
         previousTimestampRef.current;
+
 
       previousTimestampRef.current =
         timestamp;
 
 
+      const scaledDelta =
+        rawDelta * speed;
+
+
+      accumulatedSinceCommitRef.current +=
+        scaledDelta;
+
+
       if (
-        delta > 0 &&
-        timestamp - lastCommittedElapsed >=
-          TICK_INTERVAL_MS
+        accumulatedSinceCommitRef.current >=
+        TICK_INTERVAL_MS
       ) {
-        setElapsedMs((currentElapsed) => {
-          const nextElapsed =
-            currentElapsed +
-            delta * speed;
+        const committedDelta =
+          accumulatedSinceCommitRef.current;
 
-          if (
-            nextElapsed >= totalDurationMs
-          ) {
-            previousTimestampRef.current =
-              null;
 
-            setStatus("complete");
+        accumulatedSinceCommitRef.current =
+          0;
 
-            return totalDurationMs;
-          }
 
-          return nextElapsed;
-        });
+        setElapsedMs(
+          (currentElapsed) => {
+            const nextElapsed =
+              currentElapsed +
+              committedDelta;
 
-        lastCommittedElapsed = timestamp;
+
+            if (
+              nextElapsed >=
+              totalDurationMs
+            ) {
+              previousTimestampRef.current =
+                null;
+
+              setStatus("complete");
+
+              return totalDurationMs;
+            }
+
+
+            return nextElapsed;
+          },
+        );
       }
 
-      animationFrameId =
-        window.requestAnimationFrame(tick);
+
+      animationFrameRef.current =
+        window.requestAnimationFrame(
+          tick,
+        );
     }
 
 
-    animationFrameId =
-      window.requestAnimationFrame(tick);
+    animationFrameRef.current =
+      window.requestAnimationFrame(
+        tick,
+      );
 
 
     return () => {
-      window.cancelAnimationFrame(
-        animationFrameId,
-      );
+      if (
+        animationFrameRef.current !==
+        null
+      ) {
+        window.cancelAnimationFrame(
+          animationFrameRef.current,
+        );
 
-      previousTimestampRef.current = null;
+        animationFrameRef.current =
+          null;
+      }
+
+
+      previousTimestampRef.current =
+        null;
+
+      accumulatedSinceCommitRef.current =
+        0;
     };
   }, [
-    elapsedMs,
     speed,
     status,
     totalDurationMs,
   ]);
 
 
+  /* ------------------------------------------------------------------------ */
+  /* Public API                                                               */
+  /* ------------------------------------------------------------------------ */
+
   return {
     status,
+
+    stages,
     currentStage,
     currentStageIndex,
-    stages,
 
     progress,
     stageProgress,
@@ -509,11 +686,17 @@ export function useScenarioPlayback(
     showPropagation,
     showTrustResult,
 
+    hasDivergence,
+    hasDecisionEffect,
+    hasPropagation,
+
     play,
     pause,
     restart,
     togglePlayback,
+
     setSpeed,
+
     goToStage,
   };
 }

@@ -10,12 +10,6 @@ interface SystemStatusProps {
   error: string | null;
 }
 
-function formatStatus(value: string): string {
-  return value
-    .replaceAll("_", " ")
-    .replace(/\b\w/g, (character) => character.toUpperCase());
-}
-
 function SystemStatus({
   health,
   project,
@@ -24,120 +18,215 @@ function SystemStatus({
 }: SystemStatusProps) {
   if (loading) {
     return (
-      <section className="system-status">
-        <h2>System Status</h2>
-
-        <div className="system-status-message">
-          <span className="status-chip status-chip--twin">
-            Connecting
-          </span>
-
-          <p>Connecting to the DARA-DT Research API...</p>
-        </div>
-      </section>
-    );
-  }
-
-  if (error) {
-    return (
-      <section className="system-status">
-        <h2>System Status</h2>
-
-        <div className="system-status-message">
-          <span className="status-chip status-chip--critical">
-            Offline
-          </span>
-
-          <p role="alert">{error}</p>
-        </div>
-      </section>
-    );
-  }
-
-  if (!health || !project) {
-    return (
-      <section className="system-status">
-        <h2>System Status</h2>
-
-        <div className="system-status-message">
-          <span className="status-chip status-chip--warning">
-            Unavailable
-          </span>
-
-          <p>Research system status is currently unavailable.</p>
-        </div>
-      </section>
-    );
-  }
-
-  return (
-    <section className="system-status">
-      <h2>System Status</h2>
-
-      <div>
-        <div className="system-status-overview">
+      <section
+        className="operations-overview"
+        aria-label="Control Centre status"
+      >
+        <div className="operations-overview-header">
           <div>
-            <span className="status-chip status-chip--healthy">
-              API Online
+            <span className="operations-eyebrow">
+              CONTROL CENTRE
             </span>
 
+            <h2>Connecting to DARA-DT</h2>
+
             <p>
-              Frozen research programme connected to the interactive
-              demonstrator.
+              Establishing communication with the runtime
+              assurance service.
             </p>
           </div>
 
-          <div className="system-status-experiment">
-            <span>Research Programme</span>
-            <strong>
-              {project.experiments_completed}/{project.experiments_total}
-            </strong>
+          <span className="operations-live operations-live-loading">
+            CONNECTING
+          </span>
+        </div>
+      </section>
+    );
+  }
+
+  if (error || !health || !project) {
+    return (
+      <section
+        className="operations-overview operations-overview-error"
+        aria-label="Control Centre status"
+      >
+        <div className="operations-overview-header">
+          <div>
+            <span className="operations-eyebrow">
+              CONTROL CENTRE
+            </span>
+
+            <h2>Runtime Connection Unavailable</h2>
+
+            <p>
+              DARA-DT cannot currently verify AI decisions.
+              Restore the research API connection before
+              continuing operations.
+            </p>
           </div>
+
+          <span className="operations-live operations-live-error">
+            OFFLINE
+          </span>
         </div>
 
-        <dl>
-          <div>
-            <dt>API Status</dt>
-            <dd>{formatStatus(health.status)}</dd>
+        {error && (
+          <div
+            className="operations-alert"
+            role="alert"
+          >
+            {error}
+          </div>
+        )}
+      </section>
+    );
+  }
+
+  const programmeComplete =
+    project.experiments_completed ===
+    project.experiments_total;
+
+  return (
+    <section
+      className="operations-overview"
+      aria-labelledby="operations-overview-title"
+    >
+      <div className="operations-overview-header">
+        <div>
+          <span className="operations-eyebrow">
+            CONTROL CENTRE
+          </span>
+
+          <h2 id="operations-overview-title">
+            Operations Overview
+          </h2>
+
+          <p>
+            Monitor autonomous logistics decisions,
+            digital-twin reliability and situations
+            requiring human attention.
+          </p>
+        </div>
+
+        <span className="operations-live">
+          <span
+            className="operations-live-dot"
+            aria-hidden="true"
+          />
+          LIVE
+        </span>
+      </div>
+
+      <div className="operations-status-grid">
+        <article className="operations-status-card">
+          <div className="operations-card-heading">
+            <span className="operations-card-icon">
+              SYS
+            </span>
+
+            <span className="operations-card-label">
+              SYSTEM
+            </span>
           </div>
 
-          <div>
-            <dt>Service</dt>
-            <dd>{health.service}</dd>
+          <strong className="operations-card-value">
+            Operational
+          </strong>
+
+          <p>
+            Runtime assurance service connected
+          </p>
+
+          <span className="operations-card-state operations-state-positive">
+            <span aria-hidden="true">●</span>
+            Connected
+          </span>
+        </article>
+
+        <article className="operations-status-card">
+          <div className="operations-card-heading">
+            <span className="operations-card-icon">
+              AI
+            </span>
+
+            <span className="operations-card-label">
+              AI SUPERVISION
+            </span>
           </div>
 
-          <div>
-            <dt>API Version</dt>
-            <dd>{health.version}</dd>
+          <strong className="operations-card-value">
+            Ready
+          </strong>
+
+          <p>
+            AI decisions can be checked by DARA-DT
+          </p>
+
+          <span className="operations-card-state operations-state-positive">
+            <span aria-hidden="true">●</span>
+            Assurance active
+          </span>
+        </article>
+
+        <article className="operations-status-card">
+          <div className="operations-card-heading">
+            <span className="operations-card-icon">
+              DT
+            </span>
+
+            <span className="operations-card-label">
+              DIGITAL TWIN
+            </span>
           </div>
 
-          <div>
-            <dt>Research Domain</dt>
-            <dd>{project.research_domain}</dd>
+          <strong className="operations-card-value">
+            Available
+          </strong>
+
+          <p>
+            Physical and digital states ready for comparison
+          </p>
+
+          <span className="operations-card-state operations-state-positive">
+            <span aria-hidden="true">●</span>
+            Monitoring ready
+          </span>
+        </article>
+
+        <article className="operations-status-card">
+          <div className="operations-card-heading">
+            <span className="operations-card-icon">
+              RX
+            </span>
+
+            <span className="operations-card-label">
+              RESEARCH BASIS
+            </span>
           </div>
 
-          <div>
-            <dt>Experimental Domain</dt>
-            <dd>{project.experimental_domain}</dd>
-          </div>
+          <strong className="operations-card-value">
+            {project.experiments_completed}/
+            {project.experiments_total}
+          </strong>
 
-          <div>
-            <dt>Experiments</dt>
-            <dd>
-              {project.experiments_completed}/{project.experiments_total}
-            </dd>
-          </div>
+          <p>
+            Experimental programme supporting the demonstrator
+          </p>
 
-          <div>
-            <dt>Contribution Status</dt>
-            <dd>{formatStatus(project.contribution_status)}</dd>
-          </div>
+          <span
+            className={`operations-card-state ${
+              programmeComplete
+                ? "operations-state-positive"
+                : "operations-state-neutral"
+            }`}
+          >
+            <span aria-hidden="true">●</span>
 
-          <div>
-            <dt>Current Stage</dt>
-            <dd>{formatStatus(project.current_stage)}</dd>
-          </div>
-        </dl>
+            {programmeComplete
+              ? "Programme complete"
+              : "Programme in progress"}
+          </span>
+        </article>
       </div>
     </section>
   );
