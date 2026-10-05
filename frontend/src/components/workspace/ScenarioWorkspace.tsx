@@ -57,7 +57,9 @@ interface EvidencePresentation {
 type StoryNode =
   | "real"
   | "vehicle"
+  | "mismatch"
   | "twin"
+  | "propagation"
   | "decision"
   | "assurance";
 
@@ -789,7 +791,20 @@ function ScenarioWorkspace({
             {showComparison ? (
               <div className="absolute left-[37%] top-[45%] z-30 -translate-x-1/2">
                 {showMismatch ? (
-                  <div className="flex items-center gap-2 rounded-full border border-amber-400/20 bg-[#17130c]/95 px-3 py-1.5 shadow-[0_0_30px_rgba(251,191,36,0.08)] backdrop-blur">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSelectedNode(
+                        selectedNode === "mismatch" ? null : "mismatch",
+                      )
+                    }
+                    className={[
+                      "flex items-center gap-2 rounded-full border border-amber-400/20 bg-[#17130c]/95 px-3 py-1.5 shadow-[0_0_30px_rgba(251,191,36,0.08)] backdrop-blur transition",
+                      "hover:border-amber-300/35 hover:bg-amber-400/[0.10] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300/50",
+                      selectedNode === "mismatch" ? "ring-1 ring-amber-300/40" : "",
+                    ].join(" ")}
+                    aria-label="Inspect real-world and Digital Twin mismatch"
+                  >
                     <AlertTriangle
                       size={12}
                       strokeWidth={2}
@@ -798,7 +813,7 @@ function ScenarioWorkspace({
                     <span className="text-[9px] font-semibold text-amber-200">
                       Reality ≠ Twin
                     </span>
-                  </div>
+                  </button>
                 ) : (
                   <div className="flex items-center gap-2 rounded-full border border-emerald-400/10 bg-[#0d1713]/90 px-3 py-1.5 backdrop-blur">
                     <Check
@@ -868,7 +883,20 @@ function ScenarioWorkspace({
             {showTrace ? (
               showPropagation ? (
                 <div className="absolute bottom-[14%] left-[51%] z-30">
-                  <div className="flex items-center gap-2 rounded-full border border-amber-400/15 bg-amber-400/[0.055] px-3 py-1.5 backdrop-blur">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSelectedNode(
+                        selectedNode === "propagation" ? null : "propagation",
+                      )
+                    }
+                    className={[
+                      "flex items-center gap-2 rounded-full border border-amber-400/15 bg-amber-400/[0.055] px-3 py-1.5 backdrop-blur transition",
+                      "hover:border-amber-300/30 hover:bg-amber-400/[0.10] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300/50",
+                      selectedNode === "propagation" ? "ring-1 ring-amber-300/40" : "",
+                    ].join(" ")}
+                    aria-label="Inspect knock-on effect"
+                  >
                     <GitBranch
                       size={12}
                       strokeWidth={2}
@@ -881,12 +909,25 @@ function ScenarioWorkspace({
                       size={11}
                       className="text-amber-500"
                     />
-                  </div>
+                  </button>
                 </div>
               ) : playback.hasDivergence &&
                 !mismatchAffectsDecision ? (
                 <div className="absolute bottom-[14%] left-[49%] z-30">
-                  <div className="flex items-center gap-2 rounded-full border border-blue-400/12 bg-blue-400/[0.045] px-3 py-1.5 backdrop-blur">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSelectedNode(
+                        selectedNode === "propagation" ? null : "propagation",
+                      )
+                    }
+                    className={[
+                      "flex items-center gap-2 rounded-full border border-blue-400/12 bg-blue-400/[0.045] px-3 py-1.5 backdrop-blur transition",
+                      "hover:border-blue-300/25 hover:bg-blue-400/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/40",
+                      selectedNode === "propagation" ? "ring-1 ring-blue-300/30" : "",
+                    ].join(" ")}
+                    aria-label="Inspect isolated issue"
+                  >
                     <CircleDot
                       size={12}
                       className="text-blue-400"
@@ -894,7 +935,7 @@ function ScenarioWorkspace({
                     <span className="text-[9px] font-medium text-blue-300">
                       Issue isolated
                     </span>
-                  </div>
+                  </button>
                 </div>
               ) : null
             ) : null}
@@ -1002,51 +1043,295 @@ function ScenarioWorkspace({
               </div>
             </button>
 
-            {/* NODE INSPECTOR */}
+            {/* INTERACTIVE OBJECT INSPECTOR */}
             {selectedNode ? (
-              <div className="absolute bottom-4 left-4 z-40 max-w-[300px] rounded-xl border border-white/[0.07] bg-[#11141a]/95 p-3.5 shadow-2xl backdrop-blur-xl">
+              <div className="absolute bottom-4 left-4 z-40 w-[min(390px,calc(100%-2rem))] rounded-2xl border border-white/[0.08] bg-[#0f1218]/95 p-4 shadow-2xl backdrop-blur-xl">
                 <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <span className="text-[8px] font-semibold uppercase tracking-[0.13em] text-violet-400">
-                      System Detail
+                  <div className="min-w-0">
+                    <span className="text-[8px] font-semibold uppercase tracking-[0.14em] text-violet-400">
+                      Object Inspector
                     </span>
-                    <strong className="mt-1 block text-[11px] font-medium text-zinc-200">
+                    <strong className="mt-1 block truncate text-[12px] font-semibold text-zinc-100">
                       {selectedNode === "real" && "Real-World Operations"}
                       {selectedNode === "vehicle" && humanize(vehicleId)}
+                      {selectedNode === "mismatch" && "Reality vs Digital Twin"}
                       {selectedNode === "twin" && "Digital Twin"}
+                      {selectedNode === "propagation" &&
+                        (showPropagation ? "Knock-on Effect" : "Issue Isolation")}
                       {selectedNode === "decision" && "AI Recommendation"}
                       {selectedNode === "assurance" && "DARA-DT Trust Check"}
                     </strong>
                   </div>
                   <button
                     type="button"
-                    aria-label="Close detail"
+                    aria-label="Close object inspector"
                     onClick={() => setSelectedNode(null)}
-                    className="text-zinc-600 transition-colors hover:text-zinc-300"
+                    className="grid size-7 shrink-0 place-items-center rounded-lg border border-white/[0.05] bg-white/[0.025] text-zinc-600 transition hover:bg-white/[0.05] hover:text-zinc-200"
                   >
                     ×
                   </button>
                 </div>
 
-                <p className="mt-2 text-[10px] leading-5 text-zinc-500">
-                  {selectedNode === "real" &&
-                    "The physical logistics system represented by this research scenario."}
-                  {selectedNode === "vehicle" &&
-                    (showMismatch
-                      ? selectedDivergence
-                        ? `${humanize(selectedDivergence.variable)} differs between the real system and Digital Twin.`
-                        : "A mismatch exists between the vehicle and its digital representation."
-                      : "The vehicle state is being observed.")}
-                  {selectedNode === "twin" &&
-                    (showMismatch
-                      ? "The Digital Twin does not fully match the represented real-world state."
-                      : "The Digital Twin currently agrees with the represented real-world state.")}
-                  {selectedNode === "decision" &&
-                    `The AI recommendation is: ${action}.`}
-                  {selectedNode === "assurance" &&
-                    (primaryAssurance?.reason ??
-                      "No assurance explanation is available.")}
-                </p>
+                <div className="mt-3 border-t border-white/[0.05] pt-3">
+                  {selectedNode === "real" ? (
+                    <div className="space-y-3">
+                      <p className="text-[10px] leading-5 text-zinc-400">
+                        The physical logistics state represented by this frozen research scenario.
+                        DARA-DT compares this state with its Digital Twin before judging the AI recommendation.
+                      </p>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="rounded-xl border border-white/[0.05] bg-white/[0.02] p-2.5">
+                          <span className="block text-[8px] uppercase tracking-[0.12em] text-zinc-700">
+                            Scenario
+                          </span>
+                          <strong className="mt-1 block text-[10px] text-zinc-300">
+                            {scenario.scenario_id}
+                          </strong>
+                        </div>
+                        <div className="rounded-xl border border-white/[0.05] bg-white/[0.02] p-2.5">
+                          <span className="block text-[8px] uppercase tracking-[0.12em] text-zinc-700">
+                            Mismatches
+                          </span>
+                          <strong className="mt-1 block text-[10px] text-zinc-300">
+                            {scenario.divergences.length}
+                          </strong>
+                        </div>
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {selectedNode === "vehicle" ? (
+                    <div className="space-y-3">
+                      <p className="text-[10px] leading-5 text-zinc-400">
+                        {showMismatch
+                          ? "DARA-DT has detected a difference involving this vehicle."
+                          : "This vehicle is currently represented consistently across the real-world and Digital Twin states."}
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        <span className="rounded-full border border-white/[0.06] bg-white/[0.025] px-2.5 py-1 text-[9px] text-zinc-400">
+                          {humanize(vehicleId)}
+                        </span>
+                        <span className={[
+                          "rounded-full border px-2.5 py-1 text-[9px]",
+                          showMismatch
+                            ? "border-amber-400/15 bg-amber-400/[0.05] text-amber-300"
+                            : "border-emerald-400/12 bg-emerald-400/[0.04] text-emerald-300",
+                        ].join(" ")}>
+                          {showMismatch ? "Mismatch detected" : "State aligned"}
+                        </span>
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {selectedNode === "mismatch" ? (
+                    <div className="space-y-3">
+                      {selectedDivergence ? (
+                        <>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div className="rounded-xl border border-blue-400/10 bg-blue-400/[0.035] p-2.5">
+                              <span className="block text-[8px] uppercase tracking-[0.12em] text-blue-400/70">
+                                Real World
+                              </span>
+                              <strong className="mt-1 block break-words text-[10px] text-zinc-200">
+                                {String(selectedDivergence.physical_value)}
+                              </strong>
+                            </div>
+                            <div className="rounded-xl border border-violet-400/10 bg-violet-400/[0.035] p-2.5">
+                              <span className="block text-[8px] uppercase tracking-[0.12em] text-violet-400/70">
+                                Digital Twin
+                              </span>
+                              <strong className="mt-1 block break-words text-[10px] text-zinc-200">
+                                {String(selectedDivergence.twin_value)}
+                              </strong>
+                            </div>
+                          </div>
+                          <div className="rounded-xl border border-amber-400/12 bg-amber-400/[0.04] p-3">
+                            <span className="block text-[8px] uppercase tracking-[0.12em] text-amber-400/70">
+                              Variable
+                            </span>
+                            <strong className="mt-1 block text-[10px] text-amber-200">
+                              {humanize(selectedDivergence.variable)}
+                            </strong>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            <span className={[
+                              "rounded-full border px-2.5 py-1 text-[9px]",
+                              selectedDivergence.decision_relevant
+                                ? "border-red-400/15 bg-red-400/[0.05] text-red-300"
+                                : "border-blue-400/12 bg-blue-400/[0.04] text-blue-300",
+                            ].join(" ")}>
+                              {selectedDivergence.decision_relevant
+                                ? "Affects information used by AI"
+                                : "Not required by this AI decision"}
+                            </span>
+                            <span className={[
+                              "rounded-full border px-2.5 py-1 text-[9px]",
+                              selectedDivergence.decision_impacting
+                                ? "border-amber-400/15 bg-amber-400/[0.05] text-amber-300"
+                                : "border-white/[0.06] bg-white/[0.025] text-zinc-500",
+                            ].join(" ")}>
+                              {selectedDivergence.decision_impacting
+                                ? "Could change recommendation"
+                                : "No direct decision impact"}
+                            </span>
+                          </div>
+                        </>
+                      ) : (
+                        <p className="text-[10px] leading-5 text-zinc-500">
+                          No divergence record is present in this scenario.
+                        </p>
+                      )}
+                    </div>
+                  ) : null}
+
+                  {selectedNode === "twin" ? (
+                    <div className="space-y-3">
+                      <p className="text-[10px] leading-5 text-zinc-400">
+                        {showMismatch
+                          ? "The Digital Twin differs from the represented physical state. The mismatch is evaluated for decision relevance and impact before authority is assigned."
+                          : "The Digital Twin currently agrees with the represented physical state."}
+                      </p>
+                      <div className="flex items-center gap-2 rounded-xl border border-white/[0.05] bg-white/[0.02] p-3">
+                        <RefreshCw size={14} className={showMismatch ? "text-amber-300" : "text-cyan-400"} />
+                        <span className="text-[10px] text-zinc-300">
+                          {showMismatch ? "State comparison: different" : "State comparison: synchronized"}
+                        </span>
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {selectedNode === "propagation" ? (
+                    <div className="space-y-3">
+                      <p className="text-[10px] leading-5 text-zinc-400">
+                        {showPropagation
+                          ? "The mismatch has a research-backed propagation relationship into the current decision context."
+                          : "A mismatch exists, but the research model does not propagate it into the current AI recommendation."}
+                      </p>
+                      <div className="grid grid-cols-3 gap-2">
+                        <div className="rounded-xl border border-white/[0.05] bg-white/[0.02] p-2.5 text-center">
+                          <strong className="block text-[13px] text-zinc-200">
+                            {scenario.divergences.length}
+                          </strong>
+                          <span className="mt-1 block text-[7px] uppercase tracking-[0.10em] text-zinc-700">
+                            Mismatch
+                          </span>
+                        </div>
+                        <div className="rounded-xl border border-white/[0.05] bg-white/[0.02] p-2.5 text-center">
+                          <strong className="block text-[13px] text-zinc-200">
+                            {impactingDivergences.length}
+                          </strong>
+                          <span className="mt-1 block text-[7px] uppercase tracking-[0.10em] text-zinc-700">
+                            Affects AI
+                          </span>
+                        </div>
+                        <div className="rounded-xl border border-white/[0.05] bg-white/[0.02] p-2.5 text-center">
+                          <strong className="block text-[13px] text-zinc-200">
+                            {propagatingRecords.length}
+                          </strong>
+                          <span className="mt-1 block text-[7px] uppercase tracking-[0.10em] text-zinc-700">
+                            Knock-on
+                          </span>
+                        </div>
+                      </div>
+                      {propagatingRecords.length > 0 ? (
+                        <div className="space-y-2">
+                          {propagatingRecords.slice(0, 3).map((record, index) => (
+                            <div
+                              key={`${record.source_decision}-${record.target_decision}-${index}`}
+                              className="rounded-xl border border-amber-400/10 bg-amber-400/[0.035] p-2.5"
+                            >
+                              <span className="block text-[8px] uppercase tracking-[0.11em] text-amber-400/70">
+                                Propagation {index + 1}
+                              </span>
+                              <span className="mt-1 block text-[9px] leading-4 text-zinc-400">
+                                {humanize(record.affected_dependency ?? "Unknown dependency")}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : null}
+
+                  {selectedNode === "decision" ? (
+                    <div className="space-y-3">
+                      <p className="text-[10px] leading-5 text-zinc-400">
+                        The AI recommends <span className="font-medium text-violet-300">{action}</span>.
+                        DARA-DT checks whether the information supporting this recommendation remains trustworthy enough to grant authority.
+                      </p>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="rounded-xl border border-white/[0.05] bg-white/[0.02] p-2.5">
+                          <span className="block text-[8px] uppercase tracking-[0.12em] text-zinc-700">
+                            Vehicle
+                          </span>
+                          <strong className="mt-1 block text-[10px] text-zinc-300">
+                            {humanize(vehicleId)}
+                          </strong>
+                        </div>
+                        <div className="rounded-xl border border-white/[0.05] bg-white/[0.02] p-2.5">
+                          <span className="block text-[8px] uppercase tracking-[0.12em] text-zinc-700">
+                            Order
+                          </span>
+                          <strong className="mt-1 block text-[10px] text-zinc-300">
+                            {humanize(orderId)}
+                          </strong>
+                        </div>
+                      </div>
+                      <div>
+                        <span className="text-[8px] uppercase tracking-[0.12em] text-zinc-700">
+                          Information used by AI
+                        </span>
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {scenario.ai_decision.dependencies.slice(0, 6).map((dependency, index) => (
+                            <span
+                              key={`${dependency.dependency}-${index}`}
+                              className="rounded-full border border-violet-400/10 bg-violet-400/[0.04] px-2 py-1 text-[8px] text-violet-300/80"
+                            >
+                              {humanize(dependency.dependency)}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {selectedNode === "assurance" ? (
+                    <div className="space-y-3">
+                      <div className={[
+                        "rounded-xl border p-3",
+                        trustPresentation?.borderClass ?? "border-white/[0.05]",
+                        trustPresentation?.backgroundClass ?? "bg-white/[0.02]",
+                      ].join(" ")}>
+                        <span className="block text-[8px] uppercase tracking-[0.12em] text-zinc-600">
+                          AI Permission
+                        </span>
+                        <strong className={[
+                          "mt-1 block text-[15px]",
+                          trustPresentation?.textClass ?? "text-zinc-300",
+                        ].join(" ")}>
+                          {trustPresentation?.label ?? "PENDING"}
+                        </strong>
+                        <span className="mt-1 block text-[9px] text-zinc-400">
+                          {trustPresentation?.description ?? "Trust result not yet available"}
+                        </span>
+                      </div>
+                      <p className="text-[10px] leading-5 text-zinc-400">
+                        {primaryAssurance?.reason ?? "DARA-DT has not revealed the assurance result yet."}
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        <span className="rounded-full border border-white/[0.06] bg-white/[0.025] px-2.5 py-1 text-[9px] text-zinc-500">
+                          {relevantDivergences.length} decision-relevant
+                        </span>
+                        <span className="rounded-full border border-white/[0.06] bg-white/[0.025] px-2.5 py-1 text-[9px] text-zinc-500">
+                          {impactingDivergences.length} decision-impacting
+                        </span>
+                        <span className="rounded-full border border-white/[0.06] bg-white/[0.025] px-2.5 py-1 text-[9px] text-zinc-500">
+                          {scenario.assurance_results.length} methods evaluated
+                        </span>
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
               </div>
             ) : null}
           </div>
