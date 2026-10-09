@@ -2,36 +2,57 @@
 import MovingVehicle from "./MovingVehicle";
 import ScenarioWorkspaceLegacy from "./ScenarioWorkspaceLegacy";
 
+import {
+  SharedScenarioPlaybackProvider,
+  useSharedScenarioPlayback,
+} from "../../hooks/SharedScenarioPlayback";
+
 import type { ScenarioResponse } from "../../types/api";
-import { useScenarioPlayback } from "../../hooks/useScenarioPlayback";
 
 interface ScenarioWorkspaceProps {
   scenario: ScenarioResponse;
 }
 
+/**
+ * Main workspace entry point.
+ *
+ * A single provider controls both the moving vehicle
+ * and the existing DARA-DT research visualization.
+ */
 export default function ScenarioWorkspace({
   scenario,
 }: ScenarioWorkspaceProps) {
   return (
-    <div className="space-y-5">
-      <ScenarioMovementView scenario={scenario} />
+    <SharedScenarioPlaybackProvider
+      key={scenario.scenario_id}
+      scenario={scenario}
+    >
+      <div className="space-y-5">
+        <ScenarioMovementView scenario={scenario} />
 
-      <ScenarioWorkspaceLegacy scenario={scenario} />
-    </div>
+        <ScenarioWorkspaceLegacy scenario={scenario} />
+      </div>
+    </SharedScenarioPlaybackProvider>
   );
 }
 
+/**
+ * Vehicle journey panel.
+ *
+ * The playback clock is shared with ScenarioWorkspaceLegacy.
+ * This component must not call useScenarioPlayback directly.
+ */
 function ScenarioMovementView({
   scenario,
 }: ScenarioWorkspaceProps) {
-  const playback = useScenarioPlayback(scenario);
+  const playback = useSharedScenarioPlayback();
 
   return (
     <section className="overflow-hidden rounded-2xl border border-white/10 bg-[#0C0F14]">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 px-5 py-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-widest text-[#F6534D]">
-            M5F.1 · Logistics Simulation
+            M5F.2 · Synchronized Logistics Playback
           </p>
 
           <h2 className="mt-1 text-xl font-semibold text-white">
@@ -60,9 +81,18 @@ function ScenarioMovementView({
           <button
             type="button"
             onClick={playback.togglePlayback}
+            aria-label={
+              playback.isPlaying
+                ? "Pause synchronized playback"
+                : "Play synchronized playback"
+            }
             className="rounded-xl bg-[#F6534D] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#E4443E]"
           >
-            {playback.isPlaying ? "Pause journey" : "Play journey"}
+            {playback.isPlaying
+              ? "Pause simulation"
+              : playback.isComplete
+                ? "Replay simulation"
+                : "Play simulation"}
           </button>
 
           <button
@@ -115,10 +145,10 @@ function ScenarioMovementView({
       </div>
 
       <p className="border-t border-white/10 px-5 py-3 text-xs leading-5 text-zinc-500">
-        Illustrative scenario playback. Vehicle positions and
-        movement timing are schematic, not measured GPS data.
-        Research decisions remain supplied by the existing
-        DARA-DT backend.
+        Synchronized illustrative playback. Journey positions
+        and timings are schematic rather than measured GPS
+        data. Research outcomes come from the existing
+        DARA-DT scenario response.
       </p>
     </section>
   );
