@@ -25,7 +25,7 @@ import {
   Zap,
 } from "lucide-react";
 
-import { useScenarioPlayback } from "../../hooks/useScenarioPlayback";
+import { useSharedScenarioPlayback } from "../../hooks/SharedScenarioPlayback";
 import type {
   AssuranceResult,
   Authority,
@@ -221,7 +221,7 @@ function ScenarioWorkspace({
   const [showExplanation, setShowExplanation] =
     useState(false);
 
-  const playback = useScenarioPlayback(scenario);
+  const playback = useSharedScenarioPlayback();
 
   const primaryAssurance = selectPrimaryAssurance(
     scenario.assurance_results,
