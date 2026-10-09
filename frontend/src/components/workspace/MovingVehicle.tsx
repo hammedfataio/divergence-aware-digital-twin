@@ -1,6 +1,6 @@
 
 import { useId } from "react";
-import { AlertTriangle, Truck } from "lucide-react";
+import { AlertTriangle, MapPin } from "lucide-react";
 
 type ScenarioFamily = "F0" | "F1" | "F2" | "F3" | "F4";
 
@@ -10,68 +10,245 @@ interface MovingVehicleProps {
   className?: string;
 }
 
-function clamp(value: number): number {
-  return Math.max(0, Math.min(1, value));
-}
+type Point = {
+  x: number;
+  y: number;
+};
 
-function getFamily(scenarioId: string): ScenarioFamily {
-  const family = scenarioId.slice(0, 2).toUpperCase();
+type VehiclePoint = Point & {
+  angle: number;
+};
 
-  if (
-    family === "F0" ||
-    family === "F1" ||
+const TRUCK_ICON = "/icons/dump-truck.png";
+
+const ORANGE = "#F97316";
+const ORANGE_DARK = "#EA580C";
+const TWIN_BLUE = "#1976B9";
+
+const clamp = (n: number): number =>
+  Number.isFinite(n)
+    ? Math.max(0, Math.min(1, n))
+    : 0;
+
+const getFamily = (id: string): ScenarioFamily => {
+  const family = id.slice(0, 2).toUpperCase();
+
+  return family === "F1" ||
     family === "F2" ||
     family === "F3" ||
     family === "F4"
-  ) {
-    return family;
-  }
+    ? family
+    : "F0";
+};
 
-  return "F0";
+/**
+ * DARA-DT M7.12
+ *
+ * Curved-road logistics simulation.
+ *
+ * Scientific integrity:
+ * - Road geometry is fictional.
+ * - Movement is deterministic.
+ * - Vehicle positions are illustrative.
+ * - Separation is not measured divergence.
+ * - Backend scenario results determine assurance decisions.
+ */
+
+const ROUTE_PATH =
+  "M 82 340 C 117 337, 142 325, 160 295 S 188 237, 224 226 C 264 214, 294 218, 318 182 S 364 126, 401 135 C 438 143, 468 117, 485 93 S 535 70, 572 66";
+
+const ROADS = [
+  "M -20 350 C 110 360 155 320 190 267 S 300 205 335 165 S 470 90 665 45",
+  "M -20 260 C 115 240 165 265 245 218 S 380 165 650 140",
+  "M -10 155 C 110 130 180 155 265 115 S 450 55 650 20",
+  "M 30 -20 C 55 110 82 205 45 395",
+  "M 130 -20 C 150 80 120 160 175 235 S 190 330 205 410",
+  "M 260 -20 C 250 95 300 160 265 230 S 295 330 320 410",
+  "M 420 -20 C 395 95 445 165 415 235 S 440 340 455 410",
+  "M 550 -20 C 535 90 565 190 530 255 S 550 335 580 410",
+  "M -20 75 C 125 90 210 40 315 75 S 490 95 665 105",
+  "M -20 390 C 135 390 240 365 365 340 S 515 295 665 310",
+];
+
+const BEZIERS: [
+  Point,
+  Point,
+  Point,
+  Point
+][] = [
+  [
+    { x: 82, y: 340 },
+    { x: 117, y: 337 },
+    { x: 142, y: 325 },
+    { x: 160, y: 295 },
+  ],
+  [
+    { x: 160, y: 295 },
+    { x: 178, y: 265 },
+    { x: 188, y: 237 },
+    { x: 224, y: 226 },
+  ],
+  [
+    { x: 224, y: 226 },
+    { x: 264, y: 214 },
+    { x: 294, y: 218 },
+    { x: 318, y: 182 },
+  ],
+  [
+    { x: 318, y: 182 },
+    { x: 342, y: 146 },
+    { x: 364, y: 126 },
+    { x: 401, y: 135 },
+  ],
+  [
+    { x: 401, y: 135 },
+    { x: 438, y: 143 },
+    { x: 468, y: 117 },
+    { x: 485, y: 93 },
+  ],
+  [
+    { x: 485, y: 93 },
+    { x: 502, y: 69 },
+    { x: 535, y: 70 },
+    { x: 572, y: 66 },
+  ],
+];
+
+function bezier(
+  [a, b, c, d]: [Point, Point, Point, Point],
+  t: number,
+): Point {
+  const s = 1 - t;
+
+  return {
+    x:
+      s * s * s * a.x +
+      3 * s * s * t * b.x +
+      3 * s * t * t * c.x +
+      t * t * t * d.x,
+
+    y:
+      s * s * s * a.y +
+      3 * s * s * t * b.y +
+      3 * s * t * t * c.y +
+      t * t * t * d.y,
+  };
 }
 
+/**
+ * Sample the fictional route for approximately
+ * distance-based vehicle movement.
+ */
+const samples: Point[] = BEZIERS.flatMap(
+  (segment, index) =>
+    Array.from(
+      { length: 41 },
+      (_, i) => bezier(segment, i / 40),
+    ).filter((_, i) => index === 0 || i > 0),
+);
+
+const distances = samples.map((point, index) =>
+  index === 0
+    ? 0
+    : Math.hypot(
+        point.x - samples[index - 1].x,
+        point.y - samples[index - 1].y,
+      ),
+);
+
+const cumulative: number[] = [];
+
+let runningDistance = 0;
+
+for (const distance of distances) {
+  runningDistance += distance;
+  cumulative.push(runningDistance);
+}
+
+const totalLength = cumulative[cumulative.length - 1];
+
+function pointAt(progress: number): VehiclePoint {
+  const target = clamp(progress) * totalLength;
+
+  let index = cumulative.findIndex(
+    (distance) => distance >= target,
+  );
+
+  if (index < 1) {
+    index = 1;
+  }
+
+  const a = samples[index - 1];
+  const b = samples[index];
+
+  const segmentLength =
+    cumulative[index] - cumulative[index - 1];
+
+  const ratio =
+    segmentLength > 0
+      ? (target - cumulative[index - 1]) /
+        segmentLength
+      : 0;
+
+  return {
+    x: a.x + (b.x - a.x) * ratio,
+    y: a.y + (b.y - a.y) * ratio,
+    angle:
+      (Math.atan2(
+        b.y - a.y,
+        b.x - a.x,
+      ) *
+        180) /
+      Math.PI,
+  };
+}
+
+/**
+ * Scenario-specific visual movement.
+ *
+ * Thresholds are illustration parameters,
+ * not research measurements.
+ */
 function movementPositions(
   family: ScenarioFamily,
   progress: number,
 ) {
   const time = clamp(progress);
-
-  // Deterministic illustration, not measured telemetry.
-  const normalPosition = clamp(time * 1.15);
+  const normal = clamp(time * 1.15);
 
   switch (family) {
     case "F1":
       return {
-        physical: Math.min(normalPosition, 0.34),
-        twin: normalPosition,
+        physical: Math.min(normal, 0.34),
+        twin: normal,
         eventActive: time >= 0.3,
       };
 
     case "F3":
       return {
-        physical: Math.min(normalPosition, 0.58),
-        twin: normalPosition,
+        physical: Math.min(normal, 0.58),
+        twin: normal,
         eventActive: time >= 0.52,
       };
 
     case "F4":
       return {
-        physical: Math.min(normalPosition, 0.45),
-        twin: normalPosition,
+        physical: Math.min(normal, 0.45),
+        twin: normal,
         eventActive: time >= 0.4,
       };
 
     case "F2":
       return {
-        physical: normalPosition,
-        twin: normalPosition,
+        physical: normal,
+        twin: normal,
         eventActive: time >= 0.35,
       };
 
     default:
       return {
-        physical: normalPosition,
-        twin: normalPosition,
+        physical: normal,
+        twin: normal,
         eventActive: false,
       };
   }
@@ -83,224 +260,338 @@ export default function MovingVehicle({
   className = "",
 }: MovingVehicleProps) {
   const family = getFamily(scenarioId);
-  const positions = movementPositions(family, progress);
 
-  const physicalX = 55 + positions.physical * 530;
-  const twinX = 55 + positions.twin * 530;
+  const state = movementPositions(
+    family,
+    progress,
+  );
 
-  const isSeparated =
-    Math.abs(positions.physical - positions.twin) > 0.025;
+  const physical = pointAt(state.physical);
+  const twin = pointAt(state.twin);
 
-  const isInterrupted =
-    positions.eventActive &&
-    (family === "F1" || family === "F3" || family === "F4");
+  const separated =
+    Math.abs(state.physical - state.twin) > 0.025;
 
-  const routeId = useId().replace(/:/g, "");
+  const interrupted =
+    state.eventActive &&
+    (family === "F1" ||
+      family === "F3" ||
+      family === "F4");
+
+  const id = useId().replace(/:/g, "");
 
   return (
     <section
-      className={`overflow-hidden rounded-2xl border border-slate-200 bg-[#F7F8F5] ${className}`}
-      aria-label="Schematic vehicle simulation"
+      className={`flex h-full min-h-[600px] min-w-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-[#F7F8F5] ${className}`}
+      aria-label="Illustrative curved-road vehicle simulation"
     >
+      {/* HEADER */}
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white px-5 py-4">
         <div>
           <h2 className="text-base font-semibold text-[#172B31]">
             Operational Journey
           </h2>
+
           <p className="mt-1 text-xs text-slate-500">
-            Scenario {scenarioId} · Illustrative route playback
+            Scenario {scenarioId} · Curved-road route
+            simulation
           </p>
         </div>
 
         <span
           className={`rounded-full px-3 py-1 text-xs font-semibold ${
-            isInterrupted
+            interrupted
               ? "bg-amber-100 text-amber-800"
               : "bg-emerald-100 text-emerald-800"
           }`}
         >
-          {isInterrupted
+          {interrupted
             ? "Movement interrupted"
-            : "Journey in progress"}
+            : "Journey simulation"}
         </span>
       </header>
 
-      <div className="px-4 py-6">
+      {/* MAP */}
+      <div className="flex min-h-0 flex-1 items-center justify-center p-3 sm:p-5">
         <svg
-          viewBox="0 0 640 245"
-          className="h-auto w-full"
+          viewBox="0 0 640 400"
+          preserveAspectRatio="xMidYMid meet"
+          className="block h-auto max-h-full w-full"
           role="img"
-          aria-label={
-            `Physical vehicle at ${Math.round(
-              positions.physical * 100,
-            )}% of illustrative route; Digital Twin at ${Math.round(
-              positions.twin * 100,
-            )}%`
-          }
+          aria-label={`Illustrative physical vehicle ${Math.round(
+            state.physical * 100,
+          )} percent along route; Digital Twin ${Math.round(
+            state.twin * 100,
+          )} percent`}
         >
           <defs>
             <pattern
-              id={`${routeId}-grid`}
-              width="38"
-              height="38"
+              id={`${id}-blocks`}
+              width="44"
+              height="44"
               patternUnits="userSpaceOnUse"
             >
               <path
-                d="M38 0H0V38"
+                d="M44 0H0V44"
                 fill="none"
-                stroke="#DDE5E1"
+                stroke="#D7DFDA"
                 strokeWidth="1"
               />
             </pattern>
+
+            <filter
+              id={`${id}-truck-shadow`}
+              x="-50%"
+              y="-50%"
+              width="200%"
+              height="200%"
+            >
+              <feDropShadow
+                dx="0"
+                dy="3"
+                stdDeviation="3"
+                floodColor="#172B31"
+                floodOpacity="0.3"
+              />
+            </filter>
           </defs>
+
+          {/* BACKGROUND */}
+          <rect
+            width="640"
+            height="400"
+            rx="14"
+            fill="#E9EEEA"
+          />
 
           <rect
             width="640"
-            height="245"
-            rx="16"
-            fill={`url(#${routeId}-grid)`}
+            height="400"
+            rx="14"
+            fill={`url(#${id}-blocks)`}
+            opacity=".55"
           />
 
-          {/* Schematic roads */}
+          {/* LANDSCAPE */}
           <path
-            d="M0 75H640M0 177H640"
-            stroke="#FFFFFF"
-            strokeWidth="17"
+            d="M20 290 Q85 280 115 320 L90 400 H0 V320Z M485 210 Q535 175 620 205 L640 260 L550 285Z"
+            fill="#CDE6C4"
           />
+
+          {/* ROADS */}
+          {ROADS.map((road, index) => (
+            <g key={index}>
+              <path
+                d={road}
+                fill="none"
+                stroke="#D1D9D4"
+                strokeWidth="24"
+                strokeLinecap="round"
+              />
+
+              <path
+                d={road}
+                fill="none"
+                stroke="#FFFFFF"
+                strokeWidth="19"
+                strokeLinecap="round"
+              />
+            </g>
+          ))}
+
+          {/* MAIN ROUTE */}
           <path
-            d="M155 0V245M440 0V245"
-            stroke="#FFFFFF"
+            d={ROUTE_PATH}
+            fill="none"
+            stroke="#B3C1BA"
             strokeWidth="15"
+            strokeLinecap="round"
           />
 
-          {/* Route */}
           <path
-            d="M55 130H585"
+            d={ROUTE_PATH}
+            fill="none"
             stroke="#FFFFFF"
-            strokeWidth="20"
+            strokeWidth="11"
             strokeLinecap="round"
           />
+
+          {/* PLANNED ROUTE */}
           <path
-            d="M55 130H585"
-            stroke="#CFD9D4"
-            strokeWidth="12"
+            d={ROUTE_PATH}
+            fill="none"
+            stroke={TWIN_BLUE}
+            strokeWidth="4"
+            strokeDasharray="1 13"
             strokeLinecap="round"
           />
+
+          {/* PHYSICAL ROUTE PROGRESS — ORANGE */}
           <path
-            d={`M55 130H${physicalX}`}
-            stroke="#F6534D"
-            strokeWidth="8"
+            d={ROUTE_PATH}
+            fill="none"
+            stroke={ORANGE}
+            strokeWidth="5"
             strokeLinecap="round"
+            pathLength="100"
+            strokeDasharray={`${state.physical * 100} 100`}
+            opacity=".9"
           />
 
-          {/* Origin */}
-          <circle
-            cx="55"
-            cy="130"
-            r="15"
-            fill="#172B31"
-            stroke="white"
-            strokeWidth="4"
-          />
-          <text
-            x="55"
-            y="166"
-            textAnchor="middle"
-            fontSize="13"
-            fontWeight="600"
-            fill="#172B31"
-          >
-            Origin
-          </text>
-
-          {/* Destination */}
-          <circle
-            cx="585"
-            cy="130"
-            r="15"
-            fill="#F6534D"
-            stroke="white"
-            strokeWidth="4"
-          />
-          <text
-            x="585"
-            y="166"
-            textAnchor="middle"
-            fontSize="13"
-            fontWeight="600"
-            fill="#172B31"
-          >
-            Order
-          </text>
-
-          {/* Digital Twin shadow */}
-          <g transform={`translate(${twinX}, 87)`}>
+          {/* DEPOT */}
+          <g transform="translate(82 340)">
             <circle
-              r="19"
-              fill="#1976B9"
-              fillOpacity="0.15"
-              stroke="#1976B9"
-              strokeWidth="2"
-              strokeDasharray="4 4"
+              r="13"
+              fill="#172B31"
+              stroke="white"
+              strokeWidth="4"
             />
-            <rect
-              x="-12"
-              y="-8"
-              width="24"
-              height="16"
-              rx="5"
-              fill="#1976B9"
-            />
+
             <text
-              y="-27"
-              textAnchor="middle"
-              fontSize="12"
+              x="-4"
+              y="-23"
+              fontSize="13"
               fontWeight="600"
-              fill="#1976B9"
+              fill="#172B31"
             >
-              Twin
+              Depot
             </text>
           </g>
 
-          {/* Physical vehicle */}
-          <g transform={`translate(${physicalX}, 130)`}>
-            <circle
-              r="27"
-              fill="#F6534D"
-              fillOpacity="0.17"
-            />
-            <circle
-              r="19"
-              fill="#F6534D"
-              stroke="#FFFFFF"
-              strokeWidth="4"
-            />
-            <path
-              d="M-11 -7H3L10 0V8H-11Z"
-              fill="none"
+          {/* DESTINATION */}
+          <g transform="translate(572 66)">
+            <MapPin
+              x={-17}
+              y={-35}
+              width={34}
+              height={34}
+              color={ORANGE_DARK}
+              fill={ORANGE}
               stroke="white"
-              strokeWidth="2"
-              strokeLinejoin="round"
+              strokeWidth={1.5}
             />
-            <circle cx="-6" cy="9" r="2.5" fill="white" />
-            <circle cx="6" cy="9" r="2.5" fill="white" />
+
+            <text
+              x="-4"
+              y="22"
+              textAnchor="middle"
+              fontSize="12"
+              fontWeight="600"
+              fill="#172B31"
+            >
+              Order
+            </text>
           </g>
 
-          {/* Event marker */}
-          {positions.eventActive && family !== "F0" && (
-            <g transform="translate(330 205)">
+          {/* DIGITAL TWIN */}
+          {separated && (
+            <g
+              transform={`translate(${twin.x} ${twin.y})`}
+            >
+              <circle
+                r="20"
+                fill={TWIN_BLUE}
+                fillOpacity=".12"
+                stroke={TWIN_BLUE}
+                strokeWidth="2"
+                strokeDasharray="5 4"
+              />
+
+              <circle
+                r="8"
+                fill={TWIN_BLUE}
+                stroke="white"
+                strokeWidth="2"
+              />
+
+              <text
+                y="-28"
+                textAnchor="middle"
+                fontSize="12"
+                fontWeight="700"
+                fill={TWIN_BLUE}
+              >
+                Twin
+              </text>
+            </g>
+          )}
+
+          {/* ORANGE PHYSICAL TRUCK */}
+          <g
+            transform={`translate(${physical.x} ${physical.y})`}
+            filter={`url(#${id}-truck-shadow)`}
+          >
+            {/* Visual highlight */}
+            <circle
+              r="27"
+              fill={ORANGE}
+              fillOpacity=".15"
+            />
+
+            <circle
+              r="22"
+              fill="white"
+              fillOpacity=".8"
+            />
+
+            {/*
+              Keep the truck artwork horizontal so that
+              its detailed side profile remains readable
+              as it travels around the curved route.
+            */}
+            <image
+              href={TRUCK_ICON}
+              x="-32"
+              y="-19"
+              width="64"
+              height="38"
+              preserveAspectRatio="xMidYMid meet"
+            />
+          </g>
+
+          {/* POSITION SEPARATION NOTICE */}
+          {separated && (
+            <g>
               <rect
-                x="-118"
-                y="-17"
-                width="236"
-                height="34"
+                x="176"
+                y="15"
+                width="288"
+                height="32"
+                rx="16"
+                fill="#FFF0D8"
+                stroke="#E6B86D"
+              />
+
+              <text
+                x="320"
+                y="35"
+                textAnchor="middle"
+                fontSize="12"
+                fontWeight="600"
+                fill="#8C4C08"
+              >
+                Physical and Twin positions differ
+              </text>
+            </g>
+          )}
+
+          {/* SCENARIO EVENT */}
+          {state.eventActive && family !== "F0" && (
+            <g>
+              <rect
+                x="170"
+                y="355"
+                width="300"
+                height="32"
                 rx="12"
                 fill="#FFF0D8"
                 stroke="#E6B86D"
               />
+
               <text
+                x="320"
+                y="375"
                 textAnchor="middle"
-                y="5"
                 fontSize="12"
                 fontWeight="600"
                 fill="#8C4C08"
@@ -315,26 +606,18 @@ export default function MovingVehicle({
               </text>
             </g>
           )}
-
-          {isSeparated && (
-            <text
-              x="320"
-              y="31"
-              textAnchor="middle"
-              fontSize="13"
-              fontWeight="600"
-              fill="#B76A12"
-            >
-              Reality and Twin positions differ
-            </text>
-          )}
         </svg>
       </div>
 
-      <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 bg-white px-5 py-4">
-        <div className="flex flex-wrap items-center gap-4 text-xs text-[#172B31]">
+      {/* LEGEND */}
+      <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 bg-white px-5 py-3 text-xs text-[#172B31]">
+        <div className="flex flex-wrap items-center gap-4">
           <span className="inline-flex items-center gap-2">
-            <Truck size={15} className="text-[#F6534D]" />
+            <img
+              src={TRUCK_ICON}
+              alt=""
+              className="h-5 w-8 object-contain"
+            />
             Physical vehicle
           </span>
 
@@ -342,20 +625,28 @@ export default function MovingVehicle({
             <span className="h-3 w-3 rounded-full bg-[#1976B9]" />
             Digital Twin
           </span>
+
+          <span className="inline-flex items-center gap-2">
+            <span className="h-1 w-5 rounded-full border-t-4 border-dotted border-[#1976B9]" />
+            Planned route
+          </span>
         </div>
 
-        {isInterrupted && (
-          <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-700">
+        {interrupted && (
+          <span className="inline-flex items-center gap-1 font-medium text-amber-700">
             <AlertTriangle size={14} />
             Review operational event
           </span>
         )}
       </footer>
 
-      <p className="px-5 pb-4 text-xs text-slate-500">
-        Demonstration geometry only. Positions and event timing
-        illustrate scenario behaviour; they are not measured
-        GPS coordinates or experimental telemetry.
+      {/* RESEARCH DISCLAIMER */}
+      <p className="bg-white px-5 pb-4 text-xs leading-5 text-slate-500">
+        Fictional road geometry and deterministic movement
+        only. This is not a real map, GPS track, measured
+        experimental telemetry or measured divergence.
+        Backend research results determine assurance
+        decisions.
       </p>
     </section>
   );

@@ -12,11 +12,8 @@ import {
   GitBranch,
   Info,
   Network,
-  Pause,
-  Play,
   Radio,
   RefreshCw,
-  RotateCcw,
   Route,
   ShieldCheck,
   Truck,
@@ -298,104 +295,6 @@ function ScenarioWorkspace({
 
   return (
     <section className="space-y-4">
-      {/* PLAYBACK CONTROL CENTRE */}
-      <section className="overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0c0f14]">
-        <div className="flex flex-col gap-4 p-4 lg:flex-row lg:items-center">
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={playback.togglePlayback}
-              className="grid size-10 place-items-center rounded-xl border border-violet-400/20 bg-violet-400/[0.08] text-violet-300 transition hover:bg-violet-400/[0.14]"
-              aria-label={playback.isPlaying ? "Pause playback" : "Play playback"}
-            >
-              {playback.isPlaying ? (
-                <Pause size={17} fill="currentColor" />
-              ) : (
-                <Play size={17} fill="currentColor" />
-              )}
-            </button>
-
-            <button
-              type="button"
-              onClick={playback.restart}
-              className="grid size-10 place-items-center rounded-xl border border-white/[0.06] bg-white/[0.025] text-zinc-500 transition hover:bg-white/[0.05] hover:text-zinc-200"
-              aria-label="Restart playback"
-            >
-              <RotateCcw size={16} />
-            </button>
-          </div>
-
-          <div className="min-w-0 flex-1">
-            <div className="mb-2 flex items-center justify-between gap-3">
-              <div>
-                <span className="text-[8px] font-semibold uppercase tracking-[0.14em] text-violet-400">
-                  Runtime Playback
-                </span>
-                <strong className="ml-2 text-[11px] font-medium text-zinc-300">
-                  {playback.currentStage.label}
-                </strong>
-              </div>
-
-              <span className="text-[9px] tabular-nums text-zinc-600">
-                {Math.round(playback.progress * 100)}%
-              </span>
-            </div>
-
-            <div className="relative h-1 overflow-hidden rounded-full bg-white/[0.05]">
-              <div
-                className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-blue-400 via-violet-400 to-emerald-400 transition-[width] duration-75"
-                style={{ width: `${playback.progress * 100}%` }}
-              />
-            </div>
-
-            <div className="mt-3 grid grid-cols-5 gap-1">
-              {playback.stages.map((stage, index) => {
-                const reached =
-                  index <= playback.currentStageIndex;
-
-                return (
-                  <button
-                    key={stage.id}
-                    type="button"
-                    onClick={() => playback.goToStage(stage.id)}
-                    className={[
-                      "rounded-lg px-2 py-2 text-center transition",
-                      index === playback.currentStageIndex
-                        ? "bg-violet-400/[0.08] text-violet-300"
-                        : reached
-                          ? "text-zinc-400 hover:bg-white/[0.025]"
-                          : "text-zinc-700 hover:bg-white/[0.02]",
-                    ].join(" ")}
-                  >
-                    <span className="block text-[8px] font-semibold uppercase tracking-[0.08em]">
-                      {stage.shortLabel}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="flex items-center gap-1 rounded-xl border border-white/[0.05] bg-black/10 p-1">
-            {([0.5, 1, 2] as const).map((speed) => (
-              <button
-                key={speed}
-                type="button"
-                onClick={() => playback.setSpeed(speed)}
-                className={[
-                  "rounded-lg px-2.5 py-1.5 text-[9px] font-semibold transition",
-                  playback.speed === speed
-                    ? "bg-white/[0.07] text-zinc-200"
-                    : "text-zinc-600 hover:text-zinc-300",
-                ].join(" ")}
-              >
-                {speed}×
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* MAIN OPERATIONAL STORY */}
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_330px]">
         {/* DIGITAL TWIN HERO */}
