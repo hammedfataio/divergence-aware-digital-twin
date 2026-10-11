@@ -1,3 +1,4 @@
+import { selectPrimaryAssurance } from "../../utils/assurance";
 import { useState } from "react";
 import {
   Activity,
@@ -24,7 +25,6 @@ import {
 
 import { useSharedScenarioPlayback } from "../../hooks/SharedScenarioPlayback";
 import type {
-  AssuranceResult,
   Authority,
   EvidenceStatus,
   ScenarioResponse,
@@ -149,17 +149,7 @@ function evidencePresentation(
   }
 }
 
-function selectPrimaryAssurance(
-  results: AssuranceResult[],
-): AssuranceResult | null {
-  if (results.length === 0) return null;
 
-  const daraResult = results.find((result) =>
-    result.policy.toLowerCase().includes("dara"),
-  );
-
-  return daraResult ?? results[results.length - 1];
-}
 
 function getFamilyId(scenarioId: string): string {
   return scenarioId.split("-")[0] ?? "";
