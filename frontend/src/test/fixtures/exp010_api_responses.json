@@ -1,0 +1,1112 @@
+{
+  "F0-A": {
+    "scenario_id": "F0-A",
+    "description": "Synchronised valid control with available evidence.",
+    "physical_state": {
+      "timestamp": 10.0,
+      "entities": []
+    },
+    "twin_state": {
+      "timestamp": 10.0,
+      "entities": []
+    },
+    "divergences": [],
+    "ai_decision": {
+      "decision_id": "D2",
+      "action": "assign_vehicle",
+      "vehicle_id": "vehicle_B",
+      "order_id": "order_O2",
+      "dependencies": [
+        {
+          "dependency": "vehicle_B.status",
+          "relevant": true
+        },
+        {
+          "dependency": "vehicle_B.available",
+          "relevant": true
+        },
+        {
+          "dependency": "vehicle_B.capacity_sufficient",
+          "relevant": true
+        },
+        {
+          "dependency": "order_O2.waiting",
+          "relevant": true
+        },
+        {
+          "dependency": "order_O2.deadline_valid",
+          "relevant": true
+        },
+        {
+          "dependency": "recovery_resource_available",
+          "relevant": true
+        },
+        {
+          "dependency": "recovery_timing_valid",
+          "relevant": true
+        },
+        {
+          "dependency": "upstream_assignment_assumptions_valid",
+          "relevant": true
+        },
+        {
+          "dependency": "vehicle_C.available",
+          "relevant": true
+        },
+        {
+          "dependency": "vehicle_B.assignment_valid",
+          "relevant": true
+        }
+      ]
+    },
+    "runtime_evidence": [
+      {
+        "source": "exp010_f0-a_monitor",
+        "dependency": "vehicle_B.status",
+        "observed_value": "operational",
+        "timestamp": 10.0,
+        "confidence": null,
+        "status": "available"
+      },
+      {
+        "source": "exp010_f0-a_monitor",
+        "dependency": "vehicle_B.available",
+        "observed_value": true,
+        "timestamp": 10.0,
+        "confidence": null,
+        "status": "available"
+      },
+      {
+        "source": "exp010_f0-a_monitor",
+        "dependency": "vehicle_B.capacity_sufficient",
+        "observed_value": true,
+        "timestamp": 10.0,
+        "confidence": null,
+        "status": "available"
+      },
+      {
+        "source": "exp010_f0-a_monitor",
+        "dependency": "order_O2.waiting",
+        "observed_value": true,
+        "timestamp": 10.0,
+        "confidence": null,
+        "status": "available"
+      },
+      {
+        "source": "exp010_f0-a_monitor",
+        "dependency": "order_O2.deadline_valid",
+        "observed_value": true,
+        "timestamp": 10.0,
+        "confidence": null,
+        "status": "available"
+      },
+      {
+        "source": "exp010_f0-a_monitor",
+        "dependency": "recovery_resource_available",
+        "observed_value": true,
+        "timestamp": 10.0,
+        "confidence": null,
+        "status": "available"
+      },
+      {
+        "source": "exp010_f0-a_monitor",
+        "dependency": "recovery_timing_valid",
+        "observed_value": true,
+        "timestamp": 10.0,
+        "confidence": null,
+        "status": "available"
+      },
+      {
+        "source": "exp010_f0-a_monitor",
+        "dependency": "upstream_assignment_assumptions_valid",
+        "observed_value": true,
+        "timestamp": 10.0,
+        "confidence": null,
+        "status": "available"
+      },
+      {
+        "source": "exp010_f0-a_monitor",
+        "dependency": "vehicle_C.available",
+        "observed_value": true,
+        "timestamp": 10.0,
+        "confidence": null,
+        "status": "available"
+      },
+      {
+        "source": "exp010_f0-a_monitor",
+        "dependency": "vehicle_B.assignment_valid",
+        "observed_value": true,
+        "timestamp": 10.0,
+        "confidence": null,
+        "status": "available"
+      }
+    ],
+    "propagation": [],
+    "assurance_results": [
+      {
+        "policy": "No Assurance",
+        "authority": "allow",
+        "intervene": false,
+        "reason": "EXP-010 P0 applies no runtime assurance.",
+        "relevant_divergence_count": 0
+      },
+      {
+        "policy": "Local Contract",
+        "authority": "allow",
+        "intervene": false,
+        "reason": "Local runtime contract over direct decision dependencies.",
+        "relevant_divergence_count": 0
+      },
+      {
+        "policy": "Global Assurance",
+        "authority": "allow",
+        "intervene": false,
+        "reason": "Global divergence and evidence-uncertainty assurance.",
+        "relevant_divergence_count": 0
+      },
+      {
+        "policy": "Composed Contract",
+        "authority": "allow",
+        "intervene": false,
+        "reason": "Dependency-aware composed runtime contract.",
+        "relevant_divergence_count": 0
+      },
+      {
+        "policy": "DARA-DT",
+        "authority": "allow",
+        "intervene": false,
+        "reason": "Propagation-aware DARA-DT runtime assurance.",
+        "relevant_divergence_count": 0
+      }
+    ],
+    "ground_truth": {
+      "intervention_required": false,
+      "reason": "Evaluator-only ground truth from the frozen EXP-010 condition F0-A."
+    },
+    "evaluations": {
+      "No Assurance": {
+        "outcome": "correct_non_intervention",
+        "correct": true
+      },
+      "Local Contract": {
+        "outcome": "correct_non_intervention",
+        "correct": true
+      },
+      "Global Assurance": {
+        "outcome": "correct_non_intervention",
+        "correct": true
+      },
+      "Composed Contract": {
+        "outcome": "correct_non_intervention",
+        "correct": true
+      },
+      "DARA-DT": {
+        "outcome": "correct_non_intervention",
+        "correct": true
+      }
+    }
+  },
+  "F1-A": {
+    "scenario_id": "F1-A",
+    "description": "Direct Vehicle A status divergence.",
+    "physical_state": {
+      "timestamp": 10.0,
+      "entities": [
+        {
+          "entity_id": "vehicle_A",
+          "entity_type": "vehicle",
+          "variables": {
+            "status": "failed"
+          }
+        }
+      ]
+    },
+    "twin_state": {
+      "timestamp": 10.0,
+      "entities": [
+        {
+          "entity_id": "vehicle_A",
+          "entity_type": "vehicle",
+          "variables": {
+            "status": "operational"
+          }
+        }
+      ]
+    },
+    "divergences": [
+      {
+        "entity_id": "vehicle_A",
+        "variable": "status",
+        "physical_value": "failed",
+        "twin_value": "operational",
+        "decision_relevant": true,
+        "decision_impacting": true
+      }
+    ],
+    "ai_decision": {
+      "decision_id": "D1",
+      "action": "assign_vehicle",
+      "vehicle_id": "vehicle_A",
+      "order_id": "order_O1",
+      "dependencies": [
+        {
+          "dependency": "vehicle_A.status",
+          "relevant": true
+        },
+        {
+          "dependency": "vehicle_A.available",
+          "relevant": true
+        },
+        {
+          "dependency": "vehicle_A.capacity_sufficient",
+          "relevant": true
+        },
+        {
+          "dependency": "order_O1.waiting",
+          "relevant": true
+        }
+      ]
+    },
+    "runtime_evidence": [
+      {
+        "source": "exp010_f1-a_monitor",
+        "dependency": "vehicle_A.status",
+        "observed_value": "failed",
+        "timestamp": 10.0,
+        "confidence": null,
+        "status": "available"
+      },
+      {
+        "source": "exp010_f1-a_monitor",
+        "dependency": "vehicle_A.available",
+        "observed_value": true,
+        "timestamp": 10.0,
+        "confidence": null,
+        "status": "available"
+      },
+      {
+        "source": "exp010_f1-a_monitor",
+        "dependency": "vehicle_A.capacity_sufficient",
+        "observed_value": true,
+        "timestamp": 10.0,
+        "confidence": null,
+        "status": "available"
+      },
+      {
+        "source": "exp010_f1-a_monitor",
+        "dependency": "order_O1.waiting",
+        "observed_value": true,
+        "timestamp": 10.0,
+        "confidence": null,
+        "status": "available"
+      }
+    ],
+    "propagation": [
+      {
+        "origin": "vehicle_A.status",
+        "affected_dependency": "vehicle_A.status",
+        "source_decision": "D1",
+        "target_decision": "D1",
+        "propagating": false,
+        "path": [
+          "vehicle_A.status",
+          "vehicle_A.status"
+        ]
+      }
+    ],
+    "assurance_results": [
+      {
+        "policy": "No Assurance",
+        "authority": "allow",
+        "intervene": false,
+        "reason": "EXP-010 P0 applies no runtime assurance.",
+        "relevant_divergence_count": 1
+      },
+      {
+        "policy": "Local Contract",
+        "authority": "restrict",
+        "intervene": true,
+        "reason": "Local runtime contract over direct decision dependencies.",
+        "relevant_divergence_count": 1
+      },
+      {
+        "policy": "Global Assurance",
+        "authority": "defer",
+        "intervene": true,
+        "reason": "Global divergence and evidence-uncertainty assurance.",
+        "relevant_divergence_count": 1
+      },
+      {
+        "policy": "Composed Contract",
+        "authority": "restrict",
+        "intervene": true,
+        "reason": "Dependency-aware composed runtime contract.",
+        "relevant_divergence_count": 1
+      },
+      {
+        "policy": "DARA-DT",
+        "authority": "restrict",
+        "intervene": true,
+        "reason": "Propagation-aware DARA-DT runtime assurance.",
+        "relevant_divergence_count": 1
+      }
+    ],
+    "ground_truth": {
+      "intervention_required": true,
+      "reason": "Evaluator-only ground truth from the frozen EXP-010 condition F1-A."
+    },
+    "evaluations": {
+      "No Assurance": {
+        "outcome": "missed_intervention",
+        "correct": false
+      },
+      "Local Contract": {
+        "outcome": "true_intervention",
+        "correct": true
+      },
+      "Global Assurance": {
+        "outcome": "true_intervention",
+        "correct": true
+      },
+      "Composed Contract": {
+        "outcome": "true_intervention",
+        "correct": true
+      },
+      "DARA-DT": {
+        "outcome": "true_intervention",
+        "correct": true
+      }
+    }
+  },
+  "F2-A": {
+    "scenario_id": "F2-A",
+    "description": "Vehicle A location diverges without affecting pending D2.",
+    "physical_state": {
+      "timestamp": 10.0,
+      "entities": [
+        {
+          "entity_id": "vehicle_A",
+          "entity_type": "vehicle",
+          "variables": {
+            "location": "customer_1"
+          }
+        }
+      ]
+    },
+    "twin_state": {
+      "timestamp": 10.0,
+      "entities": [
+        {
+          "entity_id": "vehicle_A",
+          "entity_type": "vehicle",
+          "variables": {
+            "location": "depot"
+          }
+        }
+      ]
+    },
+    "divergences": [
+      {
+        "entity_id": "vehicle_A",
+        "variable": "location",
+        "physical_value": "customer_1",
+        "twin_value": "depot",
+        "decision_relevant": false,
+        "decision_impacting": false
+      }
+    ],
+    "ai_decision": {
+      "decision_id": "D2",
+      "action": "assign_vehicle",
+      "vehicle_id": "vehicle_B",
+      "order_id": "order_O2",
+      "dependencies": [
+        {
+          "dependency": "vehicle_B.status",
+          "relevant": true
+        },
+        {
+          "dependency": "vehicle_B.available",
+          "relevant": true
+        },
+        {
+          "dependency": "vehicle_B.capacity_sufficient",
+          "relevant": true
+        },
+        {
+          "dependency": "order_O2.waiting",
+          "relevant": true
+        },
+        {
+          "dependency": "order_O2.deadline_valid",
+          "relevant": true
+        },
+        {
+          "dependency": "recovery_resource_available",
+          "relevant": true
+        },
+        {
+          "dependency": "recovery_timing_valid",
+          "relevant": true
+        },
+        {
+          "dependency": "upstream_assignment_assumptions_valid",
+          "relevant": true
+        },
+        {
+          "dependency": "vehicle_C.available",
+          "relevant": true
+        },
+        {
+          "dependency": "vehicle_B.assignment_valid",
+          "relevant": true
+        }
+      ]
+    },
+    "runtime_evidence": [
+      {
+        "source": "exp010_f2-a_monitor",
+        "dependency": "vehicle_B.status",
+        "observed_value": "operational",
+        "timestamp": 10.0,
+        "confidence": null,
+        "status": "available"
+      },
+      {
+        "source": "exp010_f2-a_monitor",
+        "dependency": "vehicle_B.available",
+        "observed_value": true,
+        "timestamp": 10.0,
+        "confidence": null,
+        "status": "available"
+      },
+      {
+        "source": "exp010_f2-a_monitor",
+        "dependency": "vehicle_B.capacity_sufficient",
+        "observed_value": true,
+        "timestamp": 10.0,
+        "confidence": null,
+        "status": "available"
+      },
+      {
+        "source": "exp010_f2-a_monitor",
+        "dependency": "order_O2.waiting",
+        "observed_value": true,
+        "timestamp": 10.0,
+        "confidence": null,
+        "status": "available"
+      },
+      {
+        "source": "exp010_f2-a_monitor",
+        "dependency": "order_O2.deadline_valid",
+        "observed_value": true,
+        "timestamp": 10.0,
+        "confidence": null,
+        "status": "available"
+      },
+      {
+        "source": "exp010_f2-a_monitor",
+        "dependency": "recovery_resource_available",
+        "observed_value": true,
+        "timestamp": 10.0,
+        "confidence": null,
+        "status": "available"
+      },
+      {
+        "source": "exp010_f2-a_monitor",
+        "dependency": "recovery_timing_valid",
+        "observed_value": true,
+        "timestamp": 10.0,
+        "confidence": null,
+        "status": "available"
+      },
+      {
+        "source": "exp010_f2-a_monitor",
+        "dependency": "upstream_assignment_assumptions_valid",
+        "observed_value": true,
+        "timestamp": 10.0,
+        "confidence": null,
+        "status": "available"
+      },
+      {
+        "source": "exp010_f2-a_monitor",
+        "dependency": "vehicle_C.available",
+        "observed_value": true,
+        "timestamp": 10.0,
+        "confidence": null,
+        "status": "available"
+      },
+      {
+        "source": "exp010_f2-a_monitor",
+        "dependency": "vehicle_B.assignment_valid",
+        "observed_value": true,
+        "timestamp": 10.0,
+        "confidence": null,
+        "status": "available"
+      }
+    ],
+    "propagation": [],
+    "assurance_results": [
+      {
+        "policy": "No Assurance",
+        "authority": "allow",
+        "intervene": false,
+        "reason": "EXP-010 P0 applies no runtime assurance.",
+        "relevant_divergence_count": 1
+      },
+      {
+        "policy": "Local Contract",
+        "authority": "allow",
+        "intervene": false,
+        "reason": "Local runtime contract over direct decision dependencies.",
+        "relevant_divergence_count": 1
+      },
+      {
+        "policy": "Global Assurance",
+        "authority": "defer",
+        "intervene": true,
+        "reason": "Global divergence and evidence-uncertainty assurance.",
+        "relevant_divergence_count": 1
+      },
+      {
+        "policy": "Composed Contract",
+        "authority": "allow",
+        "intervene": false,
+        "reason": "Dependency-aware composed runtime contract.",
+        "relevant_divergence_count": 1
+      },
+      {
+        "policy": "DARA-DT",
+        "authority": "allow",
+        "intervene": false,
+        "reason": "Propagation-aware DARA-DT runtime assurance.",
+        "relevant_divergence_count": 1
+      }
+    ],
+    "ground_truth": {
+      "intervention_required": false,
+      "reason": "Evaluator-only ground truth from the frozen EXP-010 condition F2-A."
+    },
+    "evaluations": {
+      "No Assurance": {
+        "outcome": "correct_non_intervention",
+        "correct": true
+      },
+      "Local Contract": {
+        "outcome": "correct_non_intervention",
+        "correct": true
+      },
+      "Global Assurance": {
+        "outcome": "false_intervention",
+        "correct": false
+      },
+      "Composed Contract": {
+        "outcome": "correct_non_intervention",
+        "correct": true
+      },
+      "DARA-DT": {
+        "outcome": "correct_non_intervention",
+        "correct": true
+      }
+    }
+  },
+  "F3-A": {
+    "scenario_id": "F3-A",
+    "description": "Vehicle A status divergence propagates into the recovery-resource assumption required by D2.",
+    "physical_state": {
+      "timestamp": 10.0,
+      "entities": [
+        {
+          "entity_id": "vehicle_A",
+          "entity_type": "vehicle",
+          "variables": {
+            "status": "failed"
+          }
+        }
+      ]
+    },
+    "twin_state": {
+      "timestamp": 10.0,
+      "entities": [
+        {
+          "entity_id": "vehicle_A",
+          "entity_type": "vehicle",
+          "variables": {
+            "status": "operational"
+          }
+        }
+      ]
+    },
+    "divergences": [
+      {
+        "entity_id": "vehicle_A",
+        "variable": "status",
+        "physical_value": "failed",
+        "twin_value": "operational",
+        "decision_relevant": true,
+        "decision_impacting": true
+      }
+    ],
+    "ai_decision": {
+      "decision_id": "D2",
+      "action": "assign_vehicle",
+      "vehicle_id": "vehicle_B",
+      "order_id": "order_O2",
+      "dependencies": [
+        {
+          "dependency": "vehicle_B.status",
+          "relevant": true
+        },
+        {
+          "dependency": "vehicle_B.available",
+          "relevant": true
+        },
+        {
+          "dependency": "vehicle_B.capacity_sufficient",
+          "relevant": true
+        },
+        {
+          "dependency": "order_O2.waiting",
+          "relevant": true
+        },
+        {
+          "dependency": "order_O2.deadline_valid",
+          "relevant": true
+        },
+        {
+          "dependency": "recovery_resource_available",
+          "relevant": true
+        },
+        {
+          "dependency": "recovery_timing_valid",
+          "relevant": true
+        },
+        {
+          "dependency": "upstream_assignment_assumptions_valid",
+          "relevant": true
+        },
+        {
+          "dependency": "vehicle_C.available",
+          "relevant": true
+        },
+        {
+          "dependency": "vehicle_B.assignment_valid",
+          "relevant": true
+        }
+      ]
+    },
+    "runtime_evidence": [
+      {
+        "source": "exp010_f3-a_monitor",
+        "dependency": "vehicle_B.status",
+        "observed_value": "operational",
+        "timestamp": 10.0,
+        "confidence": null,
+        "status": "available"
+      },
+      {
+        "source": "exp010_f3-a_monitor",
+        "dependency": "vehicle_B.available",
+        "observed_value": true,
+        "timestamp": 10.0,
+        "confidence": null,
+        "status": "available"
+      },
+      {
+        "source": "exp010_f3-a_monitor",
+        "dependency": "vehicle_B.capacity_sufficient",
+        "observed_value": true,
+        "timestamp": 10.0,
+        "confidence": null,
+        "status": "available"
+      },
+      {
+        "source": "exp010_f3-a_monitor",
+        "dependency": "order_O2.waiting",
+        "observed_value": true,
+        "timestamp": 10.0,
+        "confidence": null,
+        "status": "available"
+      },
+      {
+        "source": "exp010_f3-a_monitor",
+        "dependency": "order_O2.deadline_valid",
+        "observed_value": true,
+        "timestamp": 10.0,
+        "confidence": null,
+        "status": "available"
+      },
+      {
+        "source": "exp010_f3-a_monitor",
+        "dependency": "recovery_resource_available",
+        "observed_value": false,
+        "timestamp": 10.0,
+        "confidence": null,
+        "status": "available"
+      },
+      {
+        "source": "exp010_f3-a_monitor",
+        "dependency": "recovery_timing_valid",
+        "observed_value": true,
+        "timestamp": 10.0,
+        "confidence": null,
+        "status": "available"
+      },
+      {
+        "source": "exp010_f3-a_monitor",
+        "dependency": "upstream_assignment_assumptions_valid",
+        "observed_value": true,
+        "timestamp": 10.0,
+        "confidence": null,
+        "status": "available"
+      },
+      {
+        "source": "exp010_f3-a_monitor",
+        "dependency": "vehicle_C.available",
+        "observed_value": true,
+        "timestamp": 10.0,
+        "confidence": null,
+        "status": "available"
+      },
+      {
+        "source": "exp010_f3-a_monitor",
+        "dependency": "vehicle_B.assignment_valid",
+        "observed_value": true,
+        "timestamp": 10.0,
+        "confidence": null,
+        "status": "available"
+      }
+    ],
+    "propagation": [
+      {
+        "origin": "vehicle_A.status",
+        "affected_dependency": "recovery_resource_available",
+        "source_decision": "D1",
+        "target_decision": "D2",
+        "propagating": true,
+        "path": [
+          "vehicle_A.status",
+          "recovery_resource_available"
+        ]
+      }
+    ],
+    "assurance_results": [
+      {
+        "policy": "No Assurance",
+        "authority": "allow",
+        "intervene": false,
+        "reason": "EXP-010 P0 applies no runtime assurance.",
+        "relevant_divergence_count": 1
+      },
+      {
+        "policy": "Local Contract",
+        "authority": "allow",
+        "intervene": false,
+        "reason": "Local runtime contract over direct decision dependencies.",
+        "relevant_divergence_count": 1
+      },
+      {
+        "policy": "Global Assurance",
+        "authority": "defer",
+        "intervene": true,
+        "reason": "Global divergence and evidence-uncertainty assurance.",
+        "relevant_divergence_count": 1
+      },
+      {
+        "policy": "Composed Contract",
+        "authority": "restrict",
+        "intervene": true,
+        "reason": "Dependency-aware composed runtime contract.",
+        "relevant_divergence_count": 1
+      },
+      {
+        "policy": "DARA-DT",
+        "authority": "restrict",
+        "intervene": true,
+        "reason": "Propagation-aware DARA-DT runtime assurance.",
+        "relevant_divergence_count": 1
+      }
+    ],
+    "ground_truth": {
+      "intervention_required": true,
+      "reason": "Evaluator-only ground truth from the frozen EXP-010 condition F3-A."
+    },
+    "evaluations": {
+      "No Assurance": {
+        "outcome": "missed_intervention",
+        "correct": false
+      },
+      "Local Contract": {
+        "outcome": "missed_intervention",
+        "correct": false
+      },
+      "Global Assurance": {
+        "outcome": "true_intervention",
+        "correct": true
+      },
+      "Composed Contract": {
+        "outcome": "true_intervention",
+        "correct": true
+      },
+      "DARA-DT": {
+        "outcome": "true_intervention",
+        "correct": true
+      }
+    }
+  },
+  "F4-A": {
+    "scenario_id": "F4-A",
+    "description": "Vehicle A status divergence propagates through Vehicle C availability and Vehicle B assignment assumptions.",
+    "physical_state": {
+      "timestamp": 10.0,
+      "entities": [
+        {
+          "entity_id": "vehicle_A",
+          "entity_type": "vehicle",
+          "variables": {
+            "status": "failed"
+          }
+        }
+      ]
+    },
+    "twin_state": {
+      "timestamp": 10.0,
+      "entities": [
+        {
+          "entity_id": "vehicle_A",
+          "entity_type": "vehicle",
+          "variables": {
+            "status": "operational"
+          }
+        }
+      ]
+    },
+    "divergences": [
+      {
+        "entity_id": "vehicle_A",
+        "variable": "status",
+        "physical_value": "failed",
+        "twin_value": "operational",
+        "decision_relevant": true,
+        "decision_impacting": true
+      }
+    ],
+    "ai_decision": {
+      "decision_id": "D2",
+      "action": "assign_vehicle",
+      "vehicle_id": "vehicle_B",
+      "order_id": "order_O2",
+      "dependencies": [
+        {
+          "dependency": "vehicle_B.status",
+          "relevant": true
+        },
+        {
+          "dependency": "vehicle_B.available",
+          "relevant": true
+        },
+        {
+          "dependency": "vehicle_B.capacity_sufficient",
+          "relevant": true
+        },
+        {
+          "dependency": "order_O2.waiting",
+          "relevant": true
+        },
+        {
+          "dependency": "order_O2.deadline_valid",
+          "relevant": true
+        },
+        {
+          "dependency": "recovery_resource_available",
+          "relevant": true
+        },
+        {
+          "dependency": "recovery_timing_valid",
+          "relevant": true
+        },
+        {
+          "dependency": "upstream_assignment_assumptions_valid",
+          "relevant": true
+        },
+        {
+          "dependency": "vehicle_C.available",
+          "relevant": true
+        },
+        {
+          "dependency": "vehicle_B.assignment_valid",
+          "relevant": true
+        }
+      ]
+    },
+    "runtime_evidence": [
+      {
+        "source": "exp010_f4-a_monitor",
+        "dependency": "vehicle_B.status",
+        "observed_value": "operational",
+        "timestamp": 10.0,
+        "confidence": null,
+        "status": "available"
+      },
+      {
+        "source": "exp010_f4-a_monitor",
+        "dependency": "vehicle_B.available",
+        "observed_value": true,
+        "timestamp": 10.0,
+        "confidence": null,
+        "status": "available"
+      },
+      {
+        "source": "exp010_f4-a_monitor",
+        "dependency": "vehicle_B.capacity_sufficient",
+        "observed_value": true,
+        "timestamp": 10.0,
+        "confidence": null,
+        "status": "available"
+      },
+      {
+        "source": "exp010_f4-a_monitor",
+        "dependency": "order_O2.waiting",
+        "observed_value": true,
+        "timestamp": 10.0,
+        "confidence": null,
+        "status": "available"
+      },
+      {
+        "source": "exp010_f4-a_monitor",
+        "dependency": "order_O2.deadline_valid",
+        "observed_value": true,
+        "timestamp": 10.0,
+        "confidence": null,
+        "status": "available"
+      },
+      {
+        "source": "exp010_f4-a_monitor",
+        "dependency": "recovery_resource_available",
+        "observed_value": true,
+        "timestamp": 10.0,
+        "confidence": null,
+        "status": "available"
+      },
+      {
+        "source": "exp010_f4-a_monitor",
+        "dependency": "recovery_timing_valid",
+        "observed_value": true,
+        "timestamp": 10.0,
+        "confidence": null,
+        "status": "available"
+      },
+      {
+        "source": "exp010_f4-a_monitor",
+        "dependency": "upstream_assignment_assumptions_valid",
+        "observed_value": true,
+        "timestamp": 10.0,
+        "confidence": null,
+        "status": "available"
+      },
+      {
+        "source": "exp010_f4-a_monitor",
+        "dependency": "vehicle_C.available",
+        "observed_value": false,
+        "timestamp": 10.0,
+        "confidence": null,
+        "status": "available"
+      },
+      {
+        "source": "exp010_f4-a_monitor",
+        "dependency": "vehicle_B.assignment_valid",
+        "observed_value": false,
+        "timestamp": 10.0,
+        "confidence": null,
+        "status": "available"
+      }
+    ],
+    "propagation": [
+      {
+        "origin": "vehicle_A.status",
+        "affected_dependency": "vehicle_C.available",
+        "source_decision": "D1",
+        "target_decision": "D2",
+        "propagating": true,
+        "path": [
+          "vehicle_A.status",
+          "vehicle_C.available"
+        ]
+      },
+      {
+        "origin": "vehicle_A.status",
+        "affected_dependency": "vehicle_B.assignment",
+        "source_decision": "D1",
+        "target_decision": "D2",
+        "propagating": true,
+        "path": [
+          "vehicle_A.status",
+          "vehicle_B.assignment"
+        ]
+      }
+    ],
+    "assurance_results": [
+      {
+        "policy": "No Assurance",
+        "authority": "allow",
+        "intervene": false,
+        "reason": "EXP-010 P0 applies no runtime assurance.",
+        "relevant_divergence_count": 1
+      },
+      {
+        "policy": "Local Contract",
+        "authority": "allow",
+        "intervene": false,
+        "reason": "Local runtime contract over direct decision dependencies.",
+        "relevant_divergence_count": 1
+      },
+      {
+        "policy": "Global Assurance",
+        "authority": "defer",
+        "intervene": true,
+        "reason": "Global divergence and evidence-uncertainty assurance.",
+        "relevant_divergence_count": 1
+      },
+      {
+        "policy": "Composed Contract",
+        "authority": "restrict",
+        "intervene": true,
+        "reason": "Dependency-aware composed runtime contract.",
+        "relevant_divergence_count": 1
+      },
+      {
+        "policy": "DARA-DT",
+        "authority": "restrict",
+        "intervene": true,
+        "reason": "Propagation-aware DARA-DT runtime assurance.",
+        "relevant_divergence_count": 1
+      }
+    ],
+    "ground_truth": {
+      "intervention_required": true,
+      "reason": "Evaluator-only ground truth from the frozen EXP-010 condition F4-A."
+    },
+    "evaluations": {
+      "No Assurance": {
+        "outcome": "missed_intervention",
+        "correct": false
+      },
+      "Local Contract": {
+        "outcome": "missed_intervention",
+        "correct": false
+      },
+      "Global Assurance": {
+        "outcome": "true_intervention",
+        "correct": true
+      },
+      "Composed Contract": {
+        "outcome": "true_intervention",
+        "correct": true
+      },
+      "DARA-DT": {
+        "outcome": "true_intervention",
+        "correct": true
+      }
+    }
+  }
+}
