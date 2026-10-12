@@ -290,7 +290,9 @@ function VehicleInspector({
             aria-pressed={selection === system}
             className={`min-h-12 rounded-xl border px-3 py-3 text-sm font-semibold transition ${
               selection === system
-                ? "border-[#ff5555] bg-red-500/15 text-white"
+                ? system === "physical"
+                  ? "border-orange-500 bg-orange-500/15 text-orange-100"
+                  : "border-blue-500 bg-blue-500/15 text-blue-100"
                 : "border-white/15 bg-white/5 text-zinc-200 hover:bg-white/10"
             }`}
           >

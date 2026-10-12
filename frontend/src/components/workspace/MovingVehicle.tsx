@@ -471,9 +471,19 @@ export default function MovingVehicle({
               strokeWidth={1.5}
             />
 
+            {/* Label sits above the destination, clear of the arriving truck. */}
+            <rect
+              x="-32"
+              y="-60"
+              width="64"
+              height="19"
+              rx="8"
+              fill="white"
+              fillOpacity="0.95"
+            />
             <text
-              x="-4"
-              y="22"
+              x="0"
+              y="-47"
               textAnchor="middle"
               fontSize="12"
               fontWeight="600"
@@ -523,13 +533,13 @@ export default function MovingVehicle({
           >
             {/* Visual highlight */}
             <circle
-              r="27"
+              r="31"
               fill={ORANGE}
               fillOpacity=".15"
             />
 
             <circle
-              r="22"
+              r="25"
               fill="white"
               fillOpacity=".8"
             />
@@ -541,10 +551,10 @@ export default function MovingVehicle({
             */}
             <image
               href={TRUCK_ICON}
-              x="-32"
-              y="-19"
-              width="64"
-              height="38"
+              x="-39"
+              y="-23"
+              width="78"
+              height="46"
               preserveAspectRatio="xMidYMid meet"
             />
           </g>
