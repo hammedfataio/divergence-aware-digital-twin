@@ -1,0 +1,120 @@
+import { act, render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+
+import type { ScenarioResponse } from "../../types/api";
+import {
+  SharedScenarioPlaybackProvider,
+  useSharedScenarioPlayback,
+} from "../../hooks/SharedScenarioPlayback";
+
+import ScenarioWorkspaceLegacy from "./ScenarioWorkspaceLegacy";
+
+let advanceToTrust: (() => void) | undefined;
+let restartPlayback: (() => void) | undefined;
+
+function PlaybackController() {
+  const playback = useSharedScenarioPlayback();
+
+  advanceToTrust = () => playback.goToStage("trust");
+  restartPlayback = () => playback.restart();
+
+  return null;
+}
+
+function createScenario(
+  scenarioId: string,
+  authority: "allow" | "restrict",
+): ScenarioResponse {
+  return {
+    scenario_id: scenarioId,
+    description: `Integration test scenario ${scenarioId}`,
+    physical_state: {
+      timestamp: 0,
+      entities: [],
+    },
+    twin_state: {
+      timestamp: 0,
+      entities: [],
+    },
+    divergences: [],
+    ai_decision: {
+      decision_id: "decision_001",
+      action: "continue_route",
+      vehicle_id: "vehicle_07",
+      order_id: "order_01",
+      dependencies: [],
+    },
+    runtime_evidence: [],
+    propagation: [],
+    assurance_results: [
+      {
+        policy: "DARA-DT",
+        authority,
+        intervene: authority !== "allow",
+        reason: "Integration test assurance decision",
+        relevant_divergence_count: 0,
+      },
+    ],
+    ground_truth: {
+      intervention_required: authority !== "allow",
+      reason: "Integration test ground truth",
+    },
+    evaluations: {},
+  };
+}
+
+function renderDashboard(scenario: ScenarioResponse) {
+  advanceToTrust = undefined;
+  restartPlayback = undefined;
+
+  return render(
+    <SharedScenarioPlaybackProvider scenario={scenario}>
+      <PlaybackController />
+      <ScenarioWorkspaceLegacy scenario={scenario} />
+    </SharedScenarioPlaybackProvider>,
+  );
+}
+
+describe("DARA-DT rendered dashboard assurance", () => {
+  it.each([
+    ["F0-A", "allow", "APPROVED"],
+    ["F1-A", "restrict", "LIMITED"],
+    ["F2-A", "allow", "APPROVED"],
+    ["F3-A", "restrict", "LIMITED"],
+    ["F4-A", "restrict", "LIMITED"],
+  ] as const)(
+    "%s displays %s at the Trust stage",
+    (scenarioId, authority, expectedLabel) => {
+      renderDashboard(createScenario(scenarioId, authority));
+
+      expect(screen.getByText("Trust result pending")).toBeTruthy();
+      expect(screen.queryByText(expectedLabel)).toBeNull();
+
+      expect(advanceToTrust).toBeDefined();
+
+      act(() => {
+        advanceToTrust?.();
+      });
+
+      expect(screen.getByText(expectedLabel)).toBeTruthy();
+      expect(screen.queryByText("Trust result pending")).toBeNull();
+    },
+  );
+
+  it("hides the assurance decision after playback restarts", () => {
+    renderDashboard(createScenario("F0-A", "allow"));
+
+    act(() => {
+      advanceToTrust?.();
+    });
+
+    expect(screen.getByText("APPROVED")).toBeTruthy();
+
+    act(() => {
+      restartPlayback?.();
+    });
+
+    expect(screen.getByText("Trust result pending")).toBeTruthy();
+    expect(screen.queryByText("APPROVED")).toBeNull();
+  });
+});

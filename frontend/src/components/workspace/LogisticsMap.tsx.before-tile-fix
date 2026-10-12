@@ -1,0 +1,371 @@
+import { useEffect, useMemo, useRef, useState } from "react";
+import * as maplibregl from "maplibre-gl";
+import type { Map as MapLibreMap } from "maplibre-gl";
+import "maplibre-gl/dist/maplibre-gl.css";
+
+type Point = [number, number];
+
+interface LogisticsMapProps {
+  scenarioId: string;
+  progress: number;
+  className?: string;
+}
+
+// Demonstration coordinates, not real GPS or fleet telemetry.
+const ROUTE: Point[] = [
+  [-0.1538, 51.5155],
+  [-0.1473, 51.517],
+  [-0.1414, 51.5162],
+  [-0.1352, 51.5142],
+  [-0.1281, 51.5131],
+  [-0.1211, 51.5117],
+  [-0.1148, 51.5089],
+  [-0.1076, 51.5074],
+  [-0.1001, 51.5062],
+];
+
+const clamp = (n: number) =>
+  Number.isFinite(n) ? Math.max(0, Math.min(1, n)) : 0;
+
+function journeyPosition(scenarioId: string, progress: number) {
+  const family = scenarioId.split("-")[0].toUpperCase();
+  const twin = clamp(progress * 1.15);
+
+  const physical =
+    family === "F1"
+      ? Math.min(twin, 0.34)
+      : family === "F3"
+        ? Math.min(twin, 0.58)
+        : family === "F4"
+          ? Math.min(twin, 0.45)
+          : twin;
+
+  return {
+    physical,
+    twin,
+    separated: Math.abs(physical - twin) > 0.015,
+  };
+}
+
+function interpolate(progress: number): Point {
+  const position = clamp(progress) * (ROUTE.length - 1);
+  const index = Math.min(ROUTE.length - 2, Math.floor(position));
+  const fraction = position - index;
+
+  return [
+    ROUTE[index][0] +
+      (ROUTE[index + 1][0] - ROUTE[index][0]) * fraction,
+    ROUTE[index][1] +
+      (ROUTE[index + 1][1] - ROUTE[index][1]) * fraction,
+  ];
+}
+
+function createMarker(label: string, color: string, symbol: string) {
+  const element = document.createElement("div");
+
+  element.title = label;
+  element.setAttribute("aria-label", label);
+  element.textContent = symbol;
+
+  Object.assign(element.style, {
+    width: "38px",
+    height: "38px",
+    borderRadius: "12px",
+    background: color,
+    border: "3px solid white",
+    boxShadow: "0 3px 12px #0004",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    color: "white",
+    fontSize: "19px",
+    fontWeight: "bold",
+  });
+
+  return element;
+}
+
+export default function LogisticsMap({
+  scenarioId,
+  progress,
+  className = "",
+}: LogisticsMapProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<MapLibreMap | null>(null);
+  const physicalRef = useRef<maplibregl.Marker | null>(null);
+  const twinRef = useRef<maplibregl.Marker | null>(null);
+
+  const [mapError, setMapError] = useState(false);
+  const [selected, setSelected] = useState<"physical" | "twin">(
+    "physical"
+  );
+
+  const journey = useMemo(
+    () => journeyPosition(scenarioId, progress),
+    [scenarioId, progress]
+  );
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    let map: MapLibreMap;
+
+    try {
+      map = new maplibregl.Map({
+        container: containerRef.current,
+        style: {
+          version: 8,
+          sources: {
+            osm: {
+              type: "raster",
+              tiles: [
+                "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+              ],
+              tileSize: 256,
+              attribution:
+                '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',
+            },
+          },
+          layers: [
+            {
+              id: "osm",
+              type: "raster",
+              source: "osm",
+            },
+          ],
+        },
+        center: [-0.128, 51.512],
+        zoom: 12.8,
+        attributionControl: false,
+      });
+    } catch (error) {
+      console.error("Unable to initialize map", error);
+      setMapError(true);
+      return;
+    }
+
+    mapRef.current = map;
+
+    map.addControl(
+      new maplibregl.NavigationControl({ showCompass: false }),
+      "top-right"
+    );
+
+    map.addControl(
+      new maplibregl.AttributionControl({ compact: true }),
+      "bottom-right"
+    );
+
+    const physicalMarker = new maplibregl.Marker({
+      element: createMarker("Physical vehicle", "#f6534d", "🚚"),
+    })
+      .setLngLat(ROUTE[0])
+      .setPopup(
+        new maplibregl.Popup().setText(
+          "Physical vehicle — simulated position"
+        )
+      )
+      .addTo(map);
+
+    const twinMarker = new maplibregl.Marker({
+      element: createMarker("Digital twin", "#2563eb", "◆"),
+    })
+      .setLngLat(ROUTE[0])
+      .setPopup(
+        new maplibregl.Popup().setText(
+          "Digital twin — illustrative estimated position"
+        )
+      )
+      .addTo(map);
+
+    physicalRef.current = physicalMarker;
+    twinRef.current = twinMarker;
+
+    const depot = new maplibregl.Marker({ color: "#15803d" })
+      .setLngLat(ROUTE[0])
+      .setPopup(
+        new maplibregl.Popup().setText("Demo depot")
+      )
+      .addTo(map);
+
+    const delivery = new maplibregl.Marker({ color: "#7c3aed" })
+      .setLngLat(ROUTE[ROUTE.length - 1])
+      .setPopup(
+        new maplibregl.Popup().setText("Demo delivery destination")
+      )
+      .addTo(map);
+
+    map.on("load", () => {
+      map.addSource("demo-route", {
+        type: "geojson",
+        data: {
+          type: "Feature",
+          properties: {},
+          geometry: {
+            type: "LineString",
+            coordinates: ROUTE,
+          },
+        },
+      });
+
+      map.addLayer({
+        id: "route-outline",
+        type: "line",
+        source: "demo-route",
+        paint: {
+          "line-color": "#ffffff",
+          "line-width": 9,
+        },
+      });
+
+      map.addLayer({
+        id: "route-line",
+        type: "line",
+        source: "demo-route",
+        paint: {
+          "line-color": "#2563eb",
+          "line-width": 5,
+        },
+      });
+
+      const bounds = ROUTE.reduce(
+        (current, point) => current.extend(point),
+        new maplibregl.LngLatBounds(ROUTE[0], ROUTE[0])
+      );
+
+      map.fitBounds(bounds, {
+        padding: 75,
+        duration: 0,
+        maxZoom: 14,
+      });
+    });
+
+    map.on("error", (event) => {
+      console.warn("Map resource error", event.error);
+    });
+
+    return () => {
+      physicalMarker.remove();
+      twinMarker.remove();
+      depot.remove();
+      delivery.remove();
+      map.remove();
+
+      mapRef.current = null;
+      physicalRef.current = null;
+      twinRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    physicalRef.current?.setLngLat(
+      interpolate(journey.physical)
+    );
+
+    twinRef.current?.setLngLat(
+      interpolate(journey.twin)
+    );
+  }, [journey.physical, journey.twin]);
+
+  function focusVehicle(which: "physical" | "twin") {
+    setSelected(which);
+
+    const position =
+      which === "physical" ? journey.physical : journey.twin;
+
+    mapRef.current?.easeTo({
+      center: interpolate(position),
+      zoom: 14,
+      duration: 500,
+    });
+  }
+
+  return (
+    <section
+      aria-label="DARA-DT interactive logistics map"
+      className={`flex h-full min-h-[520px] min-w-0 flex-col bg-white text-slate-900 ${className}`}
+    >
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-3">
+        <div>
+          <h3 className="text-sm font-bold">
+            Interactive Fleet Journey
+          </h3>
+
+          <p className="text-xs text-slate-500">
+            Scenario {scenarioId} ·{" "}
+            {Math.round(clamp(progress) * 100)}% played
+          </p>
+        </div>
+
+        <span className="rounded-full bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-800">
+          Simulated locations · Not GPS
+        </span>
+      </div>
+
+      <div className="relative min-h-[400px] flex-1 bg-slate-100">
+        <div
+          ref={containerRef}
+          className="absolute inset-0"
+          aria-label="Interactive OpenStreetMap"
+        />
+
+        {mapError && (
+          <div
+            role="alert"
+            className="absolute inset-x-4 top-4 rounded-lg bg-white p-4 text-sm text-red-700 shadow"
+          >
+            Map rendering is unavailable. Research scenario
+            playback remains active.
+          </div>
+        )}
+
+        <div className="absolute bottom-7 left-3 z-10 flex flex-col gap-2 rounded-xl border border-slate-200 bg-white/95 p-3 shadow-lg">
+          <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+            Vehicle Tracking
+          </div>
+
+          <button
+            type="button"
+            onClick={() => focusVehicle("physical")}
+            aria-pressed={selected === "physical"}
+            className={`rounded-lg px-3 py-2 text-left text-xs font-semibold ${
+              selected === "physical"
+                ? "bg-red-50 text-red-800"
+                : "text-slate-700 hover:bg-slate-100"
+            }`}
+          >
+            🚚 Physical Vehicle ·{" "}
+            {Math.round(journey.physical * 100)}%
+          </button>
+
+          <button
+            type="button"
+            onClick={() => focusVehicle("twin")}
+            aria-pressed={selected === "twin"}
+            className={`rounded-lg px-3 py-2 text-left text-xs font-semibold ${
+              selected === "twin"
+                ? "bg-blue-50 text-blue-800"
+                : "text-slate-700 hover:bg-slate-100"
+            }`}
+          >
+            ◆ Digital Twin ·{" "}
+            {Math.round(journey.twin * 100)}%
+          </button>
+
+          <span className="text-[11px] text-slate-500">
+            {journey.separated
+              ? "Illustrative positions differ"
+              : "Illustrative positions align"}
+          </span>
+        </div>
+      </div>
+
+      <p className="border-t border-slate-200 bg-slate-50 px-4 py-2 text-[11px] leading-5 text-slate-600">
+        OpenStreetMap tiles with illustrative London-area
+        coordinates and straight-line demo routes. No live GPS,
+        verified road routing, or measured divergence. Research
+        assurance decisions remain provided by the EXP-010 backend.
+      </p>
+    </section>
+  );
+}
