@@ -1,8 +1,12 @@
+import { useActiveView } from "./hooks/useActiveView";
+import DaraView from "./components/control/DaraView";
+import VehicleTrackingView from "./components/tracking/VehicleTrackingView";
+import OperationsView from "./components/operations/OperationsView";
+import AISafetyView from "./components/safety/AISafetyView";
 import { useEffect, useState } from "react";
 import {
   AlertCircle,
   LoaderCircle,
-  Radio,
   ServerOff,
 } from "lucide-react";
 
@@ -15,8 +19,6 @@ import {
 } from "./api/client";
 
 import ApplicationShell from "./components/layout/ApplicationShell";
-import ScenarioControl from "./components/scenario/ScenarioControl";
-import ScenarioWorkspace from "./components/workspace/ScenarioWorkspace";
 
 import type {
   HealthResponse,
@@ -44,16 +46,16 @@ function AppLoadingState() {
           <LoaderCircle
             size={23}
             strokeWidth={1.8}
-            className="animate-spin text-violet-400"
+            className="animate-spin text-blue-600"
           />
         </div>
 
-        <h2 className="text-sm font-semibold text-zinc-200">
+        <h2 className="text-sm font-semibold text-slate-900">
           Connecting to DARA-DT
         </h2>
 
-        <p className="mt-2 text-xs leading-5 text-zinc-600">
-          Loading the runtime assurance service and available
+        <p className="mt-2 text-xs leading-5 text-slate-500">
+          Loading the simulation service and available
           operational situations.
         </p>
       </div>
@@ -78,13 +80,13 @@ function ApplicationErrorState({
           />
         </div>
 
-        <h2 className="text-sm font-semibold text-zinc-200">
-          Research API unavailable
+        <h2 className="text-sm font-semibold text-slate-900">
+          Simulation service unavailable
         </h2>
 
-        <p className="mt-2 text-xs leading-5 text-zinc-500">
+        <p className="mt-2 text-xs leading-5 text-slate-600">
           DARA-DT cannot load operational situations until the
-          research API is connected.
+          simulation service is connected.
         </p>
 
         <div className="mt-5 flex items-start gap-2 rounded-xl border border-white/[0.05] bg-black/20 p-3 text-left">
@@ -94,7 +96,7 @@ function ApplicationErrorState({
             className="mt-0.5 shrink-0 text-red-400"
           />
 
-          <span className="text-[11px] leading-5 text-zinc-500">
+          <span className="text-[11px] leading-5 text-slate-600">
             {message}
           </span>
         </div>
@@ -104,82 +106,7 @@ function ApplicationErrorState({
 }
 
 
-function EmptyWorkspace() {
-  return (
-    <section className="relative overflow-hidden rounded-2xl border border-white/[0.055] bg-[#0c0f14]">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0"
-      >
-        <div className="absolute left-1/2 top-1/2 size-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet-500/[0.035] blur-[110px]" />
 
-        <div
-          className="absolute inset-0 opacity-[0.025]"
-          style={{
-            backgroundImage:
-              "linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)",
-            backgroundSize: "42px 42px",
-          }}
-        />
-      </div>
-
-      <div className="relative flex min-h-[430px] flex-col items-center justify-center px-6 text-center">
-        <div className="relative mb-6">
-          <div className="absolute inset-0 scale-[2.4] rounded-full bg-violet-500/[0.05] blur-2xl" />
-
-          <div className="relative grid size-16 place-items-center rounded-2xl border border-violet-400/15 bg-violet-500/[0.07] shadow-[0_0_50px_rgba(139,92,246,0.07)]">
-            <Radio
-              size={27}
-              strokeWidth={1.6}
-              className="text-violet-300"
-            />
-          </div>
-
-          <span className="absolute -right-1 -top-1 flex size-3">
-            <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-30" />
-            <span className="relative inline-flex size-3 rounded-full border-2 border-[#0c0f14] bg-emerald-400" />
-          </span>
-        </div>
-
-        <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-violet-400">
-          Digital Twin Ready
-        </div>
-
-        <h2 className="max-w-xl text-xl font-semibold tracking-[-0.02em] text-zinc-100 sm:text-2xl">
-          Select a situation to see the system think
-        </h2>
-
-        <p className="mt-3 max-w-lg text-[13px] leading-6 text-zinc-500">
-          Run an operational situation to visualise the
-          real-world state, Digital Twin, AI recommendation,
-          information problems and DARA-DT trust decision.
-        </p>
-
-        <div className="mt-7 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[10px] text-zinc-600">
-          <span className="flex items-center gap-1.5">
-            <span className="size-1.5 rounded-full bg-blue-400" />
-            Real-world state
-          </span>
-
-          <span className="flex items-center gap-1.5">
-            <span className="size-1.5 rounded-full bg-violet-400" />
-            Digital Twin
-          </span>
-
-          <span className="flex items-center gap-1.5">
-            <span className="size-1.5 rounded-full bg-amber-400" />
-            AI recommendation
-          </span>
-
-          <span className="flex items-center gap-1.5">
-            <span className="size-1.5 rounded-full bg-emerald-400" />
-            Trust check
-          </span>
-        </div>
-      </div>
-    </section>
-  );
-}
 
 
 function App() {
@@ -245,7 +172,7 @@ function App() {
         }
 
         setError(
-          `Research API unavailable: ${getErrorMessage(
+          `Simulation service unavailable: ${getErrorMessage(
             caughtError,
           )}`,
         );
@@ -297,6 +224,8 @@ function App() {
   }
 
 
+  const activeView = useActiveView();
+
   const runtimeReady =
     health?.status === "ok" &&
     project !== null;
@@ -312,26 +241,39 @@ function App() {
         />
       ) : (
         <div className="space-y-4">
-          <ScenarioControl
+
+          {activeView === "ai-safety" ? (
+            <AISafetyView
+              scenario={scenarioResult}
+              scenarioId={selectedScenario || "F0-A"}
+            />
+          ) : activeView === "operations" ? (
+            <OperationsView
+              scenarios={scenarios}
+              selectedScenario={selectedScenario}
+              runningScenario={runningScenario}
+              error={scenarioError}
+              onScenarioChange={handleScenarioChange}
+              onRunScenario={() => void handleRunScenario()}
+            />
+          ) : activeView === "vehicle-tracking" ? (
+            <VehicleTrackingView
+              scenarioId={selectedScenario || "F0-A"}
+            />
+          ) : (
+          <DaraView
             scenarios={scenarios}
             selectedScenario={selectedScenario}
             runningScenario={runningScenario}
             error={scenarioError}
-            onScenarioChange={
-              handleScenarioChange
-            }
-            onRunScenario={() => {
-              void handleRunScenario();
-            }}
+            onScenarioChange={handleScenarioChange}
+            onRunScenario={() => void handleRunScenario()}
+            scenarioId={selectedScenario || "F0-A"}
+            scenario={scenarioResult}
           />
-
-          {scenarioResult ? (
-            <ScenarioWorkspace
-              scenario={scenarioResult}
-            />
-          ) : (
-            <EmptyWorkspace />
           )}
+
+
 
           {runtimeReady ? (
             <div className="flex items-center justify-between border-t border-white/[0.04] px-1 pt-3">
@@ -341,7 +283,7 @@ function App() {
               </div>
 
               <span className="text-[10px] text-zinc-700">
-                Research-backed operational demonstrator
+                Simulated environment · No live vehicle telemetry
               </span>
             </div>
           ) : null}
